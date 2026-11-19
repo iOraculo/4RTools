@@ -1,0 +1,95 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v2
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore NuGet packages (4RTools)
+        run: nuget restore 4RTools.csproj -PackagesDirectory packages
+
+      - name: Restore NuGet packages (Tests)
+        run: dotnet restore tests/4RTools.Tests/4RTools.Tests.csproj
+
+      - name: Build solution (Release)
+        run: msbuild 4RTools.sln /p:Configuration=Release /p:Platform="Any CPU" /m
+
+      - name: Run unit tests
+        run: dotnet test tests/4RTools.Tests/4RTools.Tests.csproj --no-build -c Release --verbosity normal
+
+      - name: Package Release assets
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item "bin/Release/4RTools.exe" "dist/4RTools.exe"
+          Compress-Archive -Path "dist/4RTools.exe" -DestinationPath "dist/4RTools-$tag.zip" -Force
+          $exeHash = (Get-FileHash "dist/4RTools.exe" -Algorithm SHA256).Hash.ToLowerInvariant()
+          $zipHash = (Get-FileHash "dist/4RTools-$tag.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
+          @(
+            "$zipHash  4RTools-$tag.zip"
+            "$exeHash  4RTools.exe"
+          ) | Set-Content -Path "dist/SHA256SUMS.txt" -Encoding UTF8
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $isPrerelease = $tag.Contains("-")
+          $notes = @(
+            ('Automated Windows Release build for **{0}** (built & tested on GitHub Actions).' -f $tag),
+            '',
+            '### How to run',
+            ('1. Download `4RTools-{0}.zip` (recommended) or `4RTools.exe`.' -f $tag),
+            '2. Extract and run `4RTools.exe` (Windows 10/11 with .NET Framework 4.7.2+).',
+            '3. Run as Administrator if your Ragnarok client runs elevated.',
+            '',
+            '### SHA-256 Checksums',
+            '```',
+            (Get-Content "dist/SHA256SUMS.txt" -Raw).Trim(),
+            '```'
+          ) -join "`n"
+          $notesPath = "dist/RELEASE_NOTES.md"
+          Set-Content -Path $notesPath -Value $notes -Encoding UTF8
+
+          $argsList = @(
+            "release", "create", $tag,
+            "dist/4RTools-$tag.zip",
+            "dist/4RTools.exe",
+            "dist/SHA256SUMS.txt",
+            "--title", "4RTools $tag",
+            "--notes-file", $notesPath
+          )
+          if ($isPrerelease) {
+            $argsList += "--prerelease"
+          }
+          & gh @argsList
+          if ($LASTEXITCODE -ne 0) {
+            throw "gh release create failed with exit code $LASTEXITCODE"
+          }
