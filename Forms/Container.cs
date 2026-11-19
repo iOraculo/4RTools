@@ -13,15 +13,18 @@ namespace _4RTools.Forms
         private readonly Timer clientMonitorTimer;
         private readonly Timer vitalsTimer;
         private readonly byte[] vitalsBuffer = new byte[Constants.HP_SP_BLOCK_BYTE_SIZE];
-        private readonly AppSettings appSettings;
+        private AppSettings appSettings;
         private CheckBox cbDarkMode;
         private CheckBox cbTopMost;
+        private CheckBox cbMiniHud;
         private VitalBar hpBar;
         private VitalBar spBar;
+        private MiniHudForm miniHud;
         private ToolTip headerToolTip;
         private ProfileForm profileForm;
         private string currentProfile;
         private string lastDetectedCharacter = string.Empty;
+        private bool isAutomationOn;
         private bool isApplyingSettings;
         private bool isShuttingDown;
 
@@ -48,6 +51,8 @@ namespace _4RTools.Forms
             this.vitalsTimer.Interval = 300;
             this.vitalsTimer.Tick += VitalsTimer_Tick;
 
+            ChatPauseState.StateChanged += OnChatPauseStateChanged;
+
             // Paint Children Forms
             SetToggleApplicationStateWindow();
             SetAutopotWindow();
@@ -73,7 +78,7 @@ namespace _4RTools.Forms
             this.cbDarkMode = new CheckBox
             {
                 AutoSize = true,
-                Location = new Point(240, 12),
+                Location = new Point(230, 12),
                 Name = "cbDarkMode",
                 Text = "Dark Mode",
                 UseVisualStyleBackColor = true,
@@ -82,10 +87,22 @@ namespace _4RTools.Forms
             this.headerToolTip.SetToolTip(this.cbDarkMode, "Switch between Light and Dark interface themes");
             this.cbDarkMode.CheckedChanged += OnDarkModeCheckedChanged;
 
+            this.cbMiniHud = new CheckBox
+            {
+                AutoSize = true,
+                Location = new Point(318, 12),
+                Name = "cbMiniHud",
+                Text = "Mini HUD",
+                UseVisualStyleBackColor = true,
+                Tag = FormUtils.SKIP_RESET_TAG
+            };
+            this.headerToolTip.SetToolTip(this.cbMiniHud, "Show a compact floating overlay with status and HP/SP bars");
+            this.cbMiniHud.CheckedChanged += OnMiniHudCheckedChanged;
+
             this.cbTopMost = new CheckBox
             {
                 AutoSize = true,
-                Location = new Point(240, 33),
+                Location = new Point(230, 34),
                 Name = "cbTopMost",
                 Text = "Always on Top",
                 UseVisualStyleBackColor = true,
@@ -109,6 +126,7 @@ namespace _4RTools.Forms
             };
 
             this.Controls.Add(this.cbDarkMode);
+            this.Controls.Add(this.cbMiniHud);
             this.Controls.Add(this.cbTopMost);
             this.Controls.Add(this.hpBar);
             this.Controls.Add(this.spBar);
@@ -121,13 +139,30 @@ namespace _4RTools.Forms
             {
                 this.cbDarkMode.Checked = this.appSettings.DarkMode;
                 this.cbTopMost.Checked = this.appSettings.AlwaysOnTop;
+                this.cbMiniHud.Checked = this.appSettings.ShowMiniHud;
                 this.TopMost = this.appSettings.AlwaysOnTop;
                 ThemeManager.ApplyTheme(this, this.appSettings.DarkMode);
+                SetMiniHudVisible(this.appSettings.ShowMiniHud);
             }
             finally
             {
                 this.isApplyingSettings = false;
             }
+        }
+
+        public void ReloadAppSettings()
+        {
+            this.appSettings = AppSettings.Load();
+            ApplyAppSettingsToUi();
+            if (this.profileForm != null)
+            {
+                this.profileForm.RefreshCharacterBindingUi();
+            }
+        }
+
+        public void NotifyServersRestored()
+        {
+            this.subject.Notify(new Utils.Message(MessageCode.SERVER_LIST_CHANGED, "Servers Restored"));
         }
 
         private void OnDarkModeCheckedChanged(object sender, EventArgs e)
@@ -139,6 +174,10 @@ namespace _4RTools.Forms
 
             this.appSettings.DarkMode = this.cbDarkMode.Checked;
             ThemeManager.ApplyTheme(this, this.appSettings.DarkMode);
+            if (this.miniHud != null && !this.miniHud.IsDisposed)
+            {
+                this.miniHud.ApplyHudTheme(this.appSettings.DarkMode);
+            }
             AppSettings.Save(this.appSettings);
         }
 
@@ -152,6 +191,93 @@ namespace _4RTools.Forms
             this.appSettings.AlwaysOnTop = this.cbTopMost.Checked;
             this.TopMost = this.appSettings.AlwaysOnTop;
             AppSettings.Save(this.appSettings);
+        }
+
+        private void OnMiniHudCheckedChanged(object sender, EventArgs e)
+        {
+            if (this.isApplyingSettings)
+            {
+                return;
+            }
+
+            this.appSettings.ShowMiniHud = this.cbMiniHud.Checked;
+            SetMiniHudVisible(this.appSettings.ShowMiniHud);
+            AppSettings.Save(this.appSettings);
+        }
+
+        private void SetMiniHudVisible(bool visible)
+        {
+            if (visible)
+            {
+                if (this.miniHud == null || this.miniHud.IsDisposed)
+                {
+                    this.miniHud = new MiniHudForm();
+                    this.miniHud.CloseRequested += OnMiniHudCloseRequested;
+                    this.miniHud.PositionChanged += OnMiniHudPositionChanged;
+                    this.miniHud.SetSavedPosition(this.appSettings.MiniHudX, this.appSettings.MiniHudY);
+                }
+
+                this.miniHud.ApplyHudTheme(this.appSettings.DarkMode);
+                this.miniHud.UpdateStatus(this.isAutomationOn, ChatPauseState.IsChatting);
+                this.miniHud.UpdateIdentity(this.currentProfile ?? ProfileSingleton.GetCurrent().Name, this.characterName.Text);
+                if (!this.miniHud.Visible)
+                {
+                    this.miniHud.Show();
+                }
+
+                UpdateVitalsDisplay(ClientSingleton.GetClient());
+            }
+            else if (this.miniHud != null && !this.miniHud.IsDisposed && this.miniHud.Visible)
+            {
+                this.miniHud.Hide();
+            }
+        }
+
+        private void OnMiniHudCloseRequested(object sender, EventArgs e)
+        {
+            if (this.IsDisposed)
+            {
+                return;
+            }
+
+            this.cbMiniHud.Checked = false;
+        }
+
+        private void OnMiniHudPositionChanged(object sender, EventArgs e)
+        {
+            if (this.miniHud == null || this.miniHud.IsDisposed || this.appSettings == null)
+            {
+                return;
+            }
+
+            this.appSettings.MiniHudX = this.miniHud.Location.X;
+            this.appSettings.MiniHudY = this.miniHud.Location.Y;
+            AppSettings.Save(this.appSettings);
+        }
+
+        private void OnChatPauseStateChanged(object sender, EventArgs e)
+        {
+            if (this.IsDisposed || !this.IsHandleCreated)
+            {
+                return;
+            }
+
+            MethodInvoker updateHud = delegate
+            {
+                if (this.miniHud != null && !this.miniHud.IsDisposed)
+                {
+                    this.miniHud.UpdateStatus(this.isAutomationOn, ChatPauseState.IsChatting);
+                }
+            };
+
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(updateHud);
+            }
+            else
+            {
+                updateHud();
+            }
         }
 
         public bool GetAutoSwitchByCharacter()
@@ -213,6 +339,10 @@ namespace _4RTools.Forms
                 this.vitalsTimer.Stop();
                 this.hpBar.ClearValues();
                 this.spBar.ClearValues();
+                if (this.miniHud != null && !this.miniHud.IsDisposed)
+                {
+                    this.miniHud.ClearVitals();
+                }
                 this.lastDetectedCharacter = string.Empty;
                 return;
             }
@@ -227,6 +357,10 @@ namespace _4RTools.Forms
                 {
                     this.lastDetectedCharacter = normalized;
                     this.characterName.Text = string.IsNullOrEmpty(normalized) ? "- -" : normalized;
+                    if (this.miniHud != null && !this.miniHud.IsDisposed)
+                    {
+                        this.miniHud.UpdateIdentity(this.currentProfile ?? ProfileSingleton.GetCurrent().Name, this.characterName.Text);
+                    }
 
                     if (!string.IsNullOrEmpty(normalized) && this.profileCB.Enabled)
                     {
@@ -248,12 +382,20 @@ namespace _4RTools.Forms
                 {
                     this.hpBar.UpdateValues(currentHp, maxHp);
                     this.spBar.UpdateValues(currentSp, maxSp);
+                    if (this.miniHud != null && !this.miniHud.IsDisposed)
+                    {
+                        this.miniHud.UpdateVitals(currentHp, maxHp, currentSp, maxSp);
+                    }
                     return;
                 }
             }
 
             this.hpBar.ClearValues();
             this.spBar.ClearValues();
+            if (this.miniHud != null && !this.miniHud.IsDisposed)
+            {
+                this.miniHud.ClearVitals();
+            }
         }
 
         private void ClientMonitorTimer_Tick(object sender, EventArgs e)
@@ -263,6 +405,7 @@ namespace _4RTools.Forms
             {
                 this.clientMonitorTimer.Stop();
                 this.vitalsTimer.Stop();
+                this.isAutomationOn = false;
                 this.subject.Notify(new Utils.Message(MessageCode.TURN_OFF, null));
                 this.subject.Notify(new Utils.Message(MessageCode.CLIENT_DISCONNECTED, null));
                 ClientSingleton.Clear();
@@ -270,6 +413,12 @@ namespace _4RTools.Forms
                 this.characterName.Text = "- -";
                 this.hpBar.ClearValues();
                 this.spBar.ClearValues();
+                if (this.miniHud != null && !this.miniHud.IsDisposed)
+                {
+                    this.miniHud.ClearVitals();
+                    this.miniHud.UpdateIdentity(this.currentProfile ?? ProfileSingleton.GetCurrent().Name, "- -");
+                    this.miniHud.UpdateStatus(false, false);
+                }
                 this.refreshProcessList();
             }
         }
@@ -449,10 +598,19 @@ namespace _4RTools.Forms
 
             try
             {
+                ChatPauseState.StateChanged -= OnChatPauseStateChanged;
                 this.clientMonitorTimer.Stop();
                 this.clientMonitorTimer.Dispose();
                 this.vitalsTimer.Stop();
                 this.vitalsTimer.Dispose();
+                if (this.miniHud != null && !this.miniHud.IsDisposed)
+                {
+                    this.miniHud.CloseRequested -= OnMiniHudCloseRequested;
+                    this.miniHud.PositionChanged -= OnMiniHudPositionChanged;
+                    this.miniHud.Close();
+                    this.miniHud.Dispose();
+                    this.miniHud = null;
+                }
                 if (this.headerToolTip != null)
                 {
                     this.headerToolTip.Dispose();
@@ -501,6 +659,31 @@ namespace _4RTools.Forms
             }
         }
 
+        public void ReloadCurrentProfile()
+        {
+            string active = !string.IsNullOrWhiteSpace(this.currentProfile)
+                ? this.currentProfile
+                : ProfileSingleton.GetCurrent().Name;
+
+            if (string.IsNullOrWhiteSpace(active))
+            {
+                return;
+            }
+
+            try
+            {
+                ProfileSingleton.Load(active);
+                using (ProfileSingleton.SuppressSave())
+                {
+                    this.subject.Notify(new Utils.Message(MessageCode.PROFILE_CHANGED, null));
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn("Container", "Failed to reload active profile '" + active + "'", ex);
+            }
+        }
+
         private void profileCB_SelectedIndexChanged(object sender, EventArgs e)
         {
             string selected = this.profileCB.Text;
@@ -512,11 +695,11 @@ namespace _4RTools.Forms
             try
             {
                 ProfileSingleton.Load(selected);
+                this.currentProfile = selected;
                 using (ProfileSingleton.SuppressSave())
                 {
                     this.subject.Notify(new Utils.Message(MessageCode.PROFILE_CHANGED, null));
                 }
-                this.currentProfile = selected;
             }
             catch (Exception ex)
             {
@@ -558,18 +741,32 @@ namespace _4RTools.Forms
                     {
                         this.profileForm.RefreshCharacterBindingUi();
                     }
+                    if (this.miniHud != null && !this.miniHud.IsDisposed)
+                    {
+                        this.miniHud.UpdateIdentity(this.currentProfile ?? ProfileSingleton.GetCurrent().Name, this.characterName.Text);
+                    }
                     break;
                 case MessageCode.TURN_OFF:
+                    this.isAutomationOn = false;
                     this.clientMonitorTimer.Stop();
                     this.profileCB.Enabled = true;
                     this.processCB.Enabled = true;
+                    if (this.miniHud != null && !this.miniHud.IsDisposed)
+                    {
+                        this.miniHud.UpdateStatus(false, false);
+                    }
                     break;
                 case MessageCode.TURN_ON:
+                    this.isAutomationOn = true;
                     this.profileCB.Enabled = false;
                     this.processCB.Enabled = false;
                     UpdateCharacterNameLabel(false);
                     this.clientMonitorTimer.Start();
                     this.vitalsTimer.Start();
+                    if (this.miniHud != null && !this.miniHud.IsDisposed)
+                    {
+                        this.miniHud.UpdateStatus(true, ChatPauseState.IsChatting);
+                    }
                     break;
                 case MessageCode.SERVER_LIST_CHANGED:
                     this.refreshProcessList();
@@ -604,6 +801,11 @@ namespace _4RTools.Forms
             {
                 this.lastDetectedCharacter = string.Empty;
                 this.characterName.Text = "- -";
+            }
+
+            if (this.miniHud != null && !this.miniHud.IsDisposed)
+            {
+                this.miniHud.UpdateIdentity(this.currentProfile ?? ProfileSingleton.GetCurrent().Name, this.characterName.Text);
             }
         }
 

@@ -263,6 +263,9 @@
     <Compile Include="Forms\MacroSwitchForm.Designer.cs">
       <DependentUpon>MacroSwitchForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\MiniHudForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\ServersForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -359,10 +362,12 @@
     <Compile Include="Utils\FormUtils.cs" />
     <Compile Include="Utils\HttpClientProvider.cs" />
     <Compile Include="Utils\Interop.cs" />
+    <Compile Include="Utils\KeybindConflictDetector.cs" />
     <Compile Include="Utils\KeyboardHook.cs" />
     <Compile Include="Utils\KeyHelper.cs" />
     <Compile Include="Utils\Logger.cs" />
     <Compile Include="Utils\ProcessMemoryReader.cs" />
+    <Compile Include="Utils\ProfileBackupManager.cs" />
     <Compile Include="Utils\RObserver.cs" />
     <Compile Include="Utils\ThemeManager.cs" />
     <Compile Include="Utils\VitalBar.cs" />

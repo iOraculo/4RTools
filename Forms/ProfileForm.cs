@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using _4RTools.Model;
@@ -20,6 +21,7 @@ namespace _4RTools.Forms
             this.container = container;
             InitializeImportExportButtons();
             InitializeCharacterBindingPanel();
+            InitializeBackupAndDiagnosticsBar();
             this.lbProfilesList.SelectedIndexChanged += lbProfilesList_SelectedIndexChanged;
             RefreshProfileList();
             RefreshCharacterBindingUi();
@@ -49,6 +51,43 @@ namespace _4RTools.Forms
 
             this.Controls.Add(btnExport);
             this.Controls.Add(btnImport);
+        }
+
+        private void InitializeBackupAndDiagnosticsBar()
+        {
+            Button btnBackupZip = new Button
+            {
+                Location = new Point(23, 224),
+                Name = "btnBackupZip",
+                Size = new Size(115, 25),
+                Text = "Backup All (.zip)",
+                UseVisualStyleBackColor = true
+            };
+            btnBackupZip.Click += btnBackupZip_Click;
+
+            Button btnRestoreZip = new Button
+            {
+                Location = new Point(146, 224),
+                Name = "btnRestoreZip",
+                Size = new Size(115, 25),
+                Text = "Restore (.zip)",
+                UseVisualStyleBackColor = true
+            };
+            btnRestoreZip.Click += btnRestoreZip_Click;
+
+            Button btnCheckConflicts = new Button
+            {
+                Location = new Point(267, 224),
+                Name = "btnCheckConflicts",
+                Size = new Size(140, 25),
+                Text = "Check Key Conflicts",
+                UseVisualStyleBackColor = true
+            };
+            btnCheckConflicts.Click += btnCheckConflicts_Click;
+
+            this.Controls.Add(btnBackupZip);
+            this.Controls.Add(btnRestoreZip);
+            this.Controls.Add(btnCheckConflicts);
         }
 
         private void InitializeCharacterBindingPanel()
@@ -428,6 +467,89 @@ namespace _4RTools.Forms
                     }
                 }
             }
+        }
+
+        private void btnBackupZip_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog dialog = new SaveFileDialog())
+            {
+                dialog.Filter = "4RTools Backup (*.zip)|*.zip";
+                dialog.FileName = "4RTools-Backup-" + DateTime.Now.ToString("yyyyMMdd-HHmm") + ".zip";
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        int count = ProfileBackupManager.ExportBackupZip(dialog.FileName);
+                        MessageBox.Show(
+                            string.Format("Backup created successfully ({0} file(s) exported)!", count),
+                            "Backup All",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn("ProfileForm", "Failed to export full backup", ex);
+                        MessageBox.Show("Failed to create backup: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private void btnRestoreZip_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog dialog = new OpenFileDialog())
+            {
+                dialog.Filter = "4RTools Backup (*.zip)|*.zip";
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    if (MessageBox.Show(
+                            "Restore profiles, custom servers, and settings from this backup?\nExisting profiles with the same name will be updated.",
+                            "Restore Backup",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question) != DialogResult.Yes)
+                    {
+                        return;
+                    }
+
+                    try
+                    {
+                        BackupRestoreResult result = ProfileBackupManager.ImportBackupZip(dialog.FileName);
+                        RefreshProfileList();
+                        this.container.refreshProfileList();
+                        this.container.ReloadCurrentProfile();
+
+                        if (result.ServersRestored)
+                        {
+                            this.container.NotifyServersRestored();
+                        }
+                        if (result.SettingsRestored)
+                        {
+                            this.container.ReloadAppSettings();
+                        }
+
+                        string summary = string.Format(
+                            "Backup restored!\nProfiles restored: {0}\nCustom servers restored: {1}\nApp settings restored: {2}",
+                            result.ProfilesRestored,
+                            result.ServersRestored ? "Yes" : "No",
+                            result.SettingsRestored ? "Yes" : "No");
+                        MessageBox.Show(summary, "Restore Backup", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn("ProfileForm", "Failed to restore backup", ex);
+                        MessageBox.Show("Failed to restore backup: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private void btnCheckConflicts_Click(object sender, EventArgs e)
+        {
+            Profile current = ProfileSingleton.GetCurrent();
+            List<KeybindConflict> conflicts = KeybindConflictDetector.DetectConflicts(current);
+            string report = KeybindConflictDetector.FormatReport(current != null ? current.Name : "Default", conflicts);
+            MessageBoxIcon icon = conflicts.Count > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Information;
+            MessageBox.Show(report, "Keybind Conflict Inspector", MessageBoxButtons.OK, icon);
         }
     }
 }

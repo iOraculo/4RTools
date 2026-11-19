@@ -19,6 +19,9 @@ namespace _4RTools.Model
         public bool DarkMode { get; set; } = false;
         public bool AlwaysOnTop { get; set; } = false;
         public bool AutoSwitchProfileByCharacter { get; set; } = true;
+        public bool ShowMiniHud { get; set; } = false;
+        public int MiniHudX { get; set; } = -1;
+        public int MiniHudY { get; set; } = -1;
 
         public static AppSettings Load()
         {

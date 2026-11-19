@@ -12,6 +12,9 @@ namespace _4RTools.Forms
         private readonly List<BuffContainer> skillContainers = new List<BuffContainer>();
         private readonly BuffRenderer renderer;
         private TextBox txtSearch;
+        private NumericUpDown numMinSp;
+        private NumericUpDown numCooldown;
+        private bool isUpdatingOptions;
 
         public SkillAutoBuffForm(Subject subject)
         {
@@ -36,6 +39,7 @@ namespace _4RTools.Forms
             this.renderer = new BuffRenderer("Autobuff", this.skillContainers, this.toolTip1);
             InitializeSearchBar();
             this.renderer.doRender(42);
+            this.VisibleChanged += (s, e) => SyncAutobuffOptionsFromProfile();
             subject.Attach(this);
         }
 
@@ -44,23 +48,62 @@ namespace _4RTools.Forms
             Label lblSearch = new Label
             {
                 AutoSize = true,
-                Location = new Point(10, 14),
+                Location = new Point(8, 14),
                 Text = "Filter:"
             };
 
             this.txtSearch = new TextBox
             {
-                Location = new Point(52, 10),
-                Size = new Size(375, 20),
+                Location = new Point(46, 10),
+                Size = new Size(162, 20),
                 Name = "txtSkillSearch",
                 Tag = FormUtils.SKIP_RESET_TAG
             };
             this.txtSearch.TextChanged += (s, e) => this.renderer.ApplyFilter(this.txtSearch.Text);
 
+            Label lblMinSp = new Label
+            {
+                AutoSize = true,
+                Location = new Point(214, 14),
+                Text = "Min SP%:"
+            };
+
+            this.numMinSp = new NumericUpDown
+            {
+                Location = new Point(268, 10),
+                Size = new Size(44, 20),
+                Minimum = 0,
+                Maximum = 99,
+                Name = "numSkillMinSp",
+                Tag = FormUtils.SKIP_RESET_TAG
+            };
+            this.toolTip1.SetToolTip(this.numMinSp, "Pause Autobuff when SP is below this % (0 = disabled)");
+            this.numMinSp.ValueChanged += OnAutobuffOptionsChanged;
+
+            Label lblCooldown = new Label
+            {
+                AutoSize = true,
+                Location = new Point(318, 14),
+                Text = "CD(ms):"
+            };
+
+            this.numCooldown = new NumericUpDown
+            {
+                Location = new Point(365, 10),
+                Size = new Size(64, 20),
+                Minimum = 0,
+                Maximum = 30000,
+                Increment = 250,
+                Name = "numSkillCooldown",
+                Tag = FormUtils.SKIP_RESET_TAG
+            };
+            this.toolTip1.SetToolTip(this.numCooldown, "Per-buff recast cooldown in milliseconds (e.g. 1500ms prevents double-use)");
+            this.numCooldown.ValueChanged += OnAutobuffOptionsChanged;
+
             Button btnClear = new Button
             {
-                Location = new Point(435, 9),
-                Size = new Size(95, 22),
+                Location = new Point(436, 9),
+                Size = new Size(94, 22),
                 Text = "Clear Skills",
                 UseVisualStyleBackColor = true
             };
@@ -74,7 +117,44 @@ namespace _4RTools.Forms
 
             this.Controls.Add(lblSearch);
             this.Controls.Add(this.txtSearch);
+            this.Controls.Add(lblMinSp);
+            this.Controls.Add(this.numMinSp);
+            this.Controls.Add(lblCooldown);
+            this.Controls.Add(this.numCooldown);
             this.Controls.Add(btnClear);
+        }
+
+        private void SyncAutobuffOptionsFromProfile()
+        {
+            if (this.numMinSp == null || this.numCooldown == null)
+            {
+                return;
+            }
+
+            this.isUpdatingOptions = true;
+            try
+            {
+                AutoBuff autobuff = ProfileSingleton.GetCurrent().Autobuff;
+                FormUtils.SetNumericValue(this.numMinSp, autobuff.minSpPercent);
+                FormUtils.SetNumericValue(this.numCooldown, autobuff.buffCooldownMs);
+            }
+            finally
+            {
+                this.isUpdatingOptions = false;
+            }
+        }
+
+        private void OnAutobuffOptionsChanged(object sender, EventArgs e)
+        {
+            if (this.isUpdatingOptions || ProfileSingleton.IsSaveSuppressed)
+            {
+                return;
+            }
+
+            AutoBuff autobuff = ProfileSingleton.GetCurrent().Autobuff;
+            autobuff.minSpPercent = Convert.ToInt32(this.numMinSp.Value);
+            autobuff.buffCooldownMs = Convert.ToInt32(this.numCooldown.Value);
+            ProfileSingleton.SetConfiguration(autobuff);
         }
 
         public void Update(ISubject subject)
@@ -89,6 +169,7 @@ namespace _4RTools.Forms
             {
                 case MessageCode.PROFILE_CHANGED:
                     BuffRenderer.doUpdate(ProfileSingleton.GetCurrent().Autobuff.GetBuffMappingSnapshot(), this);
+                    SyncAutobuffOptionsFromProfile();
                     break;
             }
         }

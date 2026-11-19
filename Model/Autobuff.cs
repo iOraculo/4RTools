@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -21,14 +22,29 @@ namespace _4RTools.Model
             EffectStatusIDs.SPEARQUICKEN
         };
 
+        private static readonly HashSet<EffectStatusIDs> IncapacitatingDebuffs = new HashSet<EffectStatusIDs>
+        {
+            EffectStatusIDs.SILENCE,
+            EffectStatusIDs.EFST_FREEZING,
+            EffectStatusIDs.EFST_STUN,
+            EffectStatusIDs.EFST_DEEP_SLEEP
+        };
+
         private readonly object mappingLock = new object();
+        private readonly Dictionary<EffectStatusIDs, long> lastCastTimesMs = new Dictionary<EffectStatusIDs, long>();
+        private readonly Stopwatch clock = Stopwatch.StartNew();
         private _4RThread thread;
+
         public int delay { get; set; } = 1;
+        public int minSpPercent { get; set; } = 0;
+        public int buffCooldownMs { get; set; } = 0;
+        public bool pauseOnDebuff { get; set; } = true;
         public Dictionary<EffectStatusIDs, Key> buffMapping = new Dictionary<EffectStatusIDs, Key>();
 
         public void Start()
         {
             Stop();
+            ResetCooldowns();
             Client roClient = ClientSingleton.GetClient();
             if (roClient != null)
             {
@@ -41,12 +57,14 @@ namespace _4RTools.Model
         {
             byte[] rawBuffer = new byte[Constants.STATUS_BUFFER_BYTE_SIZE];
             uint[] statusBuffer = new uint[Constants.MAX_BUFF_LIST_INDEX_SIZE];
+            byte[] vitalsBuffer = new byte[Constants.HP_SP_BLOCK_BYTE_SIZE];
 
             return new _4RThread(token =>
             {
                 if (c.HasMemorySupport && c.IsProcessAlive() && !c.ShouldPauseAutomation())
                 {
                     bool foundQuag = false;
+                    bool foundBlockingDebuff = false;
                     Dictionary<EffectStatusIDs, Key> missingBuffs = GetBuffMappingSnapshot();
 
                     if (missingBuffs.Count > 0)
@@ -72,26 +90,40 @@ namespace _4RTools.Model
                             {
                                 foundQuag = true;
                             }
+                            else if (IncapacitatingDebuffs.Contains(status))
+                            {
+                                foundBlockingDebuff = true;
+                            }
                         }
 
-                        if (missingBuffs.Count > 0 && c.ReadCurrentHp() >= Constants.MINIMUM_HP_TO_RECOVER)
+                        if (missingBuffs.Count > 0)
                         {
-                            foreach (KeyValuePair<EffectStatusIDs, Key> item in missingBuffs)
+                            uint currentHp;
+                            uint maxHp;
+                            uint currentSp;
+                            uint maxSp;
+                            bool hasVitals = c.TryReadVitals(vitalsBuffer, out currentHp, out maxHp, out currentSp, out maxSp);
+                            if (hasVitals && currentHp >= Constants.MINIMUM_HP_TO_RECOVER)
                             {
-                                if (token.IsCancellationRequested)
+                                long nowMs = this.clock.ElapsedMilliseconds;
+                                foreach (KeyValuePair<EffectStatusIDs, Key> item in missingBuffs)
                                 {
-                                    break;
-                                }
+                                    if (token.IsCancellationRequested)
+                                    {
+                                        break;
+                                    }
 
-                                if (foundQuag && QuagmireBlockedBuffs.Contains(item.Key))
-                                {
-                                    continue;
-                                }
+                                    if (!ShouldCastBuff(item.Key, nowMs, foundQuag, foundBlockingDebuff, currentSp, maxSp))
+                                    {
+                                        continue;
+                                    }
 
-                                UseAutobuff(c, item.Value);
-                                if (!_4RThread.Sleep(10, token))
-                                {
-                                    break;
+                                    UseAutobuff(c, item.Value);
+                                    RecordBuffCast(item.Key, nowMs);
+                                    if (!_4RThread.Sleep(10, token))
+                                    {
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -100,6 +132,61 @@ namespace _4RTools.Model
 
                 _4RThread.Sleep(300, token);
             }, ACTION_NAME_AUTOBUFF);
+        }
+
+        public bool ShouldCastBuff(
+            EffectStatusIDs status,
+            long nowMs,
+            bool hasQuagmire,
+            bool hasBlockingDebuff,
+            uint currentSp,
+            uint maxSp)
+        {
+            if (this.pauseOnDebuff && hasBlockingDebuff)
+            {
+                return false;
+            }
+
+            if (hasQuagmire && QuagmireBlockedBuffs.Contains(status))
+            {
+                return false;
+            }
+
+            if (this.minSpPercent > 0 && Client.IsBelowPercent(currentSp, maxSp, this.minSpPercent))
+            {
+                return false;
+            }
+
+            int cooldown = this.buffCooldownMs;
+            if (cooldown > 0)
+            {
+                lock (this.mappingLock)
+                {
+                    long lastCast;
+                    if (this.lastCastTimesMs.TryGetValue(status, out lastCast) && (nowMs - lastCast) < cooldown)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        public void RecordBuffCast(EffectStatusIDs status, long nowMs)
+        {
+            lock (this.mappingLock)
+            {
+                this.lastCastTimesMs[status] = nowMs;
+            }
+        }
+
+        public void ResetCooldowns()
+        {
+            lock (this.mappingLock)
+            {
+                this.lastCastTimesMs.Clear();
+            }
         }
 
         public void AddKeyToBuff(EffectStatusIDs status, Key key)
@@ -123,6 +210,7 @@ namespace _4RTools.Model
             lock (this.mappingLock)
             {
                 this.buffMapping.Clear();
+                this.lastCastTimesMs.Clear();
             }
         }
 
@@ -138,6 +226,7 @@ namespace _4RTools.Model
         {
             _4RThread.Stop(this.thread);
             this.thread = null;
+            ResetCooldowns();
         }
 
         public string GetConfiguration()
