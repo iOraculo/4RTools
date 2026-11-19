@@ -101,7 +101,7 @@ namespace _4RTools.Model
 
         private void Pot(Client roClient, Key key)
         {
-            if (key == Key.None || KeyHelper.IsAltPressed() || roClient == null)
+            if (key == Key.None || KeyHelper.IsAltPressed() || roClient == null || roClient.ShouldPauseAutopotKey(key))
             {
                 return;
             }

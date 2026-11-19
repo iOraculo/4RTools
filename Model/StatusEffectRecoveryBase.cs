@@ -106,7 +106,7 @@ namespace _4RTools.Model
 
             return new _4RThread(token =>
             {
-                if (client.HasMemorySupport && client.IsProcessAlive() && !client.ShouldPauseForFocus())
+                if (client.HasMemorySupport && client.IsProcessAlive() && !client.ShouldPauseAutomation())
                 {
                     Dictionary<EffectStatusIDs, Key> snapshot = GetBuffMappingSnapshot();
                     int count = client.ReadBuffStatusBuffer(rawBuffer, statusBuffer);

@@ -9,6 +9,8 @@ namespace _4RTools.Model
         public string toggleStateKey { get; set; } = Keys.End.ToString();
         public bool soundEnabled { get; set; } = true;
         public bool pauseWhenUnfocused { get; set; } = false;
+        public bool pauseOnChat { get; set; } = false;
+        public string boundCharacter { get; set; } = string.Empty;
 
         public UserPreferences()
         {

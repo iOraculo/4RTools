@@ -31,12 +31,14 @@ dotnet test tests/4RTools.Tests/4RTools.Tests.csproj -c Release
 ```
 
 ## Features
-- [x] ON/OFF Button (with shortcut key, persistent sound toggle & optional game-focus pause)
+- [x] Dark Mode & Always on Top window pin (persisted in `settings.json`)
+- [x] Real-time HP/SP vital bars in the main header
+- [x] ON/OFF Button (shortcut key, persistent Sound toggle, Focus-only pause & Chat-Safe Pause)
 - [x] Automatic disconnect detection when the Ragnarok client closes
-- [x] Autopot (Normal & Yggdrasil)
+- [x] Autopot (Normal & Yggdrasil; F-key pots stay active during Chat-Safe Pause)
 - [x] Autobuff status & Elvira Candy cooldown support + Auto Stand
-- [x] Manage Profiles (Create, Rename, Copy, Delete, Import & Export)
-- [x] AHK Spammer (Compatibility & Speed Boost modes)
+- [x] Manage Profiles (Create, Rename, Copy, Delete, Import, Export & Auto-Switch by Character)
+- [x] AHK Spammer (Compatibility & Speed Boost modes + Clear All Keys)
 - [x] Auto Refresh Spammer (Skill Timers)
 - [x] Autobuff Stuffs & Skills with instant search filter and Clear All
 - [x] Song Macro (with working per-lane Reset)

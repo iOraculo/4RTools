@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Windows.Forms;
 using System.Windows.Input;
 using _4RTools.Model;
@@ -10,12 +11,61 @@ namespace _4RTools.Forms
     public partial class AHKForm : Form, IObserver
     {
         private bool isUpdatingUi;
+        private Button btnClearAllKeys;
 
         public AHKForm(Subject subject)
         {
             InitializeComponent();
+            InitializeClearAllButton();
             InitializeCheckAsThreeState();
             subject.Attach(this);
+        }
+
+        private void InitializeClearAllButton()
+        {
+            this.btnClearAllKeys = new Button
+            {
+                Location = new Point(426, 122),
+                Name = "btnClearAllKeys",
+                Size = new Size(122, 26),
+                Text = "Clear All Keys",
+                UseVisualStyleBackColor = true
+            };
+            this.btnClearAllKeys.Click += btnClearAllKeys_Click;
+            this.Controls.Add(this.btnClearAllKeys);
+        }
+
+        private void btnClearAllKeys_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show(
+                    "Clear all configured Skill Spammer keys in this profile?",
+                    "Clear All Keys",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question) != DialogResult.Yes)
+            {
+                return;
+            }
+
+            this.isUpdatingUi = true;
+            try
+            {
+                foreach (Control c in this.Controls)
+                {
+                    CheckBox check = c as CheckBox;
+                    if (check != null && check.Name.StartsWith("chk", StringComparison.Ordinal))
+                    {
+                        check.CheckState = CheckState.Unchecked;
+                    }
+                }
+
+                ProfileSingleton.GetCurrent().AHK.ClearAHKEntries();
+            }
+            finally
+            {
+                this.isUpdatingUi = false;
+            }
+
+            ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().AHK);
         }
 
         public void Update(ISubject subject)

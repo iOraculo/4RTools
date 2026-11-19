@@ -290,6 +290,26 @@ namespace _4RTools.Model
             return false;
         }
 
+        public bool ShouldPauseAutomation()
+        {
+            return ShouldPauseForFocus() || ChatPauseState.IsChatting;
+        }
+
+        public bool ShouldPauseAutopotKey(System.Windows.Input.Key key)
+        {
+            if (ShouldPauseForFocus())
+            {
+                return true;
+            }
+
+            if (ChatPauseState.IsChatting && ChatPauseState.IsTypingKey(key))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         private string ReadMemoryAsString(int address)
         {
             if (this.PMR == null || !this.PMR.IsOpen || address == 0)

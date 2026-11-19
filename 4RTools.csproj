@@ -312,6 +312,7 @@
       <DependentUpon>ToggleApplicationStateForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Model\AHK.cs" />
+    <Compile Include="Model\AppSettings.cs" />
     <Compile Include="Model\ATKDEFMode.cs" />
     <Compile Include="Model\Autopot.cs" />
     <Compile Include="Model\Autobuff.cs" />
@@ -351,6 +352,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Icons.resx</DependentUpon>
     </Compile>
+    <Compile Include="Utils\ChatPauseState.cs" />
     <Compile Include="Utils\EffectStatusIDs.cs" />
     <Compile Include="Utils\AppConfig.cs" />
     <Compile Include="Utils\Constants.cs" />
@@ -362,6 +364,8 @@
     <Compile Include="Utils\Logger.cs" />
     <Compile Include="Utils\ProcessMemoryReader.cs" />
     <Compile Include="Utils\RObserver.cs" />
+    <Compile Include="Utils\ThemeManager.cs" />
+    <Compile Include="Utils\VitalBar.cs" />
     <Compile Include="Utils\_4RThread.cs" />
     <EmbeddedResource Include="Forms\AddServerForm.resx">
       <DependentUpon>AddServerForm.cs</DependentUpon>

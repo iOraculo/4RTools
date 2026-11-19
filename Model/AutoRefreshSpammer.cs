@@ -36,7 +36,7 @@ namespace _4RTools.Model
         {
             if (this.RefreshKey != Key.None
                 && roClient.IsProcessAlive()
-                && !roClient.ShouldPauseForFocus()
+                && !roClient.ShouldPauseAutomation()
                 && !KeyHelper.IsAltPressed())
             {
                 Keys formsKey = KeyHelper.ToFormsKeys(this.RefreshKey);

@@ -8,6 +8,7 @@ using Xunit;
 
 namespace _4RTools.Tests
 {
+    [Collection("StaticStateTests")]
     public class ProfileAndServerTests : IDisposable
     {
         private readonly string tempDir;

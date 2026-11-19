@@ -128,7 +128,7 @@ namespace _4RTools.Model
 
         private void MacroExecutionThread(Client roClient, CancellationToken token)
         {
-            if (!roClient.IsProcessAlive() || roClient.ShouldPauseForFocus())
+            if (!roClient.IsProcessAlive() || roClient.ShouldPauseAutomation())
             {
                 _4RThread.Sleep(50, token);
                 return;

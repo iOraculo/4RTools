@@ -13,6 +13,7 @@ namespace _4RTools.Forms
         private ContextMenu contextMenu;
         private MenuItem menuItem;
         private CheckBox cbFocusOnly;
+        private CheckBox cbChatPause;
         private ToolTip optionsToolTip;
         private SoundPlayer soundOnPlayer;
         private SoundPlayer soundOffPlayer;
@@ -26,13 +27,19 @@ namespace _4RTools.Forms
         {
             InitializeComponent();
 
+            // Keep green/red/orange ON/OFF/CHAT status button colors untouched by ThemeManager.
+            this.btnStatusToggle.Tag = ThemeManager.PRESERVE_COLORS_TAG;
+
             this.subject = subject;
             this.subject.Attach(this);
             KeyboardHook.Enable();
 
             InitializeAudioPlayers();
-            InitializeFocusOnlyCheckbox();
+            InitializeOptionCheckboxes();
             InitializeContextualMenu();
+
+            ChatPauseState.StateChanged += OnChatPauseStateChanged;
+            RegisterChatPauseHooks();
 
             this.cbAudio.CheckedChanged += OnAudioCheckedChanged;
 
@@ -55,9 +62,10 @@ namespace _4RTools.Forms
             }
         }
 
-        private void InitializeFocusOnlyCheckbox()
+        private void InitializeOptionCheckboxes()
         {
             this.optionsToolTip = new ToolTip();
+
             this.cbFocusOnly = new CheckBox
             {
                 AutoSize = true,
@@ -70,6 +78,91 @@ namespace _4RTools.Forms
             this.optionsToolTip.SetToolTip(this.cbFocusOnly, "Pause automations when the Ragnarok window is not focused");
             this.cbFocusOnly.CheckedChanged += OnFocusOnlyCheckedChanged;
             this.groupBox1.Controls.Add(this.cbFocusOnly);
+
+            this.cbChatPause = new CheckBox
+            {
+                AutoSize = true,
+                Location = new Point(10, 53),
+                Name = "cbChatPause",
+                Text = "Chat",
+                UseVisualStyleBackColor = true,
+                Tag = FormUtils.SKIP_RESET_TAG
+            };
+            this.optionsToolTip.SetToolTip(
+                this.cbChatPause,
+                "Chat-Safe Pause: press Enter in Ragnarok to pause automations while typing (Esc or Enter resumes; F-key Autopot stays active)");
+            this.cbChatPause.CheckedChanged += OnChatPauseCheckedChanged;
+            this.groupBox1.Controls.Add(this.cbChatPause);
+        }
+
+        private void RegisterChatPauseHooks()
+        {
+            if (this.lastKey != Keys.Return)
+            {
+                KeyboardHook.Add(Keys.Return, new KeyboardHook.KeyPressed(this.OnChatEnterKeyPressed));
+            }
+
+            if (this.lastKey != Keys.Escape)
+            {
+                KeyboardHook.Add(Keys.Escape, new KeyboardHook.KeyPressed(this.OnChatEscapeKeyPressed));
+            }
+        }
+
+        private bool OnChatEnterKeyPressed()
+        {
+            if (this.isApplicationOn
+                && this.cbChatPause != null
+                && this.cbChatPause.Checked
+                && !KeyboardHook.Alt
+                && !KeyboardHook.Control)
+            {
+                Client client = ClientSingleton.GetClient();
+                if (client != null && client.IsGameWindowFocused())
+                {
+                    ChatPauseState.ToggleChatting();
+                }
+            }
+
+            // Always allow Enter to pass through to Ragnarok and other applications.
+            return true;
+        }
+
+        private bool OnChatEscapeKeyPressed()
+        {
+            if (ChatPauseState.IsChatting)
+            {
+                ChatPauseState.Resume();
+            }
+
+            // Always allow Escape to pass through to Ragnarok and other applications.
+            return true;
+        }
+
+        private void OnChatPauseStateChanged(object sender, EventArgs e)
+        {
+            if (this.IsDisposed || !this.IsHandleCreated)
+            {
+                return;
+            }
+
+            MethodInvoker updateVisuals = delegate
+            {
+                if (this.IsDisposed || !this.isApplicationOn)
+                {
+                    return;
+                }
+
+                ApplyOnVisualState();
+            };
+
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(updateVisuals);
+            }
+            else
+            {
+                updateVisuals();
+            }
         }
 
         private void InitializeContextualMenu()
@@ -100,6 +193,7 @@ namespace _4RTools.Forms
                     this.isUpdatingUi = true;
                     try
                     {
+                        ChatPauseState.Resume();
                         UserPreferences prefs = ProfileSingleton.GetCurrent().UserPreferences;
                         Keys currentToggleKey;
                         if (!KeyHelper.TryParseFormsKeys(prefs.toggleStateKey, out currentToggleKey))
@@ -114,9 +208,11 @@ namespace _4RTools.Forms
                             KeyboardHook.Add(currentToggleKey, new KeyboardHook.KeyPressed(this.OnToggleHotkeyPressed));
                         }
                         this.lastKey = currentToggleKey;
+                        RegisterChatPauseHooks();
 
                         this.cbAudio.Checked = prefs.soundEnabled;
                         this.cbFocusOnly.Checked = prefs.pauseWhenUnfocused;
+                        this.cbChatPause.Checked = prefs.pauseOnChat;
                     }
                     finally
                     {
@@ -125,14 +221,15 @@ namespace _4RTools.Forms
                     break;
 
                 case MessageCode.TURN_OFF:
+                    ChatPauseState.Resume();
                     if (this.isApplicationOn)
                     {
-                        ApplyOffVisualState("Press the key to start!", Color.Black, false);
+                        ApplyOffVisualState("Press the key to start!", Color.Empty, false);
                     }
                     break;
 
                 case MessageCode.CLIENT_DISCONNECTED:
-                    ApplyOffVisualState("Client closed!", Color.DarkRed, true);
+                    ApplyOffVisualState("Client closed!", ThemeManager.IsDarkMode ? Color.Salmon : Color.DarkRed, true);
                     break;
             }
         }
@@ -176,6 +273,7 @@ namespace _4RTools.Forms
             ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().UserPreferences);
 
             this.lastKey = currentToggleKey;
+            RegisterChatPauseHooks();
         }
 
         private void OnAudioCheckedChanged(object sender, EventArgs e)
@@ -200,11 +298,27 @@ namespace _4RTools.Forms
             ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().UserPreferences);
         }
 
+        private void OnChatPauseCheckedChanged(object sender, EventArgs e)
+        {
+            if (!this.cbChatPause.Checked)
+            {
+                ChatPauseState.Resume();
+            }
+
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed)
+            {
+                return;
+            }
+
+            ProfileSingleton.GetCurrent().UserPreferences.pauseOnChat = this.cbChatPause.Checked;
+            ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().UserPreferences);
+        }
+
         private bool ToggleStatus()
         {
             if (this.isApplicationOn)
             {
-                ApplyOffVisualState("Press the key to start!", Color.Black, true);
+                ApplyOffVisualState("Press the key to start!", Color.Empty, true);
                 this.subject.Notify(new Utils.Message(MessageCode.TURN_OFF, null));
             }
             else
@@ -212,12 +326,10 @@ namespace _4RTools.Forms
                 Client client = ClientSingleton.GetClient();
                 if (client != null && client.IsProcessAlive())
                 {
+                    ChatPauseState.Resume();
                     this.isApplicationOn = true;
-                    this.btnStatusToggle.BackColor = Color.Green;
-                    this.btnStatusToggle.Text = "ON";
                     this.notifyIconTray.Icon = Resources._4RTools.ETCResource.logo_4rtools_on;
-                    this.lblStatusToggle.Text = "Press the key to stop!";
-                    this.lblStatusToggle.ForeColor = Color.Black;
+                    ApplyOnVisualState();
                     this.subject.Notify(new Utils.Message(MessageCode.TURN_ON, null));
 
                     PlayAudio(this.soundOnPlayer);
@@ -225,21 +337,40 @@ namespace _4RTools.Forms
                 else
                 {
                     this.lblStatusToggle.Text = "Please select the Ragnarok Client!!";
-                    this.lblStatusToggle.ForeColor = Color.Red;
+                    this.lblStatusToggle.ForeColor = ThemeManager.IsDarkMode ? Color.Salmon : Color.Red;
                 }
             }
 
             return true;
         }
 
+        private void ApplyOnVisualState()
+        {
+            if (ChatPauseState.IsChatting)
+            {
+                this.btnStatusToggle.BackColor = Color.DarkOrange;
+                this.btnStatusToggle.Text = "CHAT";
+                this.lblStatusToggle.Text = "Chat paused (Esc/Enter)";
+                this.lblStatusToggle.ForeColor = Color.DarkOrange;
+            }
+            else
+            {
+                this.btnStatusToggle.BackColor = Color.Green;
+                this.btnStatusToggle.Text = "ON";
+                this.lblStatusToggle.Text = "Press the key to stop!";
+                this.lblStatusToggle.ForeColor = ThemeManager.GetDefaultTextColor();
+            }
+        }
+
         private void ApplyOffVisualState(string message, Color textColor, bool playOffSound)
         {
+            ChatPauseState.Resume();
             this.isApplicationOn = false;
             this.btnStatusToggle.BackColor = Color.Red;
             this.btnStatusToggle.Text = "OFF";
             this.notifyIconTray.Icon = Resources._4RTools.ETCResource.logo_4rtools_off;
             this.lblStatusToggle.Text = message;
-            this.lblStatusToggle.ForeColor = textColor;
+            this.lblStatusToggle.ForeColor = textColor == Color.Empty ? ThemeManager.GetDefaultTextColor() : textColor;
 
             if (playOffSound)
             {
@@ -276,7 +407,11 @@ namespace _4RTools.Forms
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
+            ChatPauseState.StateChanged -= OnChatPauseStateChanged;
+            ChatPauseState.Resume();
             KeyboardHook.Remove(this.lastKey);
+            KeyboardHook.Remove(Keys.Return);
+            KeyboardHook.Remove(Keys.Escape);
             if (this.soundOnPlayer != null)
             {
                 this.soundOnPlayer.Dispose();

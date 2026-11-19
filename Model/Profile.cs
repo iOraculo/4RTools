@@ -292,6 +292,93 @@ namespace _4RTools.Model
             }
         }
 
+        public static string GetBoundCharacter(string profileName)
+        {
+            if (string.IsNullOrWhiteSpace(profileName))
+            {
+                return string.Empty;
+            }
+
+            try
+            {
+                string validName = ValidateProfileName(profileName);
+                string filePath = GetProfilePath(validName);
+                string json;
+
+                lock (FileLock)
+                {
+                    if (!File.Exists(filePath))
+                    {
+                        return string.Empty;
+                    }
+
+                    json = File.ReadAllText(filePath);
+                }
+
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    return string.Empty;
+                }
+
+                JObject rawObject = JObject.Parse(json);
+                UserPreferences prefs = DeserializeAction(rawObject, new UserPreferences());
+                return prefs != null && prefs.boundCharacter != null ? prefs.boundCharacter.Trim() : string.Empty;
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn("Profile", "Failed to read bound character for '" + profileName + "'", ex);
+                return string.Empty;
+            }
+        }
+
+        public static void SetBoundCharacter(string profileName, string characterName)
+        {
+            string validName = ValidateProfileName(profileName);
+            string normalizedChar = string.IsNullOrWhiteSpace(characterName) ? string.Empty : characterName.Trim();
+            string filePath = GetProfilePath(validName);
+
+            lock (FileLock)
+            {
+                if (!File.Exists(filePath))
+                {
+                    throw new FileNotFoundException("Profile not found.", filePath);
+                }
+
+                string jsonData = File.ReadAllText(filePath);
+                JObject jsonObj = string.IsNullOrWhiteSpace(jsonData) ? new JObject() : JObject.Parse(jsonData);
+                UserPreferences prefs = DeserializeAction(jsonObj, new UserPreferences());
+                prefs.boundCharacter = normalizedChar;
+
+                jsonObj[prefs.GetActionName()] = prefs.GetConfiguration();
+                WriteAllTextAtomic(filePath, jsonObj.ToString(Formatting.Indented));
+            }
+
+            if (profile != null && string.Equals(profile.Name, validName, StringComparison.OrdinalIgnoreCase))
+            {
+                profile.UserPreferences.boundCharacter = normalizedChar;
+            }
+        }
+
+        public static string FindProfileForCharacter(string characterName)
+        {
+            if (string.IsNullOrWhiteSpace(characterName))
+            {
+                return null;
+            }
+
+            string target = characterName.Trim();
+            foreach (string profileName in Profile.ListAll())
+            {
+                string bound = GetBoundCharacter(profileName);
+                if (!string.IsNullOrEmpty(bound) && string.Equals(bound, target, StringComparison.OrdinalIgnoreCase))
+                {
+                    return profileName;
+                }
+            }
+
+            return null;
+        }
+
         public static void SetConfiguration(Action action)
         {
             if (IsSaveSuppressed || profile == null || action == null)

@@ -11,12 +11,24 @@ namespace _4RTools.Forms
     {
         private readonly Subject subject = new Subject();
         private readonly Timer clientMonitorTimer;
+        private readonly Timer vitalsTimer;
+        private readonly byte[] vitalsBuffer = new byte[Constants.HP_SP_BLOCK_BYTE_SIZE];
+        private readonly AppSettings appSettings;
+        private CheckBox cbDarkMode;
+        private CheckBox cbTopMost;
+        private VitalBar hpBar;
+        private VitalBar spBar;
+        private ToolTip headerToolTip;
+        private ProfileForm profileForm;
         private string currentProfile;
+        private string lastDetectedCharacter = string.Empty;
+        private bool isApplyingSettings;
         private bool isShuttingDown;
 
         public Container()
         {
             this.subject.Attach(this);
+            this.appSettings = AppSettings.Load();
 
             InitializeComponent();
             this.Text = AppConfig.Name + " - " + AppConfig.Version;
@@ -24,11 +36,17 @@ namespace _4RTools.Forms
             // Container Configuration
             this.IsMdiContainer = true;
             SetBackGroundColorOfMDIForm();
+            InitializeHeaderControlsAndVitals();
 
             // Monitor active Ragnarok client so macros stop automatically if the game closes.
             this.clientMonitorTimer = new Timer();
             this.clientMonitorTimer.Interval = 1500;
             this.clientMonitorTimer.Tick += ClientMonitorTimer_Tick;
+
+            // Live HP/SP bars and character-change detection for profile auto-switch.
+            this.vitalsTimer = new Timer();
+            this.vitalsTimer.Interval = 300;
+            this.vitalsTimer.Tick += VitalsTimer_Tick;
 
             // Paint Children Forms
             SetToggleApplicationStateWindow();
@@ -44,6 +62,198 @@ namespace _4RTools.Forms
             SetATKDEFWindow();
             SetMacroSwitchWindow();
             SetServerWindow();
+
+            ApplyAppSettingsToUi();
+        }
+
+        private void InitializeHeaderControlsAndVitals()
+        {
+            this.headerToolTip = new ToolTip();
+
+            this.cbDarkMode = new CheckBox
+            {
+                AutoSize = true,
+                Location = new Point(240, 12),
+                Name = "cbDarkMode",
+                Text = "Dark Mode",
+                UseVisualStyleBackColor = true,
+                Tag = FormUtils.SKIP_RESET_TAG
+            };
+            this.headerToolTip.SetToolTip(this.cbDarkMode, "Switch between Light and Dark interface themes");
+            this.cbDarkMode.CheckedChanged += OnDarkModeCheckedChanged;
+
+            this.cbTopMost = new CheckBox
+            {
+                AutoSize = true,
+                Location = new Point(240, 33),
+                Name = "cbTopMost",
+                Text = "Always on Top",
+                UseVisualStyleBackColor = true,
+                Tag = FormUtils.SKIP_RESET_TAG
+            };
+            this.headerToolTip.SetToolTip(this.cbTopMost, "Keep the 4RTools window pinned above Ragnarok");
+            this.cbTopMost.CheckedChanged += OnTopMostCheckedChanged;
+
+            this.hpBar = new VitalBar("HP", Color.FromArgb(220, 76, 76))
+            {
+                Location = new Point(366, 236),
+                Name = "hpBar",
+                Size = new Size(220, 15)
+            };
+
+            this.spBar = new VitalBar("SP", Color.FromArgb(66, 135, 245))
+            {
+                Location = new Point(366, 253),
+                Name = "spBar",
+                Size = new Size(220, 15)
+            };
+
+            this.Controls.Add(this.cbDarkMode);
+            this.Controls.Add(this.cbTopMost);
+            this.Controls.Add(this.hpBar);
+            this.Controls.Add(this.spBar);
+        }
+
+        private void ApplyAppSettingsToUi()
+        {
+            this.isApplyingSettings = true;
+            try
+            {
+                this.cbDarkMode.Checked = this.appSettings.DarkMode;
+                this.cbTopMost.Checked = this.appSettings.AlwaysOnTop;
+                this.TopMost = this.appSettings.AlwaysOnTop;
+                ThemeManager.ApplyTheme(this, this.appSettings.DarkMode);
+            }
+            finally
+            {
+                this.isApplyingSettings = false;
+            }
+        }
+
+        private void OnDarkModeCheckedChanged(object sender, EventArgs e)
+        {
+            if (this.isApplyingSettings)
+            {
+                return;
+            }
+
+            this.appSettings.DarkMode = this.cbDarkMode.Checked;
+            ThemeManager.ApplyTheme(this, this.appSettings.DarkMode);
+            AppSettings.Save(this.appSettings);
+        }
+
+        private void OnTopMostCheckedChanged(object sender, EventArgs e)
+        {
+            if (this.isApplyingSettings)
+            {
+                return;
+            }
+
+            this.appSettings.AlwaysOnTop = this.cbTopMost.Checked;
+            this.TopMost = this.appSettings.AlwaysOnTop;
+            AppSettings.Save(this.appSettings);
+        }
+
+        public bool GetAutoSwitchByCharacter()
+        {
+            return this.appSettings != null && this.appSettings.AutoSwitchProfileByCharacter;
+        }
+
+        public void SetAutoSwitchByCharacter(bool enabled)
+        {
+            if (this.appSettings == null)
+            {
+                return;
+            }
+
+            this.appSettings.AutoSwitchProfileByCharacter = enabled;
+            AppSettings.Save(this.appSettings);
+        }
+
+        public void TryAutoSwitchProfileForCharacter(string charName)
+        {
+            if (this.appSettings == null || !this.appSettings.AutoSwitchProfileByCharacter)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(charName) || !this.profileCB.Enabled)
+            {
+                return;
+            }
+
+            string matchedProfile = ProfileSingleton.FindProfileForCharacter(charName);
+            if (string.IsNullOrEmpty(matchedProfile)
+                || string.Equals(matchedProfile, this.currentProfile, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (!this.profileCB.Items.Contains(matchedProfile))
+            {
+                this.refreshProfileList();
+            }
+
+            if (this.profileCB.Items.Contains(matchedProfile))
+            {
+                this.profileCB.SelectedItem = matchedProfile;
+            }
+        }
+
+        private void VitalsTimer_Tick(object sender, EventArgs e)
+        {
+            if (this.isShuttingDown)
+            {
+                return;
+            }
+
+            Client client = ClientSingleton.GetClient();
+            if (client == null || !client.IsProcessAlive())
+            {
+                this.vitalsTimer.Stop();
+                this.hpBar.ClearValues();
+                this.spBar.ClearValues();
+                this.lastDetectedCharacter = string.Empty;
+                return;
+            }
+
+            UpdateVitalsDisplay(client);
+
+            if (client.HasMemorySupport)
+            {
+                string detected = client.ReadCharacterName();
+                string normalized = string.IsNullOrWhiteSpace(detected) ? string.Empty : detected.Trim();
+                if (!string.Equals(normalized, this.lastDetectedCharacter, StringComparison.Ordinal))
+                {
+                    this.lastDetectedCharacter = normalized;
+                    this.characterName.Text = string.IsNullOrEmpty(normalized) ? "- -" : normalized;
+
+                    if (!string.IsNullOrEmpty(normalized) && this.profileCB.Enabled)
+                    {
+                        TryAutoSwitchProfileForCharacter(normalized);
+                    }
+                }
+            }
+        }
+
+        private void UpdateVitalsDisplay(Client client)
+        {
+            if (client != null && client.HasMemorySupport && client.IsProcessAlive())
+            {
+                uint currentHp;
+                uint maxHp;
+                uint currentSp;
+                uint maxSp;
+                if (client.TryReadVitals(this.vitalsBuffer, out currentHp, out maxHp, out currentSp, out maxSp))
+                {
+                    this.hpBar.UpdateValues(currentHp, maxHp);
+                    this.spBar.UpdateValues(currentSp, maxSp);
+                    return;
+                }
+            }
+
+            this.hpBar.ClearValues();
+            this.spBar.ClearValues();
         }
 
         private void ClientMonitorTimer_Tick(object sender, EventArgs e)
@@ -52,10 +262,14 @@ namespace _4RTools.Forms
             if (client != null && !client.IsProcessAlive())
             {
                 this.clientMonitorTimer.Stop();
+                this.vitalsTimer.Stop();
                 this.subject.Notify(new Utils.Message(MessageCode.TURN_OFF, null));
                 this.subject.Notify(new Utils.Message(MessageCode.CLIENT_DISCONNECTED, null));
                 ClientSingleton.Clear();
+                this.lastDetectedCharacter = string.Empty;
                 this.characterName.Text = "- -";
+                this.hpBar.ClearValues();
+                this.spBar.ClearValues();
                 this.refreshProcessList();
             }
         }
@@ -109,6 +323,7 @@ namespace _4RTools.Forms
             ProfileSingleton.Create("Default");
             this.refreshProcessList();
             this.refreshProfileList("Default");
+            ThemeManager.ApplyTheme(this, this.appSettings.DarkMode);
         }
 
         public void refreshProfileList(string selectProfile = null)
@@ -236,6 +451,14 @@ namespace _4RTools.Forms
             {
                 this.clientMonitorTimer.Stop();
                 this.clientMonitorTimer.Dispose();
+                this.vitalsTimer.Stop();
+                this.vitalsTimer.Dispose();
+                if (this.headerToolTip != null)
+                {
+                    this.headerToolTip.Dispose();
+                    this.headerToolTip = null;
+                }
+                ChatPauseState.Resume();
                 KeyboardHook.Disable();
                 this.subject.Notify(new Utils.Message(MessageCode.TURN_OFF, null));
                 ClientSingleton.Clear();
@@ -317,8 +540,24 @@ namespace _4RTools.Forms
             switch (subj.Message.code)
             {
                 case MessageCode.PROCESS_CHANGED:
+                    Client activeClient = ClientSingleton.GetClient();
+                    UpdateCharacterNameLabel(true);
+                    UpdateVitalsDisplay(activeClient);
+                    if (activeClient != null && activeClient.IsProcessAlive())
+                    {
+                        this.vitalsTimer.Start();
+                    }
+                    else
+                    {
+                        this.vitalsTimer.Stop();
+                    }
+                    break;
                 case MessageCode.PROFILE_CHANGED:
-                    UpdateCharacterNameLabel();
+                    UpdateCharacterNameLabel(false);
+                    if (this.profileForm != null)
+                    {
+                        this.profileForm.RefreshCharacterBindingUi();
+                    }
                     break;
                 case MessageCode.TURN_OFF:
                     this.clientMonitorTimer.Stop();
@@ -328,8 +567,9 @@ namespace _4RTools.Forms
                 case MessageCode.TURN_ON:
                     this.profileCB.Enabled = false;
                     this.processCB.Enabled = false;
-                    UpdateCharacterNameLabel();
+                    UpdateCharacterNameLabel(false);
                     this.clientMonitorTimer.Start();
+                    this.vitalsTimer.Start();
                     break;
                 case MessageCode.SERVER_LIST_CHANGED:
                     this.refreshProcessList();
@@ -345,16 +585,24 @@ namespace _4RTools.Forms
             }
         }
 
-        private void UpdateCharacterNameLabel()
+        private void UpdateCharacterNameLabel(bool allowAutoSwitch)
         {
             Client client = ClientSingleton.GetClient();
             if (client != null && client.IsProcessAlive())
             {
                 string name = client.ReadCharacterName();
-                this.characterName.Text = string.IsNullOrWhiteSpace(name) ? "- -" : name;
+                string normalized = string.IsNullOrWhiteSpace(name) ? string.Empty : name.Trim();
+                this.lastDetectedCharacter = normalized;
+                this.characterName.Text = string.IsNullOrEmpty(normalized) ? "- -" : normalized;
+
+                if (allowAutoSwitch && !string.IsNullOrEmpty(normalized))
+                {
+                    TryAutoSwitchProfileForCharacter(normalized);
+                }
             }
             else
             {
+                this.lastDetectedCharacter = string.Empty;
                 this.characterName.Text = "- -";
             }
         }
@@ -408,6 +656,7 @@ namespace _4RTools.Forms
         public void SetProfileWindow()
         {
             ProfileForm frm = new ProfileForm(this);
+            this.profileForm = frm;
             frm.FormBorderStyle = FormBorderStyle.None;
             frm.Location = new Point(0, 65);
             frm.MdiParent = this;

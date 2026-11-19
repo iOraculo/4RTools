@@ -44,7 +44,7 @@ namespace _4RTools.Model
 
             return new _4RThread(token =>
             {
-                if (c.HasMemorySupport && c.IsProcessAlive() && !c.ShouldPauseForFocus())
+                if (c.HasMemorySupport && c.IsProcessAlive() && !c.ShouldPauseAutomation())
                 {
                     bool foundQuag = false;
                     Dictionary<EffectStatusIDs, Key> missingBuffs = GetBuffMappingSnapshot();

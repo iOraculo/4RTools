@@ -9,13 +9,20 @@ namespace _4RTools.Forms
     public partial class ProfileForm : Form
     {
         private readonly Container container;
+        private CheckBox cbAutoSwitch;
+        private Label lblTargetProfile;
+        private TextBox txtBoundCharacter;
+        private bool isUpdatingBindingUi;
 
         public ProfileForm(Container container)
         {
             InitializeComponent();
             this.container = container;
             InitializeImportExportButtons();
+            InitializeCharacterBindingPanel();
+            this.lbProfilesList.SelectedIndexChanged += lbProfilesList_SelectedIndexChanged;
             RefreshProfileList();
+            RefreshCharacterBindingUi();
         }
 
         private void InitializeImportExportButtons()
@@ -44,6 +51,217 @@ namespace _4RTools.Forms
             this.Controls.Add(btnImport);
         }
 
+        private void InitializeCharacterBindingPanel()
+        {
+            GroupBox gbAutoSwitch = new GroupBox
+            {
+                Location = new Point(358, 13),
+                Name = "gbAutoSwitchCharacter",
+                Size = new Size(190, 204),
+                TabStop = false,
+                Text = "Auto-Switch by Character"
+            };
+
+            this.cbAutoSwitch = new CheckBox
+            {
+                AutoSize = true,
+                Location = new Point(10, 20),
+                Name = "cbAutoSwitch",
+                Text = "Enable Auto-Switch",
+                UseVisualStyleBackColor = true,
+                Tag = FormUtils.SKIP_RESET_TAG
+            };
+            this.cbAutoSwitch.CheckedChanged += cbAutoSwitch_CheckedChanged;
+
+            this.lblTargetProfile = new Label
+            {
+                Location = new Point(10, 44),
+                Name = "lblTargetProfile",
+                Size = new Size(170, 15),
+                Text = "Profile: Default"
+            };
+
+            Label lblBoundChar = new Label
+            {
+                AutoSize = true,
+                Location = new Point(10, 64),
+                Name = "lblBoundChar",
+                Text = "Character Name:"
+            };
+
+            this.txtBoundCharacter = new TextBox
+            {
+                Location = new Point(10, 81),
+                Name = "txtBoundCharacter",
+                Size = new Size(168, 20),
+                Tag = FormUtils.SKIP_RESET_TAG
+            };
+
+            Button btnUseActiveChar = new Button
+            {
+                Location = new Point(10, 108),
+                Name = "btnUseActiveChar",
+                Size = new Size(168, 23),
+                Text = "Use Active Character",
+                UseVisualStyleBackColor = true
+            };
+            btnUseActiveChar.Click += btnUseActiveChar_Click;
+
+            Button btnSaveBinding = new Button
+            {
+                Location = new Point(10, 137),
+                Name = "btnSaveBinding",
+                Size = new Size(80, 23),
+                Text = "Save",
+                UseVisualStyleBackColor = true
+            };
+            btnSaveBinding.Click += btnSaveBinding_Click;
+
+            Button btnClearBinding = new Button
+            {
+                Location = new Point(98, 137),
+                Name = "btnClearBinding",
+                Size = new Size(80, 23),
+                Text = "Clear",
+                UseVisualStyleBackColor = true
+            };
+            btnClearBinding.Click += btnClearBinding_Click;
+
+            Label lblBindingHint = new Label
+            {
+                Font = new Font("Microsoft Sans Serif", 7.5F),
+                Location = new Point(10, 166),
+                Name = "lblBindingHint",
+                Size = new Size(170, 32),
+                Text = "Auto-loads profile when this character is detected (while OFF)."
+            };
+
+            gbAutoSwitch.Controls.Add(this.cbAutoSwitch);
+            gbAutoSwitch.Controls.Add(this.lblTargetProfile);
+            gbAutoSwitch.Controls.Add(lblBoundChar);
+            gbAutoSwitch.Controls.Add(this.txtBoundCharacter);
+            gbAutoSwitch.Controls.Add(btnUseActiveChar);
+            gbAutoSwitch.Controls.Add(btnSaveBinding);
+            gbAutoSwitch.Controls.Add(btnClearBinding);
+            gbAutoSwitch.Controls.Add(lblBindingHint);
+
+            this.Controls.Add(gbAutoSwitch);
+        }
+
+        private string GetTargetProfileForBinding()
+        {
+            if (this.lbProfilesList.SelectedItem != null)
+            {
+                return this.lbProfilesList.SelectedItem.ToString();
+            }
+
+            Profile current = ProfileSingleton.GetCurrent();
+            return current != null ? current.Name : "Default";
+        }
+
+        public void RefreshCharacterBindingUi()
+        {
+            if (this.txtBoundCharacter == null || this.lblTargetProfile == null || this.cbAutoSwitch == null)
+            {
+                return;
+            }
+
+            this.isUpdatingBindingUi = true;
+            try
+            {
+                string targetProfile = GetTargetProfileForBinding();
+                this.cbAutoSwitch.Checked = this.container != null && this.container.GetAutoSwitchByCharacter();
+                this.lblTargetProfile.Text = "Profile: " + targetProfile;
+                this.txtBoundCharacter.Text = ProfileSingleton.GetBoundCharacter(targetProfile);
+            }
+            finally
+            {
+                this.isUpdatingBindingUi = false;
+            }
+        }
+
+        private void lbProfilesList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            RefreshCharacterBindingUi();
+        }
+
+        private void cbAutoSwitch_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.isUpdatingBindingUi || this.container == null)
+            {
+                return;
+            }
+
+            this.container.SetAutoSwitchByCharacter(this.cbAutoSwitch.Checked);
+        }
+
+        private void btnUseActiveChar_Click(object sender, EventArgs e)
+        {
+            Client client = ClientSingleton.GetClient();
+            if (client == null || !client.IsProcessAlive() || !client.HasMemorySupport)
+            {
+                MessageBox.Show(
+                    "Select a supported Ragnarok client first to read the active character name.",
+                    "Active Character",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            string name = client.ReadCharacterName();
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                MessageBox.Show(
+                    "Could not detect an active character name from the Ragnarok client.",
+                    "Active Character",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            this.txtBoundCharacter.Text = name.Trim();
+        }
+
+        private void btnSaveBinding_Click(object sender, EventArgs e)
+        {
+            string targetProfile = GetTargetProfileForBinding();
+            try
+            {
+                string charName = this.txtBoundCharacter.Text != null ? this.txtBoundCharacter.Text.Trim() : string.Empty;
+                ProfileSingleton.SetBoundCharacter(targetProfile, charName);
+                RefreshCharacterBindingUi();
+
+                if (!string.IsNullOrEmpty(charName) && this.container != null)
+                {
+                    Client client = ClientSingleton.GetClient();
+                    if (client != null && client.IsProcessAlive() && client.HasMemorySupport)
+                    {
+                        string activeChar = client.ReadCharacterName();
+                        if (!string.IsNullOrWhiteSpace(activeChar))
+                        {
+                            this.container.TryAutoSwitchProfileForCharacter(activeChar.Trim());
+                        }
+                    }
+                }
+
+                string msg = string.IsNullOrEmpty(charName)
+                    ? "Character binding cleared for profile '" + targetProfile + "'."
+                    : "Profile '" + targetProfile + "' bound to character '" + charName + "'.";
+                MessageBox.Show(msg, "Character Binding", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn("ProfileForm", "Failed to save character binding", ex);
+                MessageBox.Show("Failed to save character binding: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnClearBinding_Click(object sender, EventArgs e)
+        {
+            this.txtBoundCharacter.Text = string.Empty;
+            btnSaveBinding_Click(sender, e);
+        }
+
         private void RefreshProfileList()
         {
             string selected = this.lbProfilesList.SelectedItem as string;
@@ -61,6 +279,8 @@ namespace _4RTools.Forms
             {
                 this.lbProfilesList.SelectedItem = selected;
             }
+
+            RefreshCharacterBindingUi();
         }
 
         private void btnSave_Click(object sender, EventArgs e)
@@ -124,6 +344,7 @@ namespace _4RTools.Forms
             using (EditProfileName editProfileName = new EditProfileName())
             {
                 editProfileName.SetProfileName(selectedProfile);
+                ThemeManager.ApplyCurrentTheme(editProfileName);
                 if (editProfileName.ShowDialog() == DialogResult.OK)
                 {
                     RefreshProfileList();

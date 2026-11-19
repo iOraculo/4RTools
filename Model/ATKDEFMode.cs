@@ -54,7 +54,7 @@ namespace _4RTools.Model
 
         private void AHKThreadExecution(Client roClient, CancellationToken token)
         {
-            if (!roClient.IsProcessAlive() || roClient.ShouldPauseForFocus())
+            if (!roClient.IsProcessAlive() || roClient.ShouldPauseAutomation())
             {
                 return;
             }

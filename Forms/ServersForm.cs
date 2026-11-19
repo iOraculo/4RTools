@@ -71,13 +71,17 @@ namespace _4RTools.Forms
             }
             else
             {
-                new AddServerForm(current, this.subject).Show();
+                AddServerForm form = new AddServerForm(current, this.subject);
+                ThemeManager.ApplyCurrentTheme(form);
+                form.Show();
             }
         }
 
         private void btnAddServer_Click(object sender, EventArgs e)
         {
-            new AddServerForm(null, this.subject).Show();
+            AddServerForm form = new AddServerForm(null, this.subject);
+            ThemeManager.ApplyCurrentTheme(form);
+            form.Show();
         }
     }
 }

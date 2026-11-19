@@ -2,6 +2,11 @@
 
 ## [v2.11.0] - 2026-11-19
 ### Added
+- **Dark Mode** and **Always on Top** toggles in the main header, persisted globally in `settings.json` (`AppSettings` + `ThemeManager`).
+- **Real-time HP/SP vital bars** (`VitalBar`) below the active character name using the 16-byte bulk vitals read.
+- **Auto-Switch Profile by Character**: bind profiles to character names in the Profiles tab (`ProfileForm`) to automatically switch profiles when logging in or changing characters (while automations are `OFF`).
+- **Chat-Safe Pause**: optional `Chat` checkbox on the ON/OFF panel pauses automations while typing in Ragnarok chat (`Enter` toggles, `Esc` resumes, `CHAT` orange indicator) while keeping F-key Autopot active (`ChatPauseState`).
+- **Clear All Keys** button in Skill Spammer (`AHKForm`).
 - Search/filter bar and Clear All button on Autobuff Skills and Autobuff Stuffs tabs.
 - Optional "Focus" mode to pause automations when the Ragnarok window is not in focus (saved per profile).
 - Persistent Sound toggle setting per profile.
