@@ -34,10 +34,11 @@ namespace _4RTools.Forms
             {
                 this.dto = dto;
                 initiateWithClientDTO(dto);
-                this.Text = "Edit Server " + dto.name;
+                this.Text = LocalizationManager.T("title.edit_server", dto.name);
             }
 
             this.subject = subject;
+            LocalizationManager.ApplyToControlTree(this);
         }
 
         private void InitializeTestControls()
@@ -77,17 +78,18 @@ namespace _4RTools.Forms
             if (testResult.Success)
             {
                 this.lblTestResult.ForeColor = ThemeManager.IsDarkMode ? Color.LightGreen : Color.DarkGreen;
-                this.lblTestResult.Text = string.Format("OK: {0}\nHP {1}/{2}",
-                    string.IsNullOrEmpty(testResult.CharacterName) ? "Connected" : testResult.CharacterName,
+                this.lblTestResult.Text = LocalizationManager.T(
+                    "label.test_ok_inline",
+                    string.IsNullOrEmpty(testResult.CharacterName) ? LocalizationManager.T("label.connected") : testResult.CharacterName,
                     testResult.CurrentHp,
                     testResult.MaxHp);
-                MessageBox.Show(testResult.Message, "Address Test Successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(testResult.Message, LocalizationManager.T("title.test_success"), MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
                 this.lblTestResult.ForeColor = ThemeManager.IsDarkMode ? Color.Salmon : Color.DarkRed;
-                this.lblTestResult.Text = "Test failed. Check details.";
-                MessageBox.Show(testResult.Message, "Address Test", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                this.lblTestResult.Text = LocalizationManager.T("label.test_failed_inline");
+                MessageBox.Show(testResult.Message, LocalizationManager.T("title.test_result"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -213,31 +215,39 @@ namespace _4RTools.Forms
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            string hpAddress = string.Concat(this.txtHP1.Text, this.txtHP2.Text, this.txtHP3.Text, this.txtHP4.Text, this.txtHP5.Text, this.txtHP6.Text, this.txtHP7.Text, this.txtHP8.Text);
-            string nameAddress = string.Concat(this.txtName1.Text, this.txtName2.Text, this.txtName3.Text, this.txtName4.Text, this.txtName5.Text, this.txtName6.Text, this.txtName7.Text, this.txtName8.Text);
+            string hpAddress = ReadHpAddressText();
+            string nameAddress = ReadNameAddressText();
 
             try
             {
                 if (this.dto == null)
                 {
                     LocalServerManager.AddServer(hpAddress, nameAddress, this.processCB.Text);
-                    MessageBox.Show("Server " + this.processCB.Text + " successfully added!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(
+                        LocalizationManager.T("msg.server_added", this.processCB.Text),
+                        LocalizationManager.T("title.message"),
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                 }
                 else
                 {
                     // Validate addresses before removing the old entry so failed validation never loses the server.
                     if (LocalServerManager.NormalizeHexAddress(hpAddress) == null)
                     {
-                        throw new ArgumentException("HP Address is Invalid. Please type a valid Hex value.");
+                        throw new ArgumentException(LocalizationManager.T("test.invalid_hp"));
                     }
                     if (LocalServerManager.NormalizeHexAddress(nameAddress) == null)
                     {
-                        throw new ArgumentException("Name Address is Invalid. Please type a valid Hex value.");
+                        throw new ArgumentException(LocalizationManager.T("test.invalid_name"));
                     }
 
                     LocalServerManager.RemoveClient(this.dto);
                     LocalServerManager.AddServer(hpAddress, nameAddress, this.processCB.Text);
-                    MessageBox.Show("Server " + this.processCB.Text + " successfully saved!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(
+                        LocalizationManager.T("msg.server_saved", this.processCB.Text),
+                        LocalizationManager.T("title.message"),
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                 }
 
                 this.subject.Notify(new Utils.Message(MessageCode.SERVER_LIST_CHANGED, "Server Saved"));
@@ -245,7 +255,7 @@ namespace _4RTools.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show("[Add Server] " + ex.Message, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(ex.Message, LocalizationManager.T("title.warning"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
     }

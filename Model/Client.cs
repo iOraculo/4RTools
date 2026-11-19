@@ -496,21 +496,21 @@ namespace _4RTools.Model
 
             if (string.IsNullOrWhiteSpace(processName))
             {
-                result.Message = "Process name cannot be empty.";
+                result.Message = LocalizationManager.T("test.empty_process");
                 return result;
             }
 
             string normalizedHp = LocalServerManager.NormalizeHexAddress(rawHpAddress);
             if (normalizedHp == null)
             {
-                result.Message = "HP Address is invalid. Enter a valid 1-8 digit hex value.";
+                result.Message = LocalizationManager.T("test.invalid_hp");
                 return result;
             }
 
             string normalizedName = LocalServerManager.NormalizeHexAddress(rawNameAddress);
             if (normalizedName == null)
             {
-                result.Message = "Name Address is invalid. Enter a valid 1-8 digit hex value.";
+                result.Message = LocalizationManager.T("test.invalid_name");
                 return result;
             }
 
@@ -526,7 +526,7 @@ namespace _4RTools.Model
             Process[] matching = Process.GetProcessesByName(cleanProcessName);
             if (matching.Length == 0)
             {
-                result.Message = "Process '" + cleanProcessName + "' is not currently running. Launch the game client first.";
+                result.Message = LocalizationManager.T("test.process_not_running", cleanProcessName);
                 return result;
             }
 
@@ -552,7 +552,7 @@ namespace _4RTools.Model
                     reader.ReadProcess = target;
                     if (!reader.OpenProcess())
                     {
-                        result.Message = "Failed to open process memory for '" + cleanProcessName + "'. Try running 4RTools as Administrator.";
+                        result.Message = LocalizationManager.T("test.open_failed", cleanProcessName);
                         return result;
                     }
 
@@ -600,7 +600,7 @@ namespace _4RTools.Model
             catch (Exception ex)
             {
                 Logger.Warn("Client", "Failed testing memory addresses for '" + cleanProcessName + "'", ex);
-                result.Message = "Error reading process memory: " + ex.Message;
+                result.Message = LocalizationManager.T("test.read_error", ex.Message);
                 return result;
             }
             finally
@@ -617,9 +617,9 @@ namespace _4RTools.Model
             result.Success = hpLooksValid || nameLooksValid;
             if (result.Success)
             {
-                result.Message = string.Format(
-                    "Connection OK!\nCharacter: {0}\nHP: {1:N0} / {2:N0}\nSP: {3:N0} / {4:N0}\nActive Buffs: {5}",
-                    nameLooksValid ? result.CharacterName : "(not detected)",
+                result.Message = LocalizationManager.T(
+                    "test.ok_report",
+                    nameLooksValid ? result.CharacterName : LocalizationManager.T("test.not_detected"),
                     result.CurrentHp,
                     result.MaxHp,
                     result.CurrentSp,
@@ -628,10 +628,7 @@ namespace _4RTools.Model
             }
             else
             {
-                result.Message = string.Format(
-                    "Addresses read 0/empty (HP: {0}/{1}, Name: empty).\nMake sure you are logged in on a map and the hex addresses match this client.",
-                    result.CurrentHp,
-                    result.MaxHp);
+                result.Message = LocalizationManager.T("test.empty_values", result.CurrentHp, result.MaxHp);
             }
 
             return result;

@@ -17,6 +17,7 @@ namespace _4RTools.Forms
         private CheckBox cbDarkMode;
         private CheckBox cbTopMost;
         private CheckBox cbMiniHud;
+        private ComboBox cbLanguage;
         private VitalBar hpBar;
         private VitalBar spBar;
         private MiniHudForm miniHud;
@@ -32,6 +33,7 @@ namespace _4RTools.Forms
         {
             this.subject.Attach(this);
             this.appSettings = AppSettings.Load();
+            LocalizationManager.SetLanguage(this.appSettings.Language);
 
             InitializeComponent();
             this.Text = AppConfig.Name + " - " + AppConfig.Version;
@@ -78,13 +80,12 @@ namespace _4RTools.Forms
             this.cbDarkMode = new CheckBox
             {
                 AutoSize = true,
-                Location = new Point(230, 12),
+                Location = new Point(226, 12),
                 Name = "cbDarkMode",
                 Text = "Dark Mode",
                 UseVisualStyleBackColor = true,
                 Tag = FormUtils.SKIP_RESET_TAG
             };
-            this.headerToolTip.SetToolTip(this.cbDarkMode, "Switch between Light and Dark interface themes");
             this.cbDarkMode.CheckedChanged += OnDarkModeCheckedChanged;
 
             this.cbMiniHud = new CheckBox
@@ -96,20 +97,31 @@ namespace _4RTools.Forms
                 UseVisualStyleBackColor = true,
                 Tag = FormUtils.SKIP_RESET_TAG
             };
-            this.headerToolTip.SetToolTip(this.cbMiniHud, "Show a compact floating overlay with status and HP/SP bars");
             this.cbMiniHud.CheckedChanged += OnMiniHudCheckedChanged;
 
             this.cbTopMost = new CheckBox
             {
                 AutoSize = true,
-                Location = new Point(230, 34),
+                Location = new Point(226, 34),
                 Name = "cbTopMost",
                 Text = "Always on Top",
                 UseVisualStyleBackColor = true,
                 Tag = FormUtils.SKIP_RESET_TAG
             };
-            this.headerToolTip.SetToolTip(this.cbTopMost, "Keep the 4RTools window pinned above Ragnarok");
             this.cbTopMost.CheckedChanged += OnTopMostCheckedChanged;
+
+            this.cbLanguage = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                FormattingEnabled = true,
+                Location = new Point(334, 31),
+                Name = "cbLanguage",
+                Size = new Size(60, 21),
+                Tag = FormUtils.SKIP_RESET_TAG
+            };
+            this.cbLanguage.Items.Add("PT-BR");
+            this.cbLanguage.Items.Add("EN");
+            this.cbLanguage.SelectedIndexChanged += OnLanguageSelectedIndexChanged;
 
             this.hpBar = new VitalBar("HP", Color.FromArgb(220, 76, 76))
             {
@@ -128,6 +140,7 @@ namespace _4RTools.Forms
             this.Controls.Add(this.cbDarkMode);
             this.Controls.Add(this.cbMiniHud);
             this.Controls.Add(this.cbTopMost);
+            this.Controls.Add(this.cbLanguage);
             this.Controls.Add(this.hpBar);
             this.Controls.Add(this.spBar);
         }
@@ -137,10 +150,13 @@ namespace _4RTools.Forms
             this.isApplyingSettings = true;
             try
             {
+                LocalizationManager.SetLanguage(this.appSettings.Language);
+                this.cbLanguage.SelectedItem = LocalizationManager.IsPortuguese ? "PT-BR" : "EN";
                 this.cbDarkMode.Checked = this.appSettings.DarkMode;
                 this.cbTopMost.Checked = this.appSettings.AlwaysOnTop;
                 this.cbMiniHud.Checked = this.appSettings.ShowMiniHud;
                 this.TopMost = this.appSettings.AlwaysOnTop;
+                ApplyLanguageToUi();
                 ThemeManager.ApplyTheme(this, this.appSettings.DarkMode);
                 SetMiniHudVisible(this.appSettings.ShowMiniHud);
             }
@@ -148,6 +164,47 @@ namespace _4RTools.Forms
             {
                 this.isApplyingSettings = false;
             }
+        }
+
+        private void ApplyLanguageToUi()
+        {
+            LocalizationManager.ApplyToControlTree(this);
+            RefreshHeaderTooltips();
+            if (this.profileForm != null)
+            {
+                this.profileForm.RefreshCharacterBindingUi();
+            }
+            this.subject.Notify(new Utils.Message(MessageCode.LANGUAGE_CHANGED, LocalizationManager.CurrentLanguage));
+        }
+
+        private void RefreshHeaderTooltips()
+        {
+            if (this.headerToolTip == null)
+            {
+                return;
+            }
+
+            this.headerToolTip.SetToolTip(this.cbDarkMode, LocalizationManager.T("tooltip.dark_mode"));
+            this.headerToolTip.SetToolTip(this.cbMiniHud, LocalizationManager.T("tooltip.mini_hud"));
+            this.headerToolTip.SetToolTip(this.cbTopMost, LocalizationManager.T("tooltip.top_most"));
+            this.headerToolTip.SetToolTip(this.cbLanguage, LocalizationManager.T("tooltip.language"));
+        }
+
+        private void OnLanguageSelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (this.isApplyingSettings || this.cbLanguage.SelectedItem == null)
+            {
+                return;
+            }
+
+            string selected = this.cbLanguage.SelectedItem.ToString();
+            this.appSettings.Language = string.Equals(selected, "EN", StringComparison.OrdinalIgnoreCase)
+                ? LocalizationManager.LANG_EN_US
+                : LocalizationManager.LANG_PT_BR;
+
+            LocalizationManager.SetLanguage(this.appSettings.Language);
+            ApplyLanguageToUi();
+            AppSettings.Save(this.appSettings);
         }
 
         public void ReloadAppSettings()
@@ -458,8 +515,8 @@ namespace _4RTools.Forms
             if (!client.IsSupported)
             {
                 MessageBox.Show(
-                    "This client is not supported. Only Spammers and macro will work.",
-                    "Warning",
+                    LocalizationManager.T("msg.client_unsupported"),
+                    LocalizationManager.T("title.warning"),
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
             }
@@ -472,6 +529,7 @@ namespace _4RTools.Forms
             ProfileSingleton.Create("Default");
             this.refreshProcessList();
             this.refreshProfileList("Default");
+            ApplyLanguageToUi();
             ThemeManager.ApplyTheme(this, this.appSettings.DarkMode);
         }
 
@@ -705,8 +763,8 @@ namespace _4RTools.Forms
             {
                 Logger.Error("Container", "Error loading profile '" + selected + "'", ex);
                 MessageBox.Show(
-                    "Error while loading the new profile.\nDetails: " + ex.Message,
-                    "Error",
+                    LocalizationManager.T("msg.profile_load_error", ex.Message),
+                    LocalizationManager.T("title.error"),
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }

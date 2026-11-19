@@ -20,6 +20,9 @@ namespace _4RTools
             Application.ThreadException += OnThreadException;
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
+            Model.AppSettings startupSettings = Model.AppSettings.Load();
+            LocalizationManager.SetLanguage(startupSettings.Language);
+
             using (Forms.AutoPatcher patcher = new Forms.AutoPatcher())
             {
                 patcher.ShowDialog();

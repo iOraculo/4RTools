@@ -37,20 +37,20 @@ namespace _4RTools.Utils
                 Keys toggleFormsKey;
                 if (KeyHelper.TryParseFormsKeys(profile.UserPreferences.toggleStateKey, out toggleFormsKey) && toggleFormsKey != Keys.None)
                 {
-                    AddUsage(usagesByKey, KeyHelper.FromFormsKeys(toggleFormsKey), "ON/OFF Toggle Hotkey");
+                    AddUsage(usagesByKey, KeyHelper.FromFormsKeys(toggleFormsKey), LocalizationManager.T("usage.toggle"));
                 }
             }
 
             if (profile.Autopot != null)
             {
-                AddUsage(usagesByKey, profile.Autopot.hpKey, "Autopot (HP)");
-                AddUsage(usagesByKey, profile.Autopot.spKey, "Autopot (SP)");
+                AddUsage(usagesByKey, profile.Autopot.hpKey, LocalizationManager.T("usage.autopot_hp"));
+                AddUsage(usagesByKey, profile.Autopot.spKey, LocalizationManager.T("usage.autopot_sp"));
             }
 
             if (profile.AutopotYgg != null)
             {
-                AddUsage(usagesByKey, profile.AutopotYgg.hpKey, "Yggdrasil Autopot (HP)");
-                AddUsage(usagesByKey, profile.AutopotYgg.spKey, "Yggdrasil Autopot (SP)");
+                AddUsage(usagesByKey, profile.AutopotYgg.hpKey, LocalizationManager.T("usage.ygg_hp"));
+                AddUsage(usagesByKey, profile.AutopotYgg.spKey, LocalizationManager.T("usage.ygg_sp"));
             }
 
             if (profile.AHK != null)
@@ -59,7 +59,9 @@ namespace _4RTools.Utils
                 {
                     if (entry.Value != null)
                     {
-                        string modeLabel = entry.Value.ClickActive ? "Skill Spammer (Click)" : "Skill Spammer (No-Click)";
+                        string modeLabel = entry.Value.ClickActive
+                            ? LocalizationManager.T("usage.ahk_click")
+                            : LocalizationManager.T("usage.ahk_noclick");
                         AddUsage(usagesByKey, entry.Value.key, modeLabel);
                     }
                 }
@@ -69,7 +71,7 @@ namespace _4RTools.Utils
             {
                 foreach (KeyValuePair<EffectStatusIDs, Key> entry in profile.Autobuff.GetBuffMappingSnapshot())
                 {
-                    AddUsage(usagesByKey, entry.Value, "Autobuff (" + entry.Key + ")");
+                    AddUsage(usagesByKey, entry.Value, LocalizationManager.T("usage.autobuff", entry.Key));
                 }
             }
 
@@ -79,7 +81,7 @@ namespace _4RTools.Utils
             {
                 foreach (KeyValuePair<EffectStatusIDs, Key> entry in profile.StatusRecovery.GetBuffMappingSnapshot())
                 {
-                    AddUsage(usagesByKey, entry.Value, "Status Recovery");
+                    AddUsage(usagesByKey, entry.Value, LocalizationManager.T("usage.status_recovery"));
                 }
             }
 
@@ -87,40 +89,40 @@ namespace _4RTools.Utils
             {
                 foreach (KeyValuePair<EffectStatusIDs, Key> entry in profile.DebuffsRecovery.GetBuffMappingSnapshot())
                 {
-                    AddUsage(usagesByKey, entry.Value, "Debuff Recovery");
+                    AddUsage(usagesByKey, entry.Value, LocalizationManager.T("usage.debuff_recovery"));
                 }
             }
 
             if (profile.AutoRefreshSpammer1 != null)
             {
-                AddUsage(usagesByKey, profile.AutoRefreshSpammer1.RefreshKey, "Skill Timer 1");
+                AddUsage(usagesByKey, profile.AutoRefreshSpammer1.RefreshKey, LocalizationManager.T("usage.skill_timer", 1));
             }
 
             if (profile.AutoRefreshSpammer2 != null)
             {
-                AddUsage(usagesByKey, profile.AutoRefreshSpammer2.RefreshKey, "Skill Timer 2");
+                AddUsage(usagesByKey, profile.AutoRefreshSpammer2.RefreshKey, LocalizationManager.T("usage.skill_timer", 2));
             }
 
             if (profile.AutoRefreshSpammer3 != null)
             {
-                AddUsage(usagesByKey, profile.AutoRefreshSpammer3.RefreshKey, "Skill Timer 3");
+                AddUsage(usagesByKey, profile.AutoRefreshSpammer3.RefreshKey, LocalizationManager.T("usage.skill_timer", 3));
             }
 
             if (profile.AtkDefMode != null)
             {
-                AddUsage(usagesByKey, profile.AtkDefMode.keySpammer, "ATK/DEF Spammer");
+                AddUsage(usagesByKey, profile.AtkDefMode.keySpammer, LocalizationManager.T("usage.atkdef_spam"));
                 foreach (KeyValuePair<string, Key> entry in profile.AtkDefMode.GetKeysSnapshot(ATKDEFEnum.ATK))
                 {
-                    AddUsage(usagesByKey, entry.Value, "ATK/DEF (ATK Equip)");
+                    AddUsage(usagesByKey, entry.Value, LocalizationManager.T("usage.atkdef_atk"));
                 }
                 foreach (KeyValuePair<string, Key> entry in profile.AtkDefMode.GetKeysSnapshot(ATKDEFEnum.DEF))
                 {
-                    AddUsage(usagesByKey, entry.Value, "ATK/DEF (DEF Equip)");
+                    AddUsage(usagesByKey, entry.Value, LocalizationManager.T("usage.atkdef_def"));
                 }
             }
 
-            CollectMacroUsages(usagesByKey, profile.SongMacro, "Song Macro");
-            CollectMacroUsages(usagesByKey, profile.MacroSwitch, "Macro Switch");
+            CollectMacroUsages(usagesByKey, profile.SongMacro, LocalizationManager.T("usage.song_macro"));
+            CollectMacroUsages(usagesByKey, profile.MacroSwitch, LocalizationManager.T("usage.macro_switch"));
 
             foreach (KeyValuePair<Key, List<string>> pair in usagesByKey.OrderBy(p => p.Key.ToString(), StringComparer.OrdinalIgnoreCase))
             {
@@ -135,15 +137,14 @@ namespace _4RTools.Utils
 
         public static string FormatReport(string profileName, List<KeybindConflict> conflicts)
         {
-            string safeName = string.IsNullOrWhiteSpace(profileName) ? "Current" : profileName;
+            string safeName = string.IsNullOrWhiteSpace(profileName) ? "Default" : profileName;
             if (conflicts == null || conflicts.Count == 0)
             {
-                return "No keybind conflicts detected in profile '" + safeName + "'!";
+                return LocalizationManager.T("conflicts.none", safeName);
             }
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Found {0} keybind conflict(s) in profile '{1}':", conflicts.Count, safeName);
-            sb.AppendLine();
+            sb.AppendLine(LocalizationManager.T("conflicts.header", conflicts.Count, safeName));
             sb.AppendLine();
 
             foreach (KeybindConflict conflict in conflicts)
@@ -169,9 +170,9 @@ namespace _4RTools.Utils
                     continue;
                 }
 
-                AddUsage(usagesByKey, lane.trigger, macroLabel + " (Lane " + lane.id + " Trigger)");
-                AddUsage(usagesByKey, lane.instrumentKey, macroLabel + " (Instrument)");
-                AddUsage(usagesByKey, lane.daggerKey, macroLabel + " (Dagger)");
+                AddUsage(usagesByKey, lane.trigger, LocalizationManager.T("usage.macro_trigger", macroLabel, lane.id));
+                AddUsage(usagesByKey, lane.instrumentKey, LocalizationManager.T("usage.macro_instrument", macroLabel));
+                AddUsage(usagesByKey, lane.daggerKey, LocalizationManager.T("usage.macro_dagger", macroLabel));
 
                 if (lane.macroEntries != null)
                 {
@@ -179,7 +180,7 @@ namespace _4RTools.Utils
                     {
                         if (slot.Value != null)
                         {
-                            AddUsage(usagesByKey, slot.Value.key, macroLabel + " (Lane " + lane.id + " Slot)");
+                            AddUsage(usagesByKey, slot.Value.key, LocalizationManager.T("usage.macro_slot", macroLabel, lane.id));
                         }
                     }
                 }

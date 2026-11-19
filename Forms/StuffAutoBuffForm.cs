@@ -70,7 +70,6 @@ namespace _4RTools.Forms
                 Name = "numStuffMinSp",
                 Tag = FormUtils.SKIP_RESET_TAG
             };
-            this.toolTip1.SetToolTip(this.numMinSp, "Pause Autobuff when SP is below this % (0 = disabled)");
             this.numMinSp.ValueChanged += OnAutobuffOptionsChanged;
 
             Label lblCooldown = new Label
@@ -90,7 +89,6 @@ namespace _4RTools.Forms
                 Name = "numStuffCooldown",
                 Tag = FormUtils.SKIP_RESET_TAG
             };
-            this.toolTip1.SetToolTip(this.numCooldown, "Per-buff recast cooldown in milliseconds (e.g. 1500ms prevents double-use)");
             this.numCooldown.ValueChanged += OnAutobuffOptionsChanged;
 
             Button btnClear = new Button
@@ -102,7 +100,11 @@ namespace _4RTools.Forms
             };
             btnClear.Click += (s, e) =>
             {
-                if (MessageBox.Show("Clear all consumable autobuff keys on this tab?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (MessageBox.Show(
+                        LocalizationManager.T("msg.clear_stuffs_confirm"),
+                        LocalizationManager.T("title.confirm"),
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     this.renderer.ClearAll();
                 }
@@ -115,6 +117,20 @@ namespace _4RTools.Forms
             this.Controls.Add(lblCooldown);
             this.Controls.Add(this.numCooldown);
             this.Controls.Add(btnClear);
+
+            RefreshLocalizedTooltips();
+        }
+
+        private void RefreshLocalizedTooltips()
+        {
+            if (this.numMinSp != null)
+            {
+                this.toolTip1.SetToolTip(this.numMinSp, LocalizationManager.T("tooltip.min_sp"));
+            }
+            if (this.numCooldown != null)
+            {
+                this.toolTip1.SetToolTip(this.numCooldown, LocalizationManager.T("tooltip.buff_cd"));
+            }
         }
 
         private void SyncAutobuffOptionsFromProfile()
@@ -163,6 +179,9 @@ namespace _4RTools.Forms
                 case MessageCode.PROFILE_CHANGED:
                     BuffRenderer.doUpdate(ProfileSingleton.GetCurrent().Autobuff.GetBuffMappingSnapshot(), this);
                     SyncAutobuffOptionsFromProfile();
+                    break;
+                case MessageCode.LANGUAGE_CHANGED:
+                    RefreshLocalizedTooltips();
                     break;
                 case MessageCode.TURN_OFF:
                     ProfileSingleton.GetCurrent().Autobuff.Stop();

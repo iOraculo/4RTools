@@ -61,17 +61,26 @@ namespace _4RTools.Forms
 
             if (this.datagridServers.Columns[e.ColumnIndex].Name == "Delete")
             {
-                if (MessageBox.Show("Are you sure want to delete this Server?", "Message", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (MessageBox.Show(
+                        LocalizationManager.T("msg.server_delete_confirm"),
+                        LocalizationManager.T("title.message"),
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     this.clientDTOBindingSource.RemoveCurrent();
                     LocalServerManager.RemoveClient(current);
                     this.subject.Notify(new Utils.Message(MessageCode.SERVER_LIST_CHANGED, "Server Deleted"));
-                    MessageBox.Show("Server " + current.name + " successfully deleted!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(
+                        LocalizationManager.T("msg.server_deleted", current.name),
+                        LocalizationManager.T("title.message"),
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                 }
             }
             else
             {
                 AddServerForm form = new AddServerForm(current, this.subject);
+                LocalizationManager.ApplyToControlTree(form);
                 ThemeManager.ApplyCurrentTheme(form);
                 form.Show();
             }
@@ -80,6 +89,7 @@ namespace _4RTools.Forms
         private void btnAddServer_Click(object sender, EventArgs e)
         {
             AddServerForm form = new AddServerForm(null, this.subject);
+            LocalizationManager.ApplyToControlTree(form);
             ThemeManager.ApplyCurrentTheme(form);
             form.Show();
         }

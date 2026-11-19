@@ -31,6 +31,7 @@ dotnet test tests/4RTools.Tests/4RTools.Tests.csproj -c Release
 ```
 
 ## Features
+- [x] Full **Portuguese (PT-BR default)** & **English (EN)** interface with live language switcher (`settings.json`)
 - [x] Dark Mode, Always on Top & floating **Mini HUD** overlay (persisted in `settings.json`)
 - [x] Real-time HP/SP vital bars in the main header and Mini HUD
 - [x] ON/OFF Button (shortcut key, persistent Sound toggle, Focus-only pause & Chat-Safe Pause)

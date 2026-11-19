@@ -13,6 +13,7 @@ namespace _4RTools.Forms
         public ClientUpdaterForm()
         {
             InitializeComponent();
+            LocalizationManager.ApplyToControlTree(this);
             this.Shown += ClientUpdaterForm_Shown;
         }
 

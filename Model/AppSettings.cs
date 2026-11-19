@@ -22,6 +22,7 @@ namespace _4RTools.Model
         public bool ShowMiniHud { get; set; } = false;
         public int MiniHudX { get; set; } = -1;
         public int MiniHudY { get; set; } = -1;
+        public string Language { get; set; } = "pt-BR";
 
         public static AppSettings Load()
         {

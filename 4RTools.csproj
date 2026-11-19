@@ -365,6 +365,7 @@
     <Compile Include="Utils\KeybindConflictDetector.cs" />
     <Compile Include="Utils\KeyboardHook.cs" />
     <Compile Include="Utils\KeyHelper.cs" />
+    <Compile Include="Utils\LocalizationManager.cs" />
     <Compile Include="Utils\Logger.cs" />
     <Compile Include="Utils\ProcessMemoryReader.cs" />
     <Compile Include="Utils\ProfileBackupManager.cs" />
