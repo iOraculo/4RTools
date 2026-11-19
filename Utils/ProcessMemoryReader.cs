@@ -1,116 +1,156 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-
 namespace _4RTools.Utils
 {
-    internal class ProcessMemoryReader
+    internal class ProcessMemoryReader : IDisposable
     {
-        private class MemoryApi
+        private static class MemoryApi
         {
             [Flags]
-            public enum AllocType
+            public enum ProcessAccessType : uint
             {
-                Commit = 0x1000,
-                Reserve = 0x2000,
-                Decommit = 0x4000
+                PROCESS_VM_READ = 0x0010,
+                PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
             }
 
-            [Flags]
-            public enum Protect
-            {
-                Execute = 0x10,
-                ExecuteRead = 0x20,
-                ExecuteReadWrite = 0x40,
-            }
-            [Flags]
-            public enum FreeType
-            {
-                Decommit = 0x4000,
-                Release = 0x8000,
-            }
+            [DllImport("kernel32.dll", SetLastError = true)]
+            public static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, uint dwProcessId);
 
-            [Flags]
-            public enum ProcessAccessType
-            {
-                PROCESS_TERMINATE = 1,
-                PROCESS_CREATE_THREAD = 2,
-                PROCESS_SET_SESSIONID = 4,
-                PROCESS_VM_OPERATION = 8,
-                PROCESS_VM_READ = 16,
-                PROCESS_VM_WRITE = 32,
-                PROCESS_DUP_HANDLE = 64,
-                PROCESS_CREATE_PROCESS = 128,
-                PROCESS_SET_QUOTA = 256,
-                PROCESS_SET_INFORMATION = 512,
-                PROCESS_QUERY_INFORMATION = 1024
-            }
+            [DllImport("kernel32.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool CloseHandle(IntPtr hObject);
 
-            [DllImport("kernel32.dll")]
-            public static extern IntPtr OpenProcess(uint dwDesiredAccess, int bInheritHandle, uint dwProcessId);
-            [DllImport("kernel32.dll")]
-            public static extern int CloseHandle(IntPtr hObject);
-            [DllImport("kernel32.dll")]
-            public static extern int ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [In][Out] byte[] buffer, uint size, out IntPtr lpNumberOfBytesRead);
-            [DllImport("kernel32.dll")]
-            public static extern int WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [In][Out] byte[] buffer, uint size, out IntPtr lpNumberOfBytesWritten);
-
-            [DllImport("kernel32.dll")]
-            public static extern Int32 VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, int dwSize, AllocType flAllocationType, Protect flProtect);
-            [DllImport("kernel32.dll")]
-            public static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress, int dwSize, FreeType dwFreeType);
+            [DllImport("kernel32.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool ReadProcessMemory(
+                IntPtr hProcess,
+                IntPtr lpBaseAddress,
+                [Out] byte[] buffer,
+                int size,
+                out IntPtr lpNumberOfBytesRead);
         }
 
+        private readonly object handleLock = new object();
         private Process m_ReadProcess = null;
         private IntPtr m_hProcess = IntPtr.Zero;
+        private bool disposed = false;
+
         public Process ReadProcess
+        {
+            get { return this.m_ReadProcess; }
+            set { this.m_ReadProcess = value; }
+        }
+
+        public bool IsOpen
         {
             get
             {
-                return this.m_ReadProcess;
-            }
-            set
-            {
-                this.m_ReadProcess = value;
+                lock (this.handleLock)
+                {
+                    return this.m_hProcess != IntPtr.Zero && !this.disposed;
+                }
             }
         }
-        public void OpenProcess()
+
+        public bool OpenProcess()
         {
-            MemoryApi.ProcessAccessType dwDesiredAccess = MemoryApi.ProcessAccessType.PROCESS_VM_OPERATION | MemoryApi.ProcessAccessType.PROCESS_VM_READ | MemoryApi.ProcessAccessType.PROCESS_VM_WRITE;
-            this.m_hProcess = MemoryApi.OpenProcess((uint)dwDesiredAccess, 1, (uint)this.m_ReadProcess.Id);
+            lock (this.handleLock)
+            {
+                CloseHandleInternal();
+
+                if (this.m_ReadProcess == null)
+                {
+                    return false;
+                }
+
+                uint dwDesiredAccess = (uint)(MemoryApi.ProcessAccessType.PROCESS_VM_READ | MemoryApi.ProcessAccessType.PROCESS_QUERY_LIMITED_INFORMATION);
+                this.m_hProcess = MemoryApi.OpenProcess(dwDesiredAccess, false, (uint)this.m_ReadProcess.Id);
+
+                if (this.m_hProcess == IntPtr.Zero)
+                {
+                    Logger.Warn("ProcessMemoryReader", "OpenProcess failed for PID " + this.m_ReadProcess.Id + " (Win32 error " + Marshal.GetLastWin32Error() + ")");
+                    return false;
+                }
+
+                return true;
+            }
         }
+
         public void CloseHandle()
         {
-            int num = MemoryApi.CloseHandle(this.m_hProcess);
-            if (num == 0)
+            lock (this.handleLock)
             {
-                throw new Exception("CloseHandle failed");
+                CloseHandleInternal();
             }
         }
-        public byte[] ReadProcessMemory(IntPtr MemoryAddress, uint bytesToRead, out int bytesRead)
+
+        private void CloseHandleInternal()
+        {
+            if (this.m_hProcess != IntPtr.Zero)
+            {
+                MemoryApi.CloseHandle(this.m_hProcess);
+                this.m_hProcess = IntPtr.Zero;
+            }
+        }
+
+        public bool ReadProcessMemory(IntPtr memoryAddress, byte[] buffer, int bytesToRead, out int bytesRead)
+        {
+            bytesRead = 0;
+
+            if (memoryAddress == IntPtr.Zero || buffer == null || bytesToRead <= 0 || buffer.Length < bytesToRead)
+            {
+                return false;
+            }
+
+            IntPtr handle;
+            lock (this.handleLock)
+            {
+                handle = this.m_hProcess;
+            }
+
+            if (handle == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            IntPtr numberOfBytesRead;
+            bool success = MemoryApi.ReadProcessMemory(handle, memoryAddress, buffer, bytesToRead, out numberOfBytesRead);
+            bytesRead = numberOfBytesRead.ToInt32();
+            return success && bytesRead > 0;
+        }
+
+        public byte[] ReadProcessMemory(IntPtr memoryAddress, uint bytesToRead, out int bytesRead)
         {
             byte[] array = new byte[bytesToRead];
-            IntPtr intPtr;
-            MemoryApi.ReadProcessMemory(this.m_hProcess, MemoryAddress, array, bytesToRead, out intPtr);
-            bytesRead = intPtr.ToInt32();
+            ReadProcessMemory(memoryAddress, array, (int)bytesToRead, out bytesRead);
             return array;
         }
-        public void WriteProcessMemory(IntPtr MemoryAddress, byte[] bytesToWrite, out int bytesWritten)
+
+        public void Dispose()
         {
-            IntPtr intPtr;
-            ProcessMemoryReader.MemoryApi.WriteProcessMemory(this.m_hProcess, MemoryAddress, bytesToWrite, (uint)bytesToWrite.Length, out intPtr);
-            bytesWritten = intPtr.ToInt32();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (this.disposed)
+            {
+                return;
+            }
 
-        public void Alloc(out int Addr, int Size)
-        {
-            Addr = MemoryApi.VirtualAllocEx(m_hProcess, IntPtr.Zero, Size, MemoryApi.AllocType.Commit, MemoryApi.Protect.ExecuteReadWrite);
+            lock (this.handleLock)
+            {
+                CloseHandleInternal();
+                this.disposed = true;
+            }
         }
-        public bool Dealloc(int Addr)
+
+        ~ProcessMemoryReader()
         {
-            return MemoryApi.VirtualFreeEx(m_hProcess, (IntPtr)Addr, 0, MemoryApi.FreeType.Release);
+            Dispose(false);
         }
     }
 }

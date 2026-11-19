@@ -1,5 +1,38 @@
 # Changelogs
 
+## [v2.11.0] - 2026-11-19
+### Added
+- **Dark Mode** and **Always on Top** toggles in the main header, persisted globally in `settings.json` (`AppSettings` + `ThemeManager`).
+- **Real-time HP/SP vital bars** (`VitalBar`) below the active character name using the 16-byte bulk vitals read.
+- **Auto-Switch Profile by Character**: bind profiles to character names in the Profiles tab (`ProfileForm`) to automatically switch profiles when logging in or changing characters (while automations are `OFF`).
+- **Chat-Safe Pause**: optional `Chat` checkbox on the ON/OFF panel pauses automations while typing in Ragnarok chat (`Enter` toggles, `Esc` resumes, `CHAT` orange indicator) while keeping F-key Autopot active (`ChatPauseState`).
+- **Clear All Keys** button in Skill Spammer (`AHKForm`).
+- Search/filter bar and Clear All button on Autobuff Skills and Autobuff Stuffs tabs.
+- Optional "Focus" mode to pause automations when the Ragnarok window is not in focus (saved per profile).
+- Persistent Sound toggle setting per profile.
+- Automatic client-close detection that cleanly stops all automations when the game process exits.
+- Per-lane `Loop` toggle in Macro Switch.
+- Profile Import and Export buttons in the Profiles tab.
+- Rotating diagnostic file logger (`logs/4rtools.log`) and unhandled exception capture.
+- Automated Windows CI workflow (`.github/workflows/ci.yml`) and xUnit test suite (`tests/4RTools.Tests`).
+
+### Performance & Architecture
+- Replaced 100 individual `ReadProcessMemory` syscalls per loop with a single 400-byte bulk read in `AutoBuff`, `StatusRecovery`, and `DebuffsRecovery` (and single 16-byte bulk vitals read in `Autopot`).
+- Eliminated 150+ redundant JSON disk writes on profile switches via `ProfileSingleton.SuppressSave()` and atomic file writes.
+- Consolidated `StatusRecovery` and `DebuffsRecovery` onto shared `StatusEffectRecoveryBase`.
+- Requested minimal read-only process permissions (`PROCESS_VM_READ | PROCESS_QUERY_LIMITED_INFORMATION`), properly disposed native handles and `Process`/`SoundPlayer` objects, and removed unused ads/telemetry code.
+
+### Fixed
+- Replaced obsolete/deadlocking `Thread.Suspend()` in `_4RThread` with cooperative `CancellationToken` background threads; stopped thread leaks in `ATKDEFMode` and `AutoRefreshSpammer`.
+- Fixed `Autopot` `hpPotCount` counter bug, dead-character potting, and duplicate event handler accumulation on profile switches.
+- Fixed `AutoBuff` Quagmire loop using `break` instead of `continue`.
+- Fixed `MacroSongForm` Reset button not resetting the lane and fixed `cDagger`/`cInstrument` array checks.
+- Fixed `MacroSwitchForm` click lookup bug, sparse slot `KeyNotFoundException`, and `hasClick` preservation.
+- Wired disconnected `Auto Stand` checkbox and `Elvira Candy Cooldown` input in `DebuffRecoveryForm`.
+- Fixed `ProfileSingleton.Load` leaking settings from previous profiles, fixed profile names with dots, and sanitized profile names.
+- Replaced fragile `Enum.Parse` key conversions with `KeyInterop`-based `KeyHelper` and added `try/finally` safety for `AHK` `noShift`.
+- Hardened `AutoPatcher` (handle lifecycle, `NaN` progress guard, Zip Slip validation, `.zip` support) and `ClientUpdaterForm` (`ProgressBar.Maximum` overflow).
+
 ## v[1.0.0] - 25/02/2022 (First Stable Version)
 - Autopot (HP/SP with delay customization)
 - Autobuff Status (Only for Poison, Silence, Blind, Confusion, Curse, Hallucinationwalk)

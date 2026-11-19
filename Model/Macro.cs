@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Windows.Forms;
 using System.Windows.Input;
 using Newtonsoft.Json;
-using System.Threading;
 using _4RTools.Utils;
-using System.Windows.Forms;
 
 namespace _4RTools.Model
 {
@@ -14,10 +14,19 @@ namespace _4RTools.Model
         public int delay { get; set; } = 50;
         public bool hasClick { get; set; } = false;
 
+        public MacroKey() { }
+
         public MacroKey(Key key, int delay)
         {
             this.key = key;
             this.delay = delay;
+        }
+
+        public MacroKey(Key key, int delay, bool hasClick)
+        {
+            this.key = key;
+            this.delay = delay;
+            this.hasClick = hasClick;
         }
     }
 
@@ -33,6 +42,7 @@ namespace _4RTools.Model
         public bool infinityLoopOn { get; set; } = false;
 
         public ChainConfig() { }
+
         public ChainConfig(int id)
         {
             this.id = id;
@@ -47,8 +57,20 @@ namespace _4RTools.Model
             this.daggerKey = macro.daggerKey;
             this.instrumentKey = macro.instrumentKey;
             this.infinityLoop = macro.infinityLoop;
-            this.macroEntries = new Dictionary<string, MacroKey>(macro.macroEntries);
+            this.infinityLoopOn = macro.infinityLoopOn;
+            this.macroEntries = new Dictionary<string, MacroKey>();
+            if (macro.macroEntries != null)
+            {
+                foreach (KeyValuePair<string, MacroKey> entry in macro.macroEntries)
+                {
+                    if (entry.Value != null)
+                    {
+                        this.macroEntries[entry.Key] = new MacroKey(entry.Value.key, entry.Value.delay, entry.Value.hasClick);
+                    }
+                }
+            }
         }
+
         public ChainConfig(int id, Key trigger)
         {
             this.id = id;
@@ -61,28 +83,34 @@ namespace _4RTools.Model
     {
         public static string ACTION_NAME_SONG_MACRO = "SongMacro2.0";
         public static string ACTION_NAME_MACRO_SWITCH = "MacroSwitch2.0";
+        private const int MAX_SLOTS_PER_LANE = 8;
+
+        private readonly object configLock = new object();
+        private readonly Dictionary<int, bool> lastTriggerState = new Dictionary<int, bool>();
+        private _4RThread thread;
 
         public string actionName { get; set; }
-        private _4RThread thread;
         public List<ChainConfig> chainConfigs { get; set; } = new List<ChainConfig>();
 
         public Macro(string macroname, int macroLanes)
         {
             this.actionName = macroname;
-            for(int i = 1; i <= macroLanes; i++)
+            for (int i = 1; i <= macroLanes; i++)
             {
-                chainConfigs.Add(new ChainConfig(i, Key.None));
+                this.chainConfigs.Add(new ChainConfig(i, Key.None));
             }
         }
 
         public void ResetMacro(int macroId)
         {
-            try
+            lock (this.configLock)
             {
-                chainConfigs[macroId - 1] = new ChainConfig(macroId);
+                int index = this.chainConfigs.FindIndex(c => c.id == macroId);
+                if (index >= 0)
+                {
+                    this.chainConfigs[index] = new ChainConfig(macroId);
+                }
             }
-            catch (Exception) { }
-            
         }
 
         public string GetActionName()
@@ -92,54 +120,164 @@ namespace _4RTools.Model
 
         public string GetConfiguration()
         {
-            return JsonConvert.SerializeObject(this);
+            lock (this.configLock)
+            {
+                return JsonConvert.SerializeObject(this);
+            }
         }
 
-        private int MacroExecutionThread(Client roClient)
+        private void MacroExecutionThread(Client roClient, CancellationToken token)
         {
-            foreach (ChainConfig chainConfig in this.chainConfigs)
+            if (!roClient.IsProcessAlive() || roClient.ShouldPauseAutomation())
             {
-                if (chainConfig.trigger != Key.None && Keyboard.IsKeyDown(chainConfig.trigger))
+                _4RThread.Sleep(50, token);
+                return;
+            }
+
+            IntPtr hWnd = roClient.GetWindowHandle();
+            if (hWnd == IntPtr.Zero)
+            {
+                _4RThread.Sleep(50, token);
+                return;
+            }
+
+            List<ChainConfig> snapshot;
+            lock (this.configLock)
+            {
+                snapshot = new List<ChainConfig>(this.chainConfigs.Count);
+                foreach (ChainConfig cfg in this.chainConfigs)
                 {
-                    Dictionary<string, MacroKey> macro = chainConfig.macroEntries;
-                    for (int i = 1; i <= macro.Count; i++)//Ensure to execute keys in Order
+                    snapshot.Add(new ChainConfig(cfg));
+                }
+            }
+
+            foreach (ChainConfig chainConfig in snapshot)
+            {
+                if (token.IsCancellationRequested)
+                {
+                    break;
+                }
+
+                if (chainConfig.trigger == Key.None)
+                {
+                    continue;
+                }
+
+                bool triggerDown = Keyboard.IsKeyDown(chainConfig.trigger);
+                bool shouldExecute = false;
+
+                if (chainConfig.infinityLoop)
+                {
+                    bool wasDown = false;
+                    this.lastTriggerState.TryGetValue(chainConfig.id, out wasDown);
+                    this.lastTriggerState[chainConfig.id] = triggerDown;
+
+                    if (triggerDown && !wasDown)
                     {
-                        MacroKey macroKey = macro["in" + i + "mac" + chainConfig.id];
-                        if (macroKey.key != Key.None)
-                        {
-                            if(chainConfig.instrumentKey != Key.None)
-                            {
-                                //Press instrument key if exists.
-                                Keys instrumentKey = (Keys)Enum.Parse(typeof(Keys), chainConfig.instrumentKey.ToString());
-                                Interop.PostMessage(roClient.process.MainWindowHandle, Constants.WM_KEYDOWN_MSG_ID, instrumentKey, 0);
-                                Thread.Sleep(30); //TODO FIX IT LATER -> Remove fixed sleep (read from ui)
-                            }
+                        bool toggled = !GetLaneLoopState(chainConfig.id);
+                        SetLaneLoopState(chainConfig.id, toggled);
+                        chainConfig.infinityLoopOn = toggled;
+                    }
+                    else
+                    {
+                        chainConfig.infinityLoopOn = GetLaneLoopState(chainConfig.id);
+                    }
 
-                            Keys thisk = (Keys)Enum.Parse(typeof(Keys), macroKey.key.ToString());
-                            Thread.Sleep(macroKey.delay);
-                            Interop.PostMessage(roClient.process.MainWindowHandle, Constants.WM_KEYDOWN_MSG_ID, thisk, 0);
+                    shouldExecute = chainConfig.infinityLoopOn;
+                }
+                else
+                {
+                    shouldExecute = triggerDown;
+                }
 
-                            if (macroKey.hasClick) {
-                                Interop.PostMessage(roClient.process.MainWindowHandle, Constants.WM_LBUTTONDOWN, 0, 0);
-                                Thread.Sleep(1);
-                                Interop.PostMessage(roClient.process.MainWindowHandle, Constants.WM_LBUTTONUP, 0, 0);
-                            }
-                            
+                if (!shouldExecute)
+                {
+                    continue;
+                }
 
-                            if(chainConfig.daggerKey != Key.None)
-                            {
-                                //Press instrument key if exists.
-                                Keys daggerKey = (Keys)Enum.Parse(typeof(Keys), chainConfig.daggerKey.ToString());
-                                Interop.PostMessage(roClient.process.MainWindowHandle, Constants.WM_KEYDOWN_MSG_ID, daggerKey, 0);
-                                Thread.Sleep(30); //TODO FIX IT LATER -> Remove fixed sleep (read from ui)
-                            }
+                ExecuteChain(hWnd, chainConfig, token);
+            }
 
-                        }
+            _4RThread.Sleep(100, token);
+        }
+
+        private void ExecuteChain(IntPtr hWnd, ChainConfig chainConfig, CancellationToken token)
+        {
+            Dictionary<string, MacroKey> macro = chainConfig.macroEntries;
+            if (macro == null || macro.Count == 0)
+            {
+                return;
+            }
+
+            int maxSlot = Math.Max(MAX_SLOTS_PER_LANE, macro.Count);
+            Keys instrumentKey = KeyHelper.ToFormsKeys(chainConfig.instrumentKey);
+            Keys daggerKey = KeyHelper.ToFormsKeys(chainConfig.daggerKey);
+
+            for (int i = 1; i <= maxSlot; i++)
+            {
+                if (token.IsCancellationRequested)
+                {
+                    break;
+                }
+
+                MacroKey macroKey;
+                if (!macro.TryGetValue("in" + i + "mac" + chainConfig.id, out macroKey) || macroKey == null || macroKey.key == Key.None)
+                {
+                    continue;
+                }
+
+                if (instrumentKey != Keys.None)
+                {
+                    Interop.SendKeyDown(hWnd, instrumentKey);
+                    if (!_4RThread.Sleep(30, token))
+                    {
+                        break;
+                    }
+                }
+
+                if (!_4RThread.Sleep(Math.Max(0, macroKey.delay), token))
+                {
+                    break;
+                }
+
+                Keys formsKey = KeyHelper.ToFormsKeys(macroKey.key);
+                Interop.SendKeyDown(hWnd, formsKey);
+
+                if (macroKey.hasClick)
+                {
+                    Interop.SendLeftClick(hWnd);
+                }
+
+                if (daggerKey != Keys.None)
+                {
+                    Interop.SendKeyDown(hWnd, daggerKey);
+                    if (!_4RThread.Sleep(30, token))
+                    {
+                        break;
                     }
                 }
             }
-            Thread.Sleep(100);
-            return 0;
+        }
+
+        private bool GetLaneLoopState(int laneId)
+        {
+            lock (this.configLock)
+            {
+                ChainConfig cfg = this.chainConfigs.Find(c => c.id == laneId);
+                return cfg != null && cfg.infinityLoopOn;
+            }
+        }
+
+        private void SetLaneLoopState(int laneId, bool enabled)
+        {
+            lock (this.configLock)
+            {
+                ChainConfig cfg = this.chainConfigs.Find(c => c.id == laneId);
+                if (cfg != null)
+                {
+                    cfg.infinityLoopOn = enabled;
+                }
+            }
         }
 
         public void Start()
@@ -148,7 +286,8 @@ namespace _4RTools.Model
             Client roClient = ClientSingleton.GetClient();
             if (roClient != null)
             {
-                this.thread = new _4RThread((_) => MacroExecutionThread(roClient));
+                this.lastTriggerState.Clear();
+                this.thread = new _4RThread(token => MacroExecutionThread(roClient, token), this.actionName);
                 _4RThread.Start(this.thread);
             }
         }
@@ -156,6 +295,17 @@ namespace _4RTools.Model
         public void Stop()
         {
             _4RThread.Stop(this.thread);
+            this.thread = null;
+
+            lock (this.configLock)
+            {
+                foreach (ChainConfig cfg in this.chainConfigs)
+                {
+                    cfg.infinityLoopOn = false;
+                }
+            }
+
+            this.lastTriggerState.Clear();
         }
     }
 }

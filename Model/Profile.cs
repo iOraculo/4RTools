@@ -1,105 +1,429 @@
-﻿using System.Collections.Generic;
-using Newtonsoft.Json;
-using _4RTools.Utils;
-using _4RTools.Forms;
-using System.IO;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using _4RTools.Forms;
+using _4RTools.Utils;
 
 namespace _4RTools.Model
 {
     public class ProfileSingleton
     {
+        private static readonly object FileLock = new object();
+        private static int suppressSaveDepth = 0;
         public static Profile profile = new Profile("Default");
+
+        private sealed class SaveSuppressionScope : IDisposable
+        {
+            private bool disposed;
+
+            public SaveSuppressionScope()
+            {
+                Interlocked.Increment(ref suppressSaveDepth);
+            }
+
+            public void Dispose()
+            {
+                if (!this.disposed)
+                {
+                    this.disposed = true;
+                    Interlocked.Decrement(ref suppressSaveDepth);
+                }
+            }
+        }
+
+        public static IDisposable SuppressSave()
+        {
+            return new SaveSuppressionScope();
+        }
+
+        public static bool IsSaveSuppressed
+        {
+            get { return Volatile.Read(ref suppressSaveDepth) > 0; }
+        }
+
+        public static string GetProfilePath(string profileName)
+        {
+            return Path.Combine(AppConfig.ProfileFolder, profileName + ".json");
+        }
+
+        public static string ValidateProfileName(string profileName)
+        {
+            if (string.IsNullOrWhiteSpace(profileName))
+            {
+                throw new ArgumentException("Profile name cannot be empty.");
+            }
+
+            string trimmed = profileName.Trim();
+            char[] invalidChars = Path.GetInvalidFileNameChars();
+            if (trimmed.IndexOfAny(invalidChars) >= 0 || trimmed.Contains("..") || trimmed.Contains("/") || trimmed.Contains("\\"))
+            {
+                throw new ArgumentException("Profile name contains invalid characters.");
+            }
+
+            return trimmed;
+        }
 
         public static void Load(string profileName)
         {
             try
             {
-                string json = File.ReadAllText(AppConfig.ProfileFolder + profileName + ".json");
-                dynamic rawObject = JsonConvert.DeserializeObject(json);
-
-                if ((rawObject != null))
+                string validName = ValidateProfileName(profileName);
+                string filePath = GetProfilePath(validName);
+                string json;
+                lock (FileLock)
                 {
-                    profile.Name = profileName;
-                    profile.UserPreferences = JsonConvert.DeserializeObject<UserPreferences>(Profile.GetByAction(rawObject, profile.UserPreferences));
-                    profile.AHK = JsonConvert.DeserializeObject<AHK>(Profile.GetByAction(rawObject, profile.AHK));
-                    profile.Autopot = JsonConvert.DeserializeObject<Autopot>(Profile.GetByAction(rawObject, profile.Autopot));
-                    profile.AutopotYgg = JsonConvert.DeserializeObject<Autopot>(Profile.GetByAction(rawObject, profile.AutopotYgg));
-                    profile.StatusRecovery = JsonConvert.DeserializeObject<StatusRecovery>(Profile.GetByAction(rawObject, profile.StatusRecovery));
-                    profile.AutoRefreshSpammer1 = JsonConvert.DeserializeObject<AutoRefreshSpammer>(Profile.GetByAction(rawObject, profile.AutoRefreshSpammer1));
-                    profile.AutoRefreshSpammer2 = JsonConvert.DeserializeObject<AutoRefreshSpammer>(Profile.GetByAction(rawObject, profile.AutoRefreshSpammer2));
-                    profile.AutoRefreshSpammer3 = JsonConvert.DeserializeObject<AutoRefreshSpammer>(Profile.GetByAction(rawObject, profile.AutoRefreshSpammer3));
-                    profile.Autobuff = JsonConvert.DeserializeObject<AutoBuff>(Profile.GetByAction(rawObject, profile.Autobuff));
-                    profile.SongMacro = JsonConvert.DeserializeObject<Macro>(Profile.GetByAction(rawObject, profile.SongMacro));
-                    profile.AtkDefMode = JsonConvert.DeserializeObject<ATKDEFMode>(Profile.GetByAction(rawObject, profile.AtkDefMode));
-                    profile.MacroSwitch = JsonConvert.DeserializeObject<Macro>(Profile.GetByAction(rawObject, profile.MacroSwitch));
-                    profile.DebuffsRecovery = JsonConvert.DeserializeObject<DebuffsRecovery>(Profile.GetByAction(rawObject, profile.DebuffsRecovery));
+                    json = File.ReadAllText(filePath);
                 }
+
+                JObject rawObject = string.IsNullOrWhiteSpace(json) ? new JObject() : JObject.Parse(json);
+
+                // Always start from a fresh Profile so missing sections do not leak settings from the previous profile.
+                Profile loaded = new Profile(validName);
+                loaded.UserPreferences = DeserializeAction(rawObject, loaded.UserPreferences);
+                loaded.AHK = DeserializeAction(rawObject, loaded.AHK);
+                loaded.Autopot = DeserializeAction(rawObject, loaded.Autopot);
+                loaded.AutopotYgg = DeserializeAction(rawObject, loaded.AutopotYgg);
+                loaded.StatusRecovery = DeserializeAction(rawObject, loaded.StatusRecovery);
+                loaded.AutoRefreshSpammer1 = DeserializeAction(rawObject, loaded.AutoRefreshSpammer1);
+                loaded.AutoRefreshSpammer2 = DeserializeAction(rawObject, loaded.AutoRefreshSpammer2);
+                loaded.AutoRefreshSpammer3 = DeserializeAction(rawObject, loaded.AutoRefreshSpammer3);
+                loaded.Autobuff = DeserializeAction(rawObject, loaded.Autobuff);
+                loaded.SongMacro = DeserializeAction(rawObject, loaded.SongMacro);
+                loaded.AtkDefMode = DeserializeAction(rawObject, loaded.AtkDefMode);
+                loaded.MacroSwitch = DeserializeAction(rawObject, loaded.MacroSwitch);
+                loaded.DebuffsRecovery = DeserializeAction(rawObject, loaded.DebuffsRecovery);
+
+                profile = loaded;
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"[Profile] Error Message: {ex.Message}");
-                throw new Exception("Houve um problema ao carregar o perfil. Delete a pasta Profiles e tente novamente.");
+                Logger.Error("Profile", "Error loading profile '" + profileName + "'", ex);
+                throw new Exception("Houve um problema ao carregar o perfil. Delete a pasta Profile e tente novamente.", ex);
             }
+        }
+
+        private static T DeserializeAction<T>(JObject rawObject, T defaultAction) where T : Action
+        {
+            string rawSection = Profile.GetByAction(rawObject, defaultAction);
+            T deserialized = JsonConvert.DeserializeObject<T>(rawSection);
+            return deserialized != null ? deserialized : defaultAction;
         }
 
         public static void Create(string profileName)
         {
-            string jsonFileName = AppConfig.ProfileFolder + profileName + ".json";
+            string validName = ValidateProfileName(profileName);
+            string jsonFileName = GetProfilePath(validName);
 
-            if (!File.Exists(jsonFileName))
+            lock (FileLock)
             {
-                if (!Directory.Exists(AppConfig.ProfileFolder)) { Directory.CreateDirectory(AppConfig.ProfileFolder); }
-                FileStream fs = File.Create(jsonFileName);
-                fs.Close();
+                if (!Directory.Exists(AppConfig.ProfileFolder))
+                {
+                    Directory.CreateDirectory(AppConfig.ProfileFolder);
+                }
 
-                Profile profile = new Profile(profileName);
-                string output = JsonConvert.SerializeObject(profile, Formatting.Indented);
-                File.WriteAllText(jsonFileName, output);
+                if (!File.Exists(jsonFileName))
+                {
+                    Profile newProfile = new Profile(validName);
+                    string output = JsonConvert.SerializeObject(newProfile, Formatting.Indented);
+                    WriteAllTextAtomic(jsonFileName, output);
+                }
             }
 
-            ProfileSingleton.Load(profileName);
+            Load(validName);
         }
 
         public static void Delete(string profileName)
         {
             try
             {
-                if (profileName != "Default") { File.Delete(AppConfig.ProfileFolder + profileName + ".json"); }
+                string validName = ValidateProfileName(profileName);
+                if (string.Equals(validName, "Default", StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                lock (FileLock)
+                {
+                    string path = GetProfilePath(validName);
+                    if (File.Exists(path))
+                    {
+                        File.Delete(path);
+                    }
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Logger.Warn("Profile", "Failed to delete profile '" + profileName + "'", ex);
+            }
         }
 
         public static void Rename(string oldProfileName, string newProfileName)
         {
-            string jsonFileName = AppConfig.ProfileFolder + newProfileName + ".json";
-            if (oldProfileName != "Default" && !File.Exists(jsonFileName)) {
-                File.Move(AppConfig.ProfileFolder + oldProfileName + ".json", jsonFileName);
+            string validOld = ValidateProfileName(oldProfileName);
+            string validNew = ValidateProfileName(newProfileName);
+
+            if (string.Equals(validOld, "Default", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Cannot rename the Default profile.");
+            }
+
+            if (string.Equals(validOld, validNew, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            string oldPath = GetProfilePath(validOld);
+            string newPath = GetProfilePath(validNew);
+
+            lock (FileLock)
+            {
+                if (!File.Exists(oldPath))
+                {
+                    throw new FileNotFoundException("Profile not found.", oldPath);
+                }
+
+                if (File.Exists(newPath))
+                {
+                    throw new IOException("A profile named '" + validNew + "' already exists.");
+                }
+
+                File.Move(oldPath, newPath);
+            }
+
+            if (profile != null && string.Equals(profile.Name, validOld, StringComparison.OrdinalIgnoreCase))
+            {
+                profile.Name = validNew;
             }
         }
 
-        public static void Copy(string profileName)
+        public static string Copy(string profileName)
         {
+            string validName = ValidateProfileName(profileName);
+            if (string.Equals(validName, "Default", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Cannot copy the Default profile.");
+            }
+
+            lock (FileLock)
+            {
+                string sourcePath = GetProfilePath(validName);
+                if (!File.Exists(sourcePath))
+                {
+                    throw new FileNotFoundException("Profile not found.", sourcePath);
+                }
+
+                string copyName = validName + " Copy";
+                string destinationPath = GetProfilePath(copyName);
+                int suffix = 2;
+
+                while (File.Exists(destinationPath))
+                {
+                    copyName = validName + " Copy (" + suffix + ")";
+                    destinationPath = GetProfilePath(copyName);
+                    suffix++;
+                }
+
+                File.Copy(sourcePath, destinationPath);
+                return copyName;
+            }
+        }
+
+        public static void Export(string profileName, string destinationFilePath)
+        {
+            string validName = ValidateProfileName(profileName);
+            if (string.IsNullOrWhiteSpace(destinationFilePath))
+            {
+                throw new ArgumentException("Destination path cannot be empty.");
+            }
+
+            lock (FileLock)
+            {
+                string sourcePath = GetProfilePath(validName);
+                if (!File.Exists(sourcePath))
+                {
+                    throw new FileNotFoundException("Profile not found.", sourcePath);
+                }
+
+                File.Copy(sourcePath, destinationFilePath, true);
+            }
+        }
+
+        public static string Import(string sourceFilePath)
+        {
+            if (string.IsNullOrWhiteSpace(sourceFilePath) || !File.Exists(sourceFilePath))
+            {
+                throw new FileNotFoundException("Source profile file not found.", sourceFilePath);
+            }
+
+            string json = File.ReadAllText(sourceFilePath);
+            // Validate JSON before copying into Profile folder.
+            JObject.Parse(json);
+
+            string baseName = ValidateProfileName(Path.GetFileNameWithoutExtension(sourceFilePath));
+            if (string.Equals(baseName, "Default", StringComparison.OrdinalIgnoreCase))
+            {
+                baseName = "Default Imported";
+            }
+
+            lock (FileLock)
+            {
+                if (!Directory.Exists(AppConfig.ProfileFolder))
+                {
+                    Directory.CreateDirectory(AppConfig.ProfileFolder);
+                }
+
+                string targetName = baseName;
+                string targetPath = GetProfilePath(targetName);
+                int suffix = 2;
+
+                while (File.Exists(targetPath))
+                {
+                    targetName = baseName + " (" + suffix + ")";
+                    targetPath = GetProfilePath(targetName);
+                    suffix++;
+                }
+
+                WriteAllTextAtomic(targetPath, json);
+                return targetName;
+            }
+        }
+
+        public static string GetBoundCharacter(string profileName)
+        {
+            if (string.IsNullOrWhiteSpace(profileName))
+            {
+                return string.Empty;
+            }
+
             try
             {
-                string jsonFileName = AppConfig.ProfileFolder + profileName + " Copy.json";
-                if (profileName != "Default" && !File.Exists(jsonFileName)) {
-                    File.Copy(AppConfig.ProfileFolder + profileName + ".json", jsonFileName);
+                string validName = ValidateProfileName(profileName);
+                string filePath = GetProfilePath(validName);
+                string json;
+
+                lock (FileLock)
+                {
+                    if (!File.Exists(filePath))
+                    {
+                        return string.Empty;
+                    }
+
+                    json = File.ReadAllText(filePath);
+                }
+
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    return string.Empty;
+                }
+
+                JObject rawObject = JObject.Parse(json);
+                UserPreferences prefs = DeserializeAction(rawObject, new UserPreferences());
+                return prefs != null && prefs.boundCharacter != null ? prefs.boundCharacter.Trim() : string.Empty;
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn("Profile", "Failed to read bound character for '" + profileName + "'", ex);
+                return string.Empty;
+            }
+        }
+
+        public static void SetBoundCharacter(string profileName, string characterName)
+        {
+            string validName = ValidateProfileName(profileName);
+            string normalizedChar = string.IsNullOrWhiteSpace(characterName) ? string.Empty : characterName.Trim();
+            string filePath = GetProfilePath(validName);
+
+            lock (FileLock)
+            {
+                if (!File.Exists(filePath))
+                {
+                    throw new FileNotFoundException("Profile not found.", filePath);
+                }
+
+                string jsonData = File.ReadAllText(filePath);
+                JObject jsonObj = string.IsNullOrWhiteSpace(jsonData) ? new JObject() : JObject.Parse(jsonData);
+                UserPreferences prefs = DeserializeAction(jsonObj, new UserPreferences());
+                prefs.boundCharacter = normalizedChar;
+
+                jsonObj[prefs.GetActionName()] = prefs.GetConfiguration();
+                WriteAllTextAtomic(filePath, jsonObj.ToString(Formatting.Indented));
+            }
+
+            if (profile != null && string.Equals(profile.Name, validName, StringComparison.OrdinalIgnoreCase))
+            {
+                profile.UserPreferences.boundCharacter = normalizedChar;
+            }
+        }
+
+        public static string FindProfileForCharacter(string characterName)
+        {
+            if (string.IsNullOrWhiteSpace(characterName))
+            {
+                return null;
+            }
+
+            string target = characterName.Trim();
+            foreach (string profileName in Profile.ListAll())
+            {
+                string bound = GetBoundCharacter(profileName);
+                if (!string.IsNullOrEmpty(bound) && string.Equals(bound, target, StringComparison.OrdinalIgnoreCase))
+                {
+                    return profileName;
                 }
             }
-            catch { }
+
+            return null;
         }
 
         public static void SetConfiguration(Action action)
         {
-            if (profile != null)
+            if (IsSaveSuppressed || profile == null || action == null)
             {
-                string jsonData = File.ReadAllText(AppConfig.ProfileFolder + profile.Name + ".json");
-                dynamic jsonObj = JsonConvert.DeserializeObject(jsonData);
-                jsonObj[action.GetActionName()] = action.GetConfiguration();
-                string output = JsonConvert.SerializeObject(jsonObj, Formatting.Indented);
-                File.WriteAllText(AppConfig.ProfileFolder + profile.Name + ".json", output);
+                return;
             }
+
+            try
+            {
+                lock (FileLock)
+                {
+                    if (!Directory.Exists(AppConfig.ProfileFolder))
+                    {
+                        Directory.CreateDirectory(AppConfig.ProfileFolder);
+                    }
+
+                    string filePath = GetProfilePath(profile.Name);
+                    JObject jsonObj;
+                    if (File.Exists(filePath))
+                    {
+                        string jsonData = File.ReadAllText(filePath);
+                        jsonObj = string.IsNullOrWhiteSpace(jsonData) ? new JObject() : JObject.Parse(jsonData);
+                    }
+                    else
+                    {
+                        jsonObj = JObject.FromObject(profile);
+                    }
+
+                    jsonObj[action.GetActionName()] = action.GetConfiguration();
+                    string output = jsonObj.ToString(Formatting.Indented);
+                    WriteAllTextAtomic(filePath, output);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Profile", "Failed to save configuration for " + action.GetActionName(), ex);
+            }
+        }
+
+        private static void WriteAllTextAtomic(string targetPath, string content)
+        {
+            string tempPath = targetPath + ".tmp";
+            File.WriteAllText(tempPath, content);
+            File.Copy(tempPath, targetPath, true);
+            File.Delete(tempPath);
         }
 
         public static Profile GetCurrent()
@@ -122,7 +446,6 @@ namespace _4RTools.Model
         public StatusRecovery StatusRecovery { get; set; }
         public Macro SongMacro { get; set; }
         public Macro MacroSwitch { get; set; }
-
         public ATKDEFMode AtkDefMode { get; set; }
         public DebuffsRecovery DebuffsRecovery { get; set; }
 
@@ -145,11 +468,15 @@ namespace _4RTools.Model
             this.DebuffsRecovery = new DebuffsRecovery();
         }
 
-        public static object GetByAction(dynamic obj, Action action)
+        public static string GetByAction(JObject obj, Action action)
         {
-            if (obj != null && obj[action.GetActionName()] != null)
+            if (obj != null && action != null)
             {
-                return obj[action.GetActionName()].ToString();
+                JToken token = obj[action.GetActionName()];
+                if (token != null && token.Type != JTokenType.Null)
+                {
+                    return token.Type == JTokenType.String ? token.Value<string>() : token.ToString(Formatting.None);
+                }
             }
 
             return action.GetConfiguration();
@@ -160,18 +487,29 @@ namespace _4RTools.Model
             List<string> profiles = new List<string>();
             try
             {
-                string[] files = Directory.GetFiles(AppConfig.ProfileFolder);
-
-                foreach (string fileName in files)
+                if (!Directory.Exists(AppConfig.ProfileFolder))
                 {
-                    string[] len = fileName.Split('\\');
-                    string profileName = len[len.Length - 1].Split('.')[0];
-                    profiles.Add(profileName);
+                    return profiles;
+                }
+
+                string[] files = Directory.GetFiles(AppConfig.ProfileFolder, "*.json");
+                Array.Sort(files, StringComparer.OrdinalIgnoreCase);
+
+                foreach (string filePath in files)
+                {
+                    string profileName = Path.GetFileNameWithoutExtension(filePath);
+                    if (!string.IsNullOrWhiteSpace(profileName))
+                    {
+                        profiles.Add(profileName);
+                    }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Logger.Warn("Profile", "Failed to list profiles", ex);
+            }
+
             return profiles;
         }
     }
-
 }

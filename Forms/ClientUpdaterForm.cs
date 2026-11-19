@@ -1,54 +1,64 @@
-﻿using _4RTools.Utils;
-using _4RTools.Model;
-using System.Windows.Forms;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using Newtonsoft.Json;
+using _4RTools.Model;
+using _4RTools.Utils;
 
 namespace _4RTools.Forms
 {
     public partial class ClientUpdaterForm : Form
     {
-        private System.Net.Http.HttpClient httpClient = new System.Net.Http.HttpClient();
-
         public ClientUpdaterForm()
         {
-            var requestAccepts = httpClient.DefaultRequestHeaders.Accept;
-            requestAccepts.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-            httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd("request"); //Set the User Agent to "request"
             InitializeComponent();
-            StartUpdate();
+            this.Shown += ClientUpdaterForm_Shown;
         }
 
-        private async void StartUpdate()
+        private async void ClientUpdaterForm_Shown(object sender, EventArgs e)
+        {
+            await StartUpdateAsync();
+        }
+
+        private async Task StartUpdateAsync()
         {
             List<ClientDTO> clients = new List<ClientDTO>();
 
-
-            /**
-             * Try to load remote supported_server.json file and append all data in clients list.
-             */
             try
             {
-                clients.AddRange(LocalServerManager.GetLocalClients()); //Load Local Servers First
-                //If fetch successfully update and load local file.
-                httpClient.Timeout = TimeSpan.FromSeconds(5);
-                string remoteServersRaw = await httpClient.GetStringAsync(AppConfig._4RClientsURL);
-                clients.AddRange(JsonConvert.DeserializeObject<List<ClientDTO>>(remoteServersRaw));
+                clients.AddRange(LocalServerManager.GetLocalClients());
 
+                string remoteServersRaw = await HttpClientProvider.GetStringAsync(AppConfig._4RClientsURL, TimeSpan.FromSeconds(5));
+                List<ClientDTO> remoteClients = JsonConvert.DeserializeObject<List<ClientDTO>>(remoteServersRaw);
+                if (remoteClients != null)
+                {
+                    clients.AddRange(remoteClients);
+                }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                //If catch some exception while Fetch, load resource file.
-                MessageBox.Show("Cannot load supported_servers file. Loading resource instead....");
-                clients.AddRange(JsonConvert.DeserializeObject<List<ClientDTO>>(LoadResourceServerFile()));
+                Logger.Warn("ClientUpdaterForm", "Cannot load remote supported_servers.json, falling back to embedded resource", ex);
+                try
+                {
+                    List<ClientDTO> resourceClients = JsonConvert.DeserializeObject<List<ClientDTO>>(LoadResourceServerFile());
+                    if (resourceClients != null)
+                    {
+                        clients.AddRange(resourceClients);
+                    }
+                }
+                catch (Exception resEx)
+                {
+                    Logger.Error("ClientUpdaterForm", "Failed to load embedded supported_servers resource", resEx);
+                }
             }
             finally
             {
                 LoadServers(clients);
-                new Container().Show();
-                Hide();
+                if (!this.IsDisposed)
+                {
+                    this.Close();
+                }
             }
         }
 
@@ -59,15 +69,24 @@ namespace _4RTools.Forms
 
         private void LoadServers(List<ClientDTO> clients)
         {
+            this.pbSupportedServer.Maximum = Math.Max(1, clients.Count);
+            this.pbSupportedServer.Value = 0;
+
             foreach (ClientDTO clientDTO in clients)
             {
                 try
                 {
                     ClientListSingleton.AddClient(new Client(clientDTO));
-                    pbSupportedServer.Increment(1);
                 }
-                catch { }
-                
+                catch (Exception ex)
+                {
+                    Logger.Warn("ClientUpdaterForm", "Skipping invalid server entry: " + (clientDTO != null ? clientDTO.name : "null"), ex);
+                }
+
+                if (this.pbSupportedServer.Value < this.pbSupportedServer.Maximum)
+                {
+                    this.pbSupportedServer.Increment(1);
+                }
             }
         }
     }

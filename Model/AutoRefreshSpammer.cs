@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Threading;
-using System.Windows.Input;
 using System.Windows.Forms;
+using System.Windows.Input;
 using Newtonsoft.Json;
 using _4RTools.Utils;
 
@@ -21,30 +21,35 @@ namespace _4RTools.Model
 
         public void Start()
         {
+            Stop();
             Client roClient = ClientSingleton.GetClient();
             if (roClient != null)
             {
-                const int defaultDelayInSeconds = 1000;
-                int delayInSeconds = this.RefreshDelay * 1000;
-                int delay = delayInSeconds == 0 ? defaultDelayInSeconds : delayInSeconds;
-                this.thread = new _4RThread(_ => AutorefreshThreadExecution(roClient, delay));
+                const int defaultDelayMs = 1000;
+                int delayMs = this.RefreshDelay > 0 ? this.RefreshDelay * 1000 : defaultDelayMs;
+                this.thread = new _4RThread(token => AutorefreshThreadExecution(roClient, delayMs, token), this.ActionName);
                 _4RThread.Start(this.thread);
             }
         }
 
-        private int AutorefreshThreadExecution(Client roClient, int delay)
+        private void AutorefreshThreadExecution(Client roClient, int delayMs, CancellationToken token)
         {
-            if (this.RefreshKey != Key.None)
+            if (this.RefreshKey != Key.None
+                && roClient.IsProcessAlive()
+                && !roClient.ShouldPauseAutomation()
+                && !KeyHelper.IsAltPressed())
             {
-                Interop.PostMessage(roClient.process.MainWindowHandle, Constants.WM_KEYDOWN_MSG_ID, (Keys)Enum.Parse(typeof(Keys), this.RefreshKey.ToString()), 0);
+                Keys formsKey = KeyHelper.ToFormsKeys(this.RefreshKey);
+                Interop.SendKeyDown(roClient.GetWindowHandle(), formsKey);
             }
-            Thread.Sleep(delay);
-            return 0;
+
+            _4RThread.Sleep(delayMs, token);
         }
 
         public void Stop()
         {
             _4RThread.Stop(this.thread);
+            this.thread = null;
         }
 
         public string GetConfiguration()

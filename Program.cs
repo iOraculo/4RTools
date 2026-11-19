@@ -1,4 +1,8 @@
-﻿using System;
+using System;
+using System.Threading;
+using System.Windows.Forms;
+using _4RTools.Utils;
+
 namespace _4RTools
 {
     internal static class Program
@@ -9,15 +13,38 @@ namespace _4RTools
         [STAThread]
         static void Main()
         {
-            System.Windows.Forms.Application.EnableVisualStyles();
-            System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
-            // Application app = new Application();
-            // app.IsMdiContainer = true;
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
 
-            //Forms.ClientUpdaterForm app = new Forms.ClientUpdaterForm();
-            //Forms.Container app = new Forms.Container();
-            Forms.AutoPatcher app = new Forms.AutoPatcher();
-            System.Windows.Forms.Application.Run(app);
+            Application.ThreadException += OnThreadException;
+            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+
+            using (Forms.AutoPatcher patcher = new Forms.AutoPatcher())
+            {
+                patcher.ShowDialog();
+                if (patcher.UpdateApplied)
+                {
+                    return;
+                }
+            }
+
+            using (Forms.ClientUpdaterForm updater = new Forms.ClientUpdaterForm())
+            {
+                updater.ShowDialog();
+            }
+
+            Application.Run(new Forms.Container());
+        }
+
+        private static void OnThreadException(object sender, ThreadExceptionEventArgs e)
+        {
+            Logger.Error("Program", "Unhandled UI thread exception", e.Exception);
+        }
+
+        private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Logger.Error("Program", "Unhandled domain exception", e.ExceptionObject as Exception);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="packages\Costura.Fody.5.7.0\build\Costura.Fody.props" Condition="Exists('packages\Costura.Fody.5.7.0\build\Costura.Fody.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -221,12 +221,6 @@
     <Compile Include="Forms\AddServerForm.Designer.cs">
       <DependentUpon>AddServerForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\AdvertisementForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\AdvertisementForm.Designer.cs">
-      <DependentUpon>AdvertisementForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="Forms\AHKForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -317,8 +311,8 @@
     <Compile Include="Forms\ToggleApplicationStateForm.Designer.cs">
       <DependentUpon>ToggleApplicationStateForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Model\Advertiser.cs" />
     <Compile Include="Model\AHK.cs" />
+    <Compile Include="Model\AppSettings.cs" />
     <Compile Include="Model\ATKDEFMode.cs" />
     <Compile Include="Model\Autopot.cs" />
     <Compile Include="Model\Autobuff.cs" />
@@ -328,8 +322,8 @@
     <Compile Include="Model\BuffRenderer.cs" />
     <Compile Include="Model\DebuffsRecovery.cs" />
     <Compile Include="Model\LocalServerManager.cs" />
+    <Compile Include="Model\StatusEffectRecoveryBase.cs" />
     <Compile Include="Model\StatusRecovery.cs" />
-    <Compile Include="Model\Tracker.cs" />
     <Compile Include="Model\UserPreferences.cs" />
     <Compile Include="Model\Client.cs" />
     <Compile Include="Model\Action.cs" />
@@ -358,20 +352,23 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Icons.resx</DependentUpon>
     </Compile>
+    <Compile Include="Utils\ChatPauseState.cs" />
     <Compile Include="Utils\EffectStatusIDs.cs" />
     <Compile Include="Utils\AppConfig.cs" />
     <Compile Include="Utils\Constants.cs" />
     <Compile Include="Utils\FormUtils.cs" />
+    <Compile Include="Utils\HttpClientProvider.cs" />
     <Compile Include="Utils\Interop.cs" />
     <Compile Include="Utils\KeyboardHook.cs" />
+    <Compile Include="Utils\KeyHelper.cs" />
+    <Compile Include="Utils\Logger.cs" />
     <Compile Include="Utils\ProcessMemoryReader.cs" />
     <Compile Include="Utils\RObserver.cs" />
+    <Compile Include="Utils\ThemeManager.cs" />
+    <Compile Include="Utils\VitalBar.cs" />
     <Compile Include="Utils\_4RThread.cs" />
     <EmbeddedResource Include="Forms\AddServerForm.resx">
       <DependentUpon>AddServerForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\AdvertisementForm.resx">
-      <DependentUpon>AdvertisementForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\AHKForm.resx">
       <DependentUpon>AHKForm.cs</DependentUpon>

@@ -1,30 +1,32 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Windows.Forms;
+using System.Windows.Input;
 using Newtonsoft.Json;
 using _4RTools.Utils;
-using System.Threading;
-using System.Drawing;
-using System.Windows.Input;
-using System.Collections.Generic;
-using System.Windows.Forms;
 
 namespace _4RTools.Model
 {
-    public enum  ATKDEFEnum
+    public enum ATKDEFEnum
     {
         ATK = 0,
         DEF = 1,
     }
+
     public class ATKDEFMode : Action
     {
         public static string ACTION_NAME_ATKDEF = "ATKDEFMode";
+        private readonly object keysLock = new object();
         private _4RThread thread;
+
         public int ahkDelay { get; set; } = 10;
         public int switchDelay { get; set; } = 50;
         public Key keySpammer { get; set; }
         public bool keySpammerWithClick { get; set; } = true;
-        public Dictionary<string,Key> defKeys { get; set; } = new Dictionary<string,Key>();
-        public Dictionary<string,Key> atkKeys { get; set; } = new Dictionary<string, Key>();
-        private int PX_MOV = Constants.MOUSE_DIAGONAL_MOVIMENTATION_PIXELS_AHK;
+        public Dictionary<string, Key> defKeys { get; set; } = new Dictionary<string, Key>();
+        public Dictionary<string, Key> atkKeys { get; set; } = new Dictionary<string, Key>();
 
         public string GetActionName()
         {
@@ -33,90 +35,150 @@ namespace _4RTools.Model
 
         public string GetConfiguration()
         {
-            return JsonConvert.SerializeObject(this);
+            lock (this.keysLock)
+            {
+                return JsonConvert.SerializeObject(this);
+            }
         }
 
         public void Start()
         {
+            Stop();
             Client roClient = ClientSingleton.GetClient();
             if (roClient != null)
             {
-                this.thread = new _4RThread(_ => AHKThreadExecution(roClient));
+                this.thread = new _4RThread(token => AHKThreadExecution(roClient, token), ACTION_NAME_ATKDEF);
                 _4RThread.Start(this.thread);
             }
         }
 
-        private int AHKThreadExecution(Client roClient)
+        private void AHKThreadExecution(Client roClient, CancellationToken token)
         {
-            Keys thisk = toKeys(keySpammer);
-            if (this.keySpammer != Key.None && Keyboard.IsKeyDown(this.keySpammer))
+            if (!roClient.IsProcessAlive() || roClient.ShouldPauseAutomation())
             {
-                foreach (Key key in atkKeys.Values)
+                return;
+            }
+
+            Key spammer = this.keySpammer;
+            if (spammer == Key.None || !Keyboard.IsKeyDown(spammer))
+            {
+                return;
+            }
+
+            IntPtr hWnd = roClient.GetWindowHandle();
+            if (hWnd == IntPtr.Zero)
+            {
+                return;
+            }
+
+            Keys thisk = KeyHelper.ToFormsKeys(spammer);
+            Key[] atkSnapshot;
+            Key[] defSnapshot;
+
+            lock (this.keysLock)
+            {
+                atkSnapshot = this.atkKeys.Values.ToArray();
+                defSnapshot = this.defKeys.Values.ToArray();
+            }
+
+            int equipDelay = Math.Max(0, this.switchDelay);
+            int spamDelay = Math.Max(1, this.ahkDelay);
+
+            // Equip ATK items
+            foreach (Key key in atkSnapshot)
+            {
+                if (token.IsCancellationRequested)
                 {
-                    Interop.PostMessage(roClient.process.MainWindowHandle, Constants.WM_KEYDOWN_MSG_ID, toKeys(key), 0); //Equip ATK Items
-                    Thread.Sleep(this.switchDelay);
+                    return;
                 }
 
-                if (this.keySpammerWithClick)
+                Interop.SendKeyDown(hWnd, KeyHelper.ToFormsKeys(key));
+                if (!_4RThread.Sleep(equipDelay, token))
                 {
-                    while (Keyboard.IsKeyDown(keySpammer))
-                    {
-
-                        Interop.PostMessage(roClient.process.MainWindowHandle, Constants.WM_KEYDOWN_MSG_ID, thisk, 0);
-                        Interop.PostMessage(roClient.process.MainWindowHandle, Constants.WM_LBUTTONDOWN, 0, 0);
-                        Thread.Sleep(1);
-                        Interop.PostMessage(roClient.process.MainWindowHandle, Constants.WM_LBUTTONUP, 0, 0);
-                        Thread.Sleep(this.ahkDelay);
-                    }
-                }
-                else
-                {
-                    while (Keyboard.IsKeyDown(keySpammer))
-                    {
-                        Interop.PostMessage(roClient.process.MainWindowHandle, Constants.WM_KEYDOWN_MSG_ID, thisk, 0);
-                        Thread.Sleep(this.ahkDelay);
-                    }
-                }
-
-                foreach (Key key in defKeys.Values)
-                {
-                    Interop.PostMessage(roClient.process.MainWindowHandle, Constants.WM_KEYDOWN_MSG_ID, toKeys(key), 0); //Equip DEF Items
-                    Thread.Sleep(this.switchDelay);
+                    return;
                 }
             }
-            return 0;
+
+            if (this.keySpammerWithClick)
+            {
+                while (!token.IsCancellationRequested && Keyboard.IsKeyDown(spammer))
+                {
+                    Interop.SendKeyDown(hWnd, thisk);
+                    Interop.SendLeftClick(hWnd);
+                    if (!_4RThread.Sleep(spamDelay, token))
+                    {
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                while (!token.IsCancellationRequested && Keyboard.IsKeyDown(spammer))
+                {
+                    Interop.SendKeyDown(hWnd, thisk);
+                    if (!_4RThread.Sleep(spamDelay, token))
+                    {
+                        break;
+                    }
+                }
+            }
+
+            // Equip DEF items after releasing spammer key
+            foreach (Key key in defSnapshot)
+            {
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                Interop.SendKeyDown(hWnd, KeyHelper.ToFormsKeys(key));
+                if (!_4RThread.Sleep(equipDelay, token))
+                {
+                    return;
+                }
+            }
         }
 
-        public void AddSwitchItem(string dictKey,Key k, ATKDEFEnum type)
+        public void AddSwitchItem(string dictKey, Key k, ATKDEFEnum type)
         {
-            Dictionary<string, Key> copy = type == ATKDEFEnum.DEF ? this.defKeys : this.atkKeys;
-
-            if (copy.ContainsKey(dictKey))
+            lock (this.keysLock)
             {
-                RemoveSwitchEntry(dictKey, type);
-            }
+                Dictionary<string, Key> target = type == ATKDEFEnum.DEF ? this.defKeys : this.atkKeys;
 
-            if(k != Key.None)
-            {
-                copy.Add(dictKey, k);
+                if (target.ContainsKey(dictKey))
+                {
+                    target.Remove(dictKey);
+                }
+
+                if (FormUtils.IsValidKey(k))
+                {
+                    target.Add(dictKey, k);
+                }
             }
-            
         }
 
         public void RemoveSwitchEntry(string dictKey, ATKDEFEnum type)
         {
-            Dictionary<string, Key> copy = type == ATKDEFEnum.DEF ? this.defKeys : this.atkKeys;
-            copy.Remove(dictKey);
+            lock (this.keysLock)
+            {
+                Dictionary<string, Key> target = type == ATKDEFEnum.DEF ? this.defKeys : this.atkKeys;
+                target.Remove(dictKey);
+            }
         }
 
-        private Keys toKeys(Key k)
+        public Dictionary<string, Key> GetKeysSnapshot(ATKDEFEnum type)
         {
-            return (Keys)Enum.Parse(typeof(Keys), k.ToString());
+            lock (this.keysLock)
+            {
+                Dictionary<string, Key> source = type == ATKDEFEnum.DEF ? this.defKeys : this.atkKeys;
+                return new Dictionary<string, Key>(source);
+            }
         }
 
         public void Stop()
         {
             _4RThread.Stop(this.thread);
+            this.thread = null;
         }
     }
 }

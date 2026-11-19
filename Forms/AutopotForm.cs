@@ -1,5 +1,5 @@
-﻿using System.Windows.Forms;
 using System;
+using System.Windows.Forms;
 using System.Windows.Input;
 using _4RTools.Model;
 using _4RTools.Utils;
@@ -9,7 +9,8 @@ namespace _4RTools.Forms
     public partial class AutopotForm : Form, IObserver
     {
         private Autopot autopot;
-        private bool isYgg;
+        private readonly bool isYgg;
+        private bool isUpdatingUi;
 
         public AutopotForm(Subject subject, bool isYgg)
         {
@@ -19,89 +20,136 @@ namespace _4RTools.Forms
                 this.picBoxHP.Image = Resources._4RTools.ETCResource.Yggdrasil;
                 this.picBoxSP.Image = Resources._4RTools.ETCResource.Yggdrasil;
             }
-            subject.Attach(this);
+
             this.isYgg = isYgg;
+
+            // Subscribe once in constructor to avoid stacking duplicate handlers on profile switch.
+            this.txtHpKey.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
+            this.txtHpKey.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
+            this.txtHpKey.TextChanged += new EventHandler(this.onHpTextChange);
+            this.txtSPKey.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
+            this.txtSPKey.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
+            this.txtSPKey.TextChanged += new EventHandler(this.onSpTextChange);
+
+            subject.Attach(this);
         }
 
         public void Update(ISubject subject)
         {
-            switch ((subject as Subject).Message.code)
+            Subject subj = subject as Subject;
+            if (subj == null || subj.Message == null)
+            {
+                return;
+            }
+
+            switch (subj.Message.code)
             {
                 case MessageCode.PROFILE_CHANGED:
                     this.autopot = this.isYgg ? ProfileSingleton.GetCurrent().AutopotYgg : ProfileSingleton.GetCurrent().Autopot;
                     InitializeApplicationForm();
                     break;
                 case MessageCode.TURN_OFF:
-                    this.autopot.Stop();
+                    if (this.autopot != null)
+                    {
+                        this.autopot.Stop();
+                    }
                     break;
                 case MessageCode.TURN_ON:
-                    this.autopot.Start();
+                    if (this.autopot != null)
+                    {
+                        this.autopot.Start();
+                    }
                     break;
             }
         }
 
         private void InitializeApplicationForm()
         {
-            this.txtHpKey.Text = this.autopot.hpKey.ToString();
-            this.txtSPKey.Text = this.autopot.spKey.ToString();
-            this.txtHPpct.Text = this.autopot.hpPercent.ToString();
-            this.txtSPpct.Text = this.autopot.spPercent.ToString();
-            this.txtAutopotDelay.Text = this.autopot.delay.ToString();
+            if (this.autopot == null)
+            {
+                return;
+            }
 
-
-            txtHpKey.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
-            txtHpKey.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
-            txtHpKey.TextChanged += new EventHandler(this.onHpTextChange);
-            txtSPKey.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
-            txtSPKey.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
-            txtSPKey.TextChanged += new EventHandler(this.onSpTextChange);
-
-
+            this.isUpdatingUi = true;
+            try
+            {
+                this.txtHpKey.Text = this.autopot.hpKey.ToString();
+                this.txtSPKey.Text = this.autopot.spKey.ToString();
+                FormUtils.SetNumericValue(this.txtHPpct, this.autopot.hpPercent);
+                FormUtils.SetNumericValue(this.txtSPpct, this.autopot.spPercent);
+                this.txtAutopotDelay.Text = this.autopot.delay.ToString();
+            }
+            finally
+            {
+                this.isUpdatingUi = false;
+            }
         }
 
         private void onHpTextChange(object sender, EventArgs e)
         {
-            Key key = (Key)Enum.Parse(typeof(Key), txtHpKey.Text.ToString());
-            this.autopot.hpKey = key;
-            ProfileSingleton.SetConfiguration(this.autopot);
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed || this.autopot == null)
+            {
+                return;
+            }
+
+            Key key;
+            if (KeyHelper.TryParseKey(this.txtHpKey.Text, out key))
+            {
+                this.autopot.hpKey = key;
+                ProfileSingleton.SetConfiguration(this.autopot);
+            }
         }
 
         private void onSpTextChange(object sender, EventArgs e)
         {
-            Key key = (Key)Enum.Parse(typeof(Key), txtSPKey.Text.ToString());
-            this.autopot.spKey = key;
-            ProfileSingleton.SetConfiguration(this.autopot);
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed || this.autopot == null)
+            {
+                return;
+            }
+
+            Key key;
+            if (KeyHelper.TryParseKey(this.txtSPKey.Text, out key))
+            {
+                this.autopot.spKey = key;
+                ProfileSingleton.SetConfiguration(this.autopot);
+            }
         }
 
         private void txtAutopotDelayTextChanged(object sender, EventArgs e)
         {
-            try
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed || this.autopot == null)
             {
-                this.autopot.delay = Int16.Parse(this.txtAutopotDelay.Text);
+                return;
+            }
+
+            short parsedDelay;
+            if (short.TryParse(this.txtAutopotDelay.Text, out parsedDelay) && parsedDelay >= 1)
+            {
+                this.autopot.delay = parsedDelay;
                 ProfileSingleton.SetConfiguration(this.autopot);
             }
-            catch (Exception) { }
         }
 
         private void txtHPpctTextChanged(object sender, EventArgs e)
         {
-            try
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed || this.autopot == null)
             {
-                this.autopot.hpPercent = Int16.Parse(this.txtHPpct.Text);
-                ProfileSingleton.SetConfiguration(this.autopot);
+                return;
             }
-            catch (Exception) { }
 
+            this.autopot.hpPercent = decimal.ToInt32(this.txtHPpct.Value);
+            ProfileSingleton.SetConfiguration(this.autopot);
         }
 
         private void txtSPpctTextChanged(object sender, EventArgs e)
         {
-            try
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed || this.autopot == null)
             {
-                this.autopot.spPercent = Int16.Parse(this.txtSPpct.Text);
-                ProfileSingleton.SetConfiguration(this.autopot);
+                return;
             }
-            catch (Exception) { }
+
+            this.autopot.spPercent = decimal.ToInt32(this.txtSPpct.Value);
+            ProfileSingleton.SetConfiguration(this.autopot);
         }
     }
 }

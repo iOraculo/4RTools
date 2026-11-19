@@ -1,52 +1,29 @@
-﻿using _4RTools.Model;
-using _4RTools.Utils;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Input;
+using _4RTools.Model;
+using _4RTools.Utils;
 
 namespace _4RTools.Forms
 {
     public partial class AddServerForm : Form
     {
-        Dictionary<string, int> inputMap = new Dictionary<string, int>();
-        private ClientDTO dto;
-        private Subject subject;
+        private readonly Dictionary<string, int> inputMap = new Dictionary<string, int>();
+        private readonly ClientDTO dto;
+        private readonly Subject subject;
 
         public AddServerForm(ClientDTO dto, Subject subject)
         {
             InitializeComponent();
             SetupInputs();
 
-            inputMap.Add("D0", 0);
-            inputMap.Add("D1", 1);
-            inputMap.Add("D2", 2);
-            inputMap.Add("D3", 3);
-            inputMap.Add("D4", 4);
-            inputMap.Add("D5", 5);
-            inputMap.Add("D6", 6);
-            inputMap.Add("D7", 7);
-            inputMap.Add("D8", 8);
-            inputMap.Add("D9", 9);
-
-
-            inputMap.Add("NumPad0", 0);
-            inputMap.Add("NumPad1", 1);
-            inputMap.Add("NumPad2", 2);
-            inputMap.Add("NumPad3", 3);
-            inputMap.Add("NumPad4", 4);
-            inputMap.Add("NumPad5", 5);
-            inputMap.Add("NumPad6", 6);
-            inputMap.Add("NumPad7", 7);
-            inputMap.Add("NumPad8", 8);
-            inputMap.Add("NumPad9", 9);
+            for (int i = 0; i <= 9; i++)
+            {
+                this.inputMap.Add("D" + i, i);
+                this.inputMap.Add("NumPad" + i, i);
+            }
 
             if (dto != null)
             {
@@ -60,76 +37,97 @@ namespace _4RTools.Forms
 
         private void initiateWithClientDTO(ClientDTO dto)
         {
-            //Addresses start in position 2 (0x...)
-            List<char> charsHP = dto.hpAddress.Replace("0x", "").ToCharArray().ToList();
-            List<char> charsName = dto.nameAddress.Replace("0x", "").ToCharArray().ToList();
+            string normalizedHp = LocalServerManager.NormalizeHexAddress(dto.hpAddress) ?? string.Empty;
+            string normalizedName = LocalServerManager.NormalizeHexAddress(dto.nameAddress) ?? string.Empty;
 
-            txtHP1.Text = charsHP.ElementAtOrDefault(0).ToString();
-            txtHP2.Text = charsHP.ElementAtOrDefault(1).ToString();
-            txtHP3.Text = charsHP.ElementAtOrDefault(2).ToString();
-            txtHP4.Text = charsHP.ElementAtOrDefault(3).ToString();
-            txtHP5.Text = charsHP.ElementAtOrDefault(4).ToString();
-            txtHP6.Text = charsHP.ElementAtOrDefault(5).ToString();
-            txtHP7.Text = charsHP.ElementAtOrDefault(6).ToString();
-            txtHP8.Text = charsHP.ElementAtOrDefault(7).ToString();
+            List<char> charsHP = normalizedHp.ToCharArray().ToList();
+            List<char> charsName = normalizedName.ToCharArray().ToList();
 
+            this.txtHP1.Text = charsHP.ElementAtOrDefault(0).ToString();
+            this.txtHP2.Text = charsHP.ElementAtOrDefault(1).ToString();
+            this.txtHP3.Text = charsHP.ElementAtOrDefault(2).ToString();
+            this.txtHP4.Text = charsHP.ElementAtOrDefault(3).ToString();
+            this.txtHP5.Text = charsHP.ElementAtOrDefault(4).ToString();
+            this.txtHP6.Text = charsHP.ElementAtOrDefault(5).ToString();
+            this.txtHP7.Text = charsHP.ElementAtOrDefault(6).ToString();
+            this.txtHP8.Text = charsHP.ElementAtOrDefault(7).ToString();
 
-            txtName1.Text = charsName.ElementAtOrDefault(0).ToString();
-            txtName2.Text = charsName.ElementAtOrDefault(1).ToString();
-            txtName3.Text = charsName.ElementAtOrDefault(2).ToString();
-            txtName4.Text = charsName.ElementAtOrDefault(3).ToString();
-            txtName5.Text = charsName.ElementAtOrDefault(4).ToString();
-            txtName6.Text = charsName.ElementAtOrDefault(5).ToString();
-            txtName7.Text = charsName.ElementAtOrDefault(6).ToString();
-            txtName8.Text = charsName.ElementAtOrDefault(7).ToString();
+            this.txtName1.Text = charsName.ElementAtOrDefault(0).ToString();
+            this.txtName2.Text = charsName.ElementAtOrDefault(1).ToString();
+            this.txtName3.Text = charsName.ElementAtOrDefault(2).ToString();
+            this.txtName4.Text = charsName.ElementAtOrDefault(3).ToString();
+            this.txtName5.Text = charsName.ElementAtOrDefault(4).ToString();
+            this.txtName6.Text = charsName.ElementAtOrDefault(5).ToString();
+            this.txtName7.Text = charsName.ElementAtOrDefault(6).ToString();
+            this.txtName8.Text = charsName.ElementAtOrDefault(7).ToString();
 
-            processCB.Text = dto.name;
+            this.processCB.Text = dto.name;
         }
 
         private void onTextChange(object sender, EventArgs e)
         {
-            TextBox textBox = (TextBox)sender;
-
-            if (inputMap.ContainsKey(textBox.Text))
+            TextBox textBox = sender as TextBox;
+            if (textBox == null)
             {
-                textBox.Text = inputMap[textBox.Text].ToString();
+                return;
             }
 
-            if (!LocalServerManager.IsHex(textBox.Text)) textBox.Clear();
+            int digit;
+            if (this.inputMap.TryGetValue(textBox.Text, out digit))
+            {
+                textBox.Text = digit.ToString();
+                return;
+            }
+
+            if (!LocalServerManager.IsHex(textBox.Text))
+            {
+                textBox.Clear();
+            }
         }
 
         private void refreshProcessList()
         {
-            this.Invoke((MethodInvoker)delegate ()
+            string currentText = this.processCB.Text;
+            this.processCB.Items.Clear();
+
+            Process[] processes = Process.GetProcesses();
+            foreach (Process p in processes)
             {
-                this.processCB.Items.Clear();
-            });
-            foreach (Process p in Process.GetProcesses())
-            {
-                if (p.MainWindowTitle != "")
+                try
                 {
-                    this.processCB.Items.Add(string.Format("{0}", p.ProcessName, p.Id));
+                    if (!string.IsNullOrEmpty(p.MainWindowTitle))
+                    {
+                        this.processCB.Items.Add(p.ProcessName);
+                    }
                 }
+                catch
+                {
+                    // Ignore inaccessible processes.
+                }
+                finally
+                {
+                    p.Dispose();
+                }
+            }
+
+            if (!string.IsNullOrEmpty(currentText))
+            {
+                this.processCB.Text = currentText;
             }
         }
 
         public void SetupInputs()
         {
-            try
+            foreach (Control c in FormUtils.GetAll(this, typeof(TextBox)))
             {
-                foreach (Control c in FormUtils.GetAll(this, typeof(TextBox)))
+                TextBox textBox = c as TextBox;
+                if (textBox != null)
                 {
-                    if (c is TextBox)
-                    {
-                        TextBox textBox = (TextBox)c;
-                        textBox.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
-                        textBox.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
-                        textBox.TextChanged += new EventHandler(this.onTextChange);
-                    }
+                    textBox.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
+                    textBox.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
+                    textBox.TextChanged += new EventHandler(this.onTextChange);
                 }
             }
-            catch { }
-
         }
 
         private void AddServerForm_Load(object sender, EventArgs e)
@@ -139,29 +137,39 @@ namespace _4RTools.Forms
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            string hpAddress = string.Concat(txtHP1.Text, txtHP2.Text, txtHP3.Text, txtHP4.Text, txtHP5.Text, txtHP6.Text, txtHP7.Text, txtHP8.Text);
-            string nameAddress = string.Concat(txtName1.Text, txtName2.Text, txtName3.Text, txtName4.Text, txtName5.Text, txtName6.Text, txtName7.Text, txtName8.Text);
+            string hpAddress = string.Concat(this.txtHP1.Text, this.txtHP2.Text, this.txtHP3.Text, this.txtHP4.Text, this.txtHP5.Text, this.txtHP6.Text, this.txtHP7.Text, this.txtHP8.Text);
+            string nameAddress = string.Concat(this.txtName1.Text, this.txtName2.Text, this.txtName3.Text, this.txtName4.Text, this.txtName5.Text, this.txtName6.Text, this.txtName7.Text, this.txtName8.Text);
+
             try
             {
-                //If don't have client DTO, save a new server. If have DTO, should update given DTO.
-                if(this.dto == null)
+                if (this.dto == null)
                 {
-                    //Should create one
-                    LocalServerManager.AddServer(hpAddress, nameAddress, processCB.Text);
-                    MessageBox.Show("Server " + processCB.Text + " successfully added !!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LocalServerManager.AddServer(hpAddress, nameAddress, this.processCB.Text);
+                    MessageBox.Show("Server " + this.processCB.Text + " successfully added!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
-                    //Update Server
-                    LocalServerManager.RemoveClient(dto);
-                    LocalServerManager.AddServer(hpAddress, nameAddress, processCB.Text);
-                    MessageBox.Show("Server " + processCB.Text + " successfully saved !!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    // Validate addresses before removing the old entry so failed validation never loses the server.
+                    if (LocalServerManager.NormalizeHexAddress(hpAddress) == null)
+                    {
+                        throw new ArgumentException("HP Address is Invalid. Please type a valid Hex value.");
+                    }
+                    if (LocalServerManager.NormalizeHexAddress(nameAddress) == null)
+                    {
+                        throw new ArgumentException("Name Address is Invalid. Please type a valid Hex value.");
+                    }
+
+                    LocalServerManager.RemoveClient(this.dto);
+                    LocalServerManager.AddServer(hpAddress, nameAddress, this.processCB.Text);
+                    MessageBox.Show("Server " + this.processCB.Text + " successfully saved!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
 
-                this.subject.Notify(new Utils.Message(MessageCode.SERVER_LIST_CHANGED, "Server Added"));
-            }catch(Exception ex)
+                this.subject.Notify(new Utils.Message(MessageCode.SERVER_LIST_CHANGED, "Server Saved"));
+                this.Close();
+            }
+            catch (Exception ex)
             {
-                MessageBox.Show($"[Add Server] {ex.Message}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("[Add Server] " + ex.Message, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
     }

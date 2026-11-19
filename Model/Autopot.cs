@@ -1,17 +1,14 @@
-﻿using System;
-using System.ComponentModel;
-using _4RTools.Utils;
+using System;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Input;
 using Newtonsoft.Json;
+using _4RTools.Utils;
 
 namespace _4RTools.Model
 {
-
     public class Autopot : Action
     {
-
         public static string ACTION_NAME_AUTOPOT = "Autopot";
         public static string ACTION_NAME_AUTOPOT_YGG = "AutopotYgg";
 
@@ -26,6 +23,7 @@ namespace _4RTools.Model
         private _4RThread thread;
 
         public Autopot() { }
+
         public Autopot(string actionName)
         {
             this.actionName = actionName;
@@ -34,12 +32,8 @@ namespace _4RTools.Model
         public Autopot(Key hpKey, int hpPercent, int delay, Key spKey, int spPercent)
         {
             this.delay = delay;
-
-            // HP
             this.hpKey = hpKey;
             this.hpPercent = hpPercent;
-
-            // SP
             this.spKey = spKey;
             this.spPercent = spPercent;
         }
@@ -48,54 +42,81 @@ namespace _4RTools.Model
         {
             Stop();
             Client roClient = ClientSingleton.GetClient();
-            if(roClient != null)
+            if (roClient != null)
             {
                 int hpPotCount = 0;
-                this.thread = new _4RThread(_ => AutopotThreadExecution(roClient, hpPotCount));
+                byte[] vitalsBuffer = new byte[Constants.HP_SP_BLOCK_BYTE_SIZE];
+                this.thread = new _4RThread(token =>
+                {
+                    AutopotThreadExecution(roClient, vitalsBuffer, ref hpPotCount, token);
+                }, GetActionName());
                 _4RThread.Start(this.thread);
             }
         }
 
-        private int AutopotThreadExecution(Client roClient, int hpPotCount)
+        private void AutopotThreadExecution(Client roClient, byte[] vitalsBuffer, ref int hpPotCount, CancellationToken token)
         {
-            // check hp first
-            if (roClient.IsHpBelow(hpPercent))
+            if (roClient.HasMemorySupport && roClient.IsProcessAlive() && !roClient.ShouldPauseForFocus())
             {
-                pot(this.hpKey);
-                hpPotCount++;
+                uint currentHp;
+                uint maxHp;
+                uint currentSp;
+                uint maxSp;
 
-                if (hpPotCount == 3)
+                if (roClient.TryReadVitals(vitalsBuffer, out currentHp, out maxHp, out currentSp, out maxSp)
+                    && currentHp > 0 && maxHp > 0)
                 {
-                    hpPotCount = 0;
-                    if (roClient.IsSpBelow(spPercent))
+                    bool pottedSpThisTick = false;
+
+                    // Prioritize HP recovery first; every 3 consecutive HP pots also check SP to prevent SP starvation.
+                    if (Client.IsBelowPercent(currentHp, maxHp, this.hpPercent))
                     {
-                        pot(this.spKey);
+                        Pot(roClient, this.hpKey);
+                        hpPotCount++;
+
+                        if (hpPotCount >= 3)
+                        {
+                            hpPotCount = 0;
+                            if (Client.IsBelowPercent(currentSp, maxSp, this.spPercent))
+                            {
+                                Pot(roClient, this.spKey);
+                                pottedSpThisTick = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        hpPotCount = 0;
+                    }
+
+                    if (!pottedSpThisTick && Client.IsBelowPercent(currentSp, maxSp, this.spPercent))
+                    {
+                        Pot(roClient, this.spKey);
                     }
                 }
             }
-            // check sp
-            if (roClient.IsSpBelow(spPercent))
-            {
-                pot(this.spKey);
-            }
 
-            Thread.Sleep(this.delay);
-            return 0;
+            _4RThread.Sleep(Math.Max(1, this.delay), token);
         }
 
-        private void pot(Key key)
+        private void Pot(Client roClient, Key key)
         {
-            Keys k = (Keys)Enum.Parse(typeof(Keys), key.ToString());
-            if ((k != Keys.None) && !Keyboard.IsKeyDown(Key.LeftAlt) && !Keyboard.IsKeyDown(Key.RightAlt))
+            if (key == Key.None || KeyHelper.IsAltPressed() || roClient == null || roClient.ShouldPauseAutopotKey(key))
             {
-                Interop.PostMessage(ClientSingleton.GetClient().process.MainWindowHandle, Constants.WM_KEYDOWN_MSG_ID, k, 0); // keydown
-                Interop.PostMessage(ClientSingleton.GetClient().process.MainWindowHandle, Constants.WM_KEYUP_MSG_ID, k, 0); // keyup
+                return;
+            }
+
+            Keys formsKey = KeyHelper.ToFormsKeys(key);
+            if (formsKey != Keys.None)
+            {
+                Interop.SendKeyPress(roClient.GetWindowHandle(), formsKey);
             }
         }
 
         public void Stop()
         {
             _4RThread.Stop(this.thread);
+            this.thread = null;
         }
 
         public string GetConfiguration()

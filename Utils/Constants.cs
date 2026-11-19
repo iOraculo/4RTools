@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace _4RTools.Utils
 {
-    internal class Constants
+    internal static class Constants
     {
         public const int WM_HOTKEY_MSG_ID = 0x0312;
         public const int WM_KEYUP_MSG_ID = 0x0101;
@@ -20,6 +14,8 @@ namespace _4RTools.Utils
         public const int MINIMUM_HP_TO_RECOVER = 20;
         public const int MOUSE_DIAGONAL_MOVIMENTATION_PIXELS_AHK = 1;
         public const int MAX_BUFF_LIST_INDEX_SIZE = 100;
+        public const int STATUS_BUFFER_BYTE_SIZE = MAX_BUFF_LIST_INDEX_SIZE * sizeof(uint);
+        public const int HP_SP_BLOCK_BYTE_SIZE = 4 * sizeof(uint);
 
         public const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
         public const uint MOUSEEVENTF_LEFTUP = 0x0004;
