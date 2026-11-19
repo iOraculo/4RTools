@@ -1,18 +1,19 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Windows.Input;
-using System.Collections.Generic;
 using _4RTools.Model;
 using _4RTools.Utils;
-using System.Text.RegularExpressions;
-using System.Diagnostics;
-using System.Xml.Linq;
 
 namespace _4RTools.Forms
 {
     public partial class MacroSwitchForm : Form, IObserver
     {
         public static int TOTAL_MACRO_LANES = 5;
+        private bool isUpdatingUi;
+
         public MacroSwitchForm(Subject subject)
         {
             subject.Attach(this);
@@ -22,7 +23,13 @@ namespace _4RTools.Forms
 
         public void Update(ISubject subject)
         {
-            switch ((subject as Subject).Message.code)
+            Subject subj = subject as Subject;
+            if (subj == null || subj.Message == null)
+            {
+                return;
+            }
+
+            switch (subj.Message.code)
             {
                 case MessageCode.PROFILE_CHANGED:
                     updateUi();
@@ -38,80 +45,206 @@ namespace _4RTools.Forms
 
         private void UpdatePanelData(int id)
         {
+            this.isUpdatingUi = true;
             try
             {
-                GroupBox group = (GroupBox)this.Controls.Find("chainGroup" + id, true)[0];
-                ChainConfig chainConfig = new ChainConfig(ProfileSingleton.GetCurrent().MacroSwitch.chainConfigs[id - 1]);
+                Control[] groups = this.Controls.Find("chainGroup" + id, true);
+                if (groups.Length == 0)
+                {
+                    return;
+                }
+
+                GroupBox group = (GroupBox)groups[0];
+                Macro macroSwitch = ProfileSingleton.GetCurrent().MacroSwitch;
+                ChainConfig existing = macroSwitch.chainConfigs.Find(cfg => cfg.id == id);
+                ChainConfig chainConfig = existing != null ? new ChainConfig(existing) : new ChainConfig(id);
                 FormUtils.ResetForm(group);
 
-                List<string> names = new List<string>(chainConfig.macroEntries.Keys);
-                foreach (string cbName in names)
+                foreach (KeyValuePair<string, MacroKey> entry in chainConfig.macroEntries)
                 {
-                    Control[] controls = group.Controls.Find(cbName, true); // Keys
+                    if (entry.Value == null)
+                    {
+                        continue;
+                    }
+
+                    Control[] controls = group.Controls.Find(entry.Key, true);
                     if (controls.Length > 0)
                     {
-                        TextBox textBox = (TextBox)controls[0];
-                        textBox.Text = chainConfig.macroEntries[cbName].key.ToString();
+                        ((TextBox)controls[0]).Text = entry.Value.key.ToString();
                     }
 
-                    Control[] d = group.Controls.Find($"{cbName}delay", true); // Delays
+                    Control[] d = group.Controls.Find(entry.Key + "delay", true);
                     if (d.Length > 0)
                     {
-                        NumericUpDown delayInput = (NumericUpDown)d[0];
-                        delayInput.Value = chainConfig.macroEntries[cbName].delay;
+                        FormUtils.SetNumericValue((NumericUpDown)d[0], entry.Value.delay);
                     }
 
-                    Control[] c = group.Controls.Find($"{cbName}click", true); // Clicks
-                    if (d.Length > 0)
+                    Control[] c = group.Controls.Find(entry.Key + "click", true);
+                    if (c.Length > 0)
                     {
-                        CheckBox checkInput = (CheckBox)c[0];
-                        checkInput.Checked = chainConfig.macroEntries[cbName].hasClick;
+                        ((CheckBox)c[0]).Checked = entry.Value.hasClick;
                     }
+                }
 
-
+                Control[] loopControls = group.Controls.Find("loopMac" + id, true);
+                if (loopControls.Length > 0)
+                {
+                    ((CheckBox)loopControls[0]).Checked = chainConfig.infinityLoop;
                 }
             }
-            catch { };
+            catch (Exception ex)
+            {
+                Logger.Warn("MacroSwitchForm", "Failed to update lane " + id, ex);
+            }
+            finally
+            {
+                this.isUpdatingUi = false;
+            }
+        }
+
+        private ChainConfig GetOrCreateChainConfig(int chainID)
+        {
+            Macro macroSwitch = ProfileSingleton.GetCurrent().MacroSwitch;
+            ChainConfig chainConfig = macroSwitch.chainConfigs.Find(config => config.id == chainID);
+            if (chainConfig == null)
+            {
+                chainConfig = new ChainConfig(chainID, Key.None);
+                macroSwitch.chainConfigs.Add(chainConfig);
+            }
+
+            return chainConfig;
         }
 
         private void onTextChange(object sender, EventArgs e)
         {
-            TextBox textBox = (TextBox)sender;
-            int chainID = Int16.Parse(textBox.Parent.Name.Split(new[] { "chainGroup" }, StringSplitOptions.None)[1]);
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed)
+            {
+                return;
+            }
+
+            TextBox textBox = sender as TextBox;
+            if (textBox == null || textBox.Parent == null)
+            {
+                return;
+            }
+
+            int chainID = short.Parse(textBox.Parent.Name.Split(new[] { "chainGroup" }, StringSplitOptions.None)[1]);
             GroupBox group = (GroupBox)this.Controls.Find("chainGroup" + chainID, true)[0];
-            ChainConfig chainConfig = ProfileSingleton.GetCurrent().MacroSwitch.chainConfigs.Find(config => config.id == chainID);
+            ChainConfig chainConfig = GetOrCreateChainConfig(chainID);
 
-            Key key = (Key)Enum.Parse(typeof(Key), textBox.Text.ToString());
-            NumericUpDown delayInput = (NumericUpDown)group.Controls.Find($"{textBox.Name}delay", true)[0];
-            chainConfig.macroEntries[textBox.Name] = new MacroKey(key, decimal.ToInt16(delayInput.Value));
+            Key key;
+            if (!KeyHelper.TryParseKey(textBox.Text, out key))
+            {
+                return;
+            }
 
-            bool isFirstInput = Regex.IsMatch(textBox.Name, $"in1mac{chainID}");
-            if (isFirstInput) { chainConfig.trigger = key; }
+            int delayVal = 50;
+            Control[] delayControls = group.Controls.Find(textBox.Name + "delay", true);
+            if (delayControls.Length > 0)
+            {
+                delayVal = decimal.ToInt32(((NumericUpDown)delayControls[0]).Value);
+            }
+
+            bool hasClick = false;
+            Control[] clickControls = group.Controls.Find(textBox.Name + "click", true);
+            if (clickControls.Length > 0)
+            {
+                hasClick = ((CheckBox)clickControls[0]).Checked;
+            }
+
+            chainConfig.macroEntries[textBox.Name] = new MacroKey(key, delayVal, hasClick);
+
+            bool isFirstInput = Regex.IsMatch(textBox.Name, "^in1mac" + chainID + "$");
+            if (isFirstInput)
+            {
+                chainConfig.trigger = key;
+            }
 
             ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().MacroSwitch);
         }
 
-
         private void onDelayChange(object sender, EventArgs e)
         {
-            NumericUpDown delayInput = (NumericUpDown)sender;
-            int chainID = Int16.Parse(delayInput.Parent.Name.Split(new[] { "chainGroup" }, StringSplitOptions.None)[1]);
-            ChainConfig chainConfig = ProfileSingleton.GetCurrent().MacroSwitch.chainConfigs.Find(config => config.id == chainID);
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed)
+            {
+                return;
+            }
 
-            String cbName = delayInput.Name.Split(new[] { "delay" }, StringSplitOptions.None)[0];
-            chainConfig.macroEntries[cbName].delay = decimal.ToInt16(delayInput.Value);
+            NumericUpDown delayInput = sender as NumericUpDown;
+            if (delayInput == null || delayInput.Parent == null)
+            {
+                return;
+            }
+
+            int chainID = short.Parse(delayInput.Parent.Name.Split(new[] { "chainGroup" }, StringSplitOptions.None)[1]);
+            ChainConfig chainConfig = GetOrCreateChainConfig(chainID);
+
+            string cbName = delayInput.Name.Split(new[] { "delay" }, StringSplitOptions.None)[0];
+            int newDelay = decimal.ToInt32(delayInput.Value);
+            MacroKey existing;
+            if (chainConfig.macroEntries.TryGetValue(cbName, out existing) && existing != null)
+            {
+                existing.delay = newDelay;
+            }
+            else
+            {
+                chainConfig.macroEntries[cbName] = new MacroKey(Key.None, newDelay);
+            }
 
             ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().MacroSwitch);
         }
 
         private void onCheckClickChange(object sender, EventArgs e)
         {
-            CheckBox checkInput = (CheckBox)sender;
-            int chainID = Int16.Parse(checkInput.Parent.Name.Split(new[] { "chainGroup" }, StringSplitOptions.None)[1]);
-            ChainConfig chainConfig = ProfileSingleton.GetCurrent().MacroSwitch.chainConfigs.Find(config => config.id == chainID);
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed)
+            {
+                return;
+            }
 
-            String cbName = checkInput.Name.Split(new[] { "click" }, StringSplitOptions.None)[0];
-            chainConfig.macroEntries[cbName].hasClick = checkInput.Checked;
+            CheckBox checkInput = sender as CheckBox;
+            if (checkInput == null || checkInput.Parent == null)
+            {
+                return;
+            }
+
+            int chainID = short.Parse(checkInput.Parent.Name.Split(new[] { "chainGroup" }, StringSplitOptions.None)[1]);
+            ChainConfig chainConfig = GetOrCreateChainConfig(chainID);
+
+            string cbName = checkInput.Name.Split(new[] { "click" }, StringSplitOptions.None)[0];
+            MacroKey existing;
+            if (chainConfig.macroEntries.TryGetValue(cbName, out existing) && existing != null)
+            {
+                existing.hasClick = checkInput.Checked;
+            }
+            else
+            {
+                chainConfig.macroEntries[cbName] = new MacroKey(Key.None, 50, checkInput.Checked);
+            }
+
+            ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().MacroSwitch);
+        }
+
+        private void onLoopCheckedChanged(object sender, EventArgs e)
+        {
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed)
+            {
+                return;
+            }
+
+            CheckBox loopCheck = sender as CheckBox;
+            if (loopCheck == null || !(loopCheck.Tag is int))
+            {
+                return;
+            }
+
+            int chainID = (int)loopCheck.Tag;
+            ChainConfig chainConfig = GetOrCreateChainConfig(chainID);
+            chainConfig.infinityLoop = loopCheck.Checked;
+            if (!loopCheck.Checked)
+            {
+                chainConfig.infinityLoopOn = false;
+            }
+
             ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().MacroSwitch);
         }
 
@@ -135,16 +268,17 @@ namespace _4RTools.Forms
         {
             try
             {
-                GroupBox p = (GroupBox)this.Controls.Find("chainGroup" + id, true)[0];
+                Control[] groups = this.Controls.Find("chainGroup" + id, true);
+                if (groups.Length == 0)
+                {
+                    return;
+                }
+
+                GroupBox p = (GroupBox)groups[0];
+                GetOrCreateChainConfig(id);
+
                 foreach (Control control in p.Controls)
                 {
-                    ChainConfig chainConfig = ProfileSingleton.GetCurrent().MacroSwitch.chainConfigs.Find(config => config.id == id);
-
-                    if (chainConfig == null) {
-                        chainConfig = new ChainConfig(id, Key.None);
-                        ProfileSingleton.GetCurrent().MacroSwitch.chainConfigs.Add(chainConfig);
-                    }
-
                     if (control is TextBox)
                     {
                         TextBox textBox = (TextBox)control;
@@ -152,22 +286,35 @@ namespace _4RTools.Forms
                         textBox.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
                         textBox.TextChanged += new EventHandler(this.onTextChange);
                     }
-
-                    if (control is NumericUpDown)
+                    else if (control is NumericUpDown)
                     {
                         NumericUpDown delayInput = (NumericUpDown)control;
-                        delayInput.ValueChanged += new System.EventHandler(this.onDelayChange);
+                        delayInput.ValueChanged += new EventHandler(this.onDelayChange);
                     }
-
-
-                    if (control is CheckBox)
+                    else if (control is CheckBox)
                     {
                         CheckBox checkInput = (CheckBox)control;
-                        checkInput.CheckedChanged += new System.EventHandler(this.onCheckClickChange);
+                        checkInput.CheckedChanged += new EventHandler(this.onCheckClickChange);
                     }
                 }
+
+                // Add per-lane toggle loop checkbox neatly below the Delay label.
+                CheckBox loopCheck = new CheckBox
+                {
+                    AutoSize = true,
+                    Location = new Point(8, 76),
+                    Name = "loopMac" + id,
+                    Text = "Loop",
+                    Tag = id,
+                    UseVisualStyleBackColor = true
+                };
+                loopCheck.CheckedChanged += new EventHandler(this.onLoopCheckedChanged);
+                p.Controls.Add(loopCheck);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Logger.Warn("MacroSwitchForm", "Failed to initialize lane " + id, ex);
+            }
         }
     }
 }

@@ -1,61 +1,63 @@
-﻿using System;
+using System;
 using System.Windows.Forms;
-using _4RTools.Utils;
-using _4RTools.Model;
 using System.Windows.Input;
+using _4RTools.Model;
+using _4RTools.Utils;
+
 namespace _4RTools.Forms
 {
     public partial class SkillTimerForm : Form, IObserver
     {
+        private bool isUpdatingUi;
+
         public SkillTimerForm(Subject subject)
         {
             InitializeComponent();
             subject.Attach(this);
 
+            SetupTimerInputs(this.txtSkillTimerKey, this.txtAutoRefreshDelay, () => ProfileSingleton.GetCurrent().AutoRefreshSpammer1);
+            SetupTimerInputs(this.txtSkillTimerKey2, this.txtAutoRefreshDelay2, () => ProfileSingleton.GetCurrent().AutoRefreshSpammer2);
+            SetupTimerInputs(this.txtSkillTimerKey3, this.txtAutoRefreshDelay3, () => ProfileSingleton.GetCurrent().AutoRefreshSpammer3);
+        }
 
-            // Default values skill timer 1
-            this.txtSkillTimerKey.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
-            this.txtSkillTimerKey.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
-            this.txtSkillTimerKey.TextChanged += new EventHandler(this.onSkillTimerKey1Change);
-            this.txtAutoRefreshDelay.ValueChanged += new EventHandler(this.txthDelay1TextChanged);
-
-            // Default values skill timer 2
-            this.txtSkillTimerKey2.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
-            this.txtSkillTimerKey2.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
-            this.txtSkillTimerKey2.TextChanged += new EventHandler(this.onSkillTimerKey2Change);
-            this.txtAutoRefreshDelay2.ValueChanged += new EventHandler(this.txthDelay2TextChanged);
-
-            // Default values skill timer 3
-            this.txtSkillTimerKey3.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
-            this.txtSkillTimerKey3.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
-            this.txtSkillTimerKey3.TextChanged += new EventHandler(this.onSkillTimerKey3Change);
-            this.txtAutoRefreshDelay3.ValueChanged += new EventHandler(this.txthDelay3TextChanged);
+        private void SetupTimerInputs(TextBox keyBox, NumericUpDown delayBox, Func<AutoRefreshSpammer> getSpammer)
+        {
+            keyBox.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
+            keyBox.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
+            keyBox.TextChanged += (sender, e) => OnTimerKeyChanged(keyBox, getSpammer());
+            delayBox.ValueChanged += (sender, e) => OnTimerDelayChanged(delayBox, getSpammer());
         }
 
         public void Update(ISubject subject)
         {
-            switch ((subject as Subject).Message.code)
+            Subject subj = subject as Subject;
+            if (subj == null || subj.Message == null)
+            {
+                return;
+            }
+
+            switch (subj.Message.code)
             {
                 case MessageCode.PROFILE_CHANGED:
-                    string skillTimerKey1 = ProfileSingleton.GetCurrent().AutoRefreshSpammer1.RefreshKey.ToString();
-                    string autoRefreshDelay1 = ProfileSingleton.GetCurrent().AutoRefreshSpammer1.RefreshDelay.ToString();
+                    this.isUpdatingUi = true;
+                    try
+                    {
+                        Profile profile = ProfileSingleton.GetCurrent();
+                        FormUtils.ResetForm(this);
 
-                    string skillTimerKey2 = ProfileSingleton.GetCurrent().AutoRefreshSpammer2.RefreshKey.ToString();
-                    string autoRefreshDelay2 = ProfileSingleton.GetCurrent().AutoRefreshSpammer2.RefreshDelay.ToString();
+                        this.txtSkillTimerKey.Text = profile.AutoRefreshSpammer1.RefreshKey.ToString();
+                        FormUtils.SetNumericValue(this.txtAutoRefreshDelay, profile.AutoRefreshSpammer1.RefreshDelay);
 
-                    string skillTimerKey3 = ProfileSingleton.GetCurrent().AutoRefreshSpammer3.RefreshKey.ToString();
-                    string autoRefreshDelay3 = ProfileSingleton.GetCurrent().AutoRefreshSpammer3.RefreshDelay.ToString();
+                        this.txtSkillTimerKey2.Text = profile.AutoRefreshSpammer2.RefreshKey.ToString();
+                        FormUtils.SetNumericValue(this.txtAutoRefreshDelay2, profile.AutoRefreshSpammer2.RefreshDelay);
 
-                    FormUtils.ResetForm(this);
-
-                    this.txtSkillTimerKey.Text = skillTimerKey1;
-                    this.txtAutoRefreshDelay.Text = autoRefreshDelay1;
-
-                    this.txtSkillTimerKey2.Text = skillTimerKey2;
-                    this.txtAutoRefreshDelay2.Text = autoRefreshDelay2;
-
-                    this.txtSkillTimerKey3.Text = skillTimerKey3;
-                    this.txtAutoRefreshDelay3.Text = autoRefreshDelay3;
+                        this.txtSkillTimerKey3.Text = profile.AutoRefreshSpammer3.RefreshKey.ToString();
+                        FormUtils.SetNumericValue(this.txtAutoRefreshDelay3, profile.AutoRefreshSpammer3.RefreshDelay);
+                    }
+                    finally
+                    {
+                        this.isUpdatingUi = false;
+                    }
                     break;
                 case MessageCode.TURN_ON:
                     ProfileSingleton.GetCurrent().AutoRefreshSpammer1.Start();
@@ -70,70 +72,30 @@ namespace _4RTools.Forms
             }
         }
 
-
-        private void onSkillTimerKey1Change(object sender, EventArgs e)
+        private void OnTimerKeyChanged(TextBox keyBox, AutoRefreshSpammer spammer)
         {
-            Key key = (Key)Enum.Parse(typeof(Key), this.txtSkillTimerKey.Text.ToString());
-            ProfileSingleton.GetCurrent().AutoRefreshSpammer1.RefreshKey = key;
-            ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().AutoRefreshSpammer1);
-        }
-
-        private void onSkillTimerKey2Change(object sender, EventArgs e)
-        {
-            Key key = (Key)Enum.Parse(typeof(Key), this.txtSkillTimerKey2.Text.ToString());
-            ProfileSingleton.GetCurrent().AutoRefreshSpammer2.RefreshKey = key;
-            ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().AutoRefreshSpammer2);
-        }
-
-        private void onSkillTimerKey3Change(object sender, EventArgs e)
-        {
-            Key key = (Key)Enum.Parse(typeof(Key), this.txtSkillTimerKey3.Text.ToString());
-            ProfileSingleton.GetCurrent().AutoRefreshSpammer3.RefreshKey = key;
-            ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().AutoRefreshSpammer3);
-        }
-
-        private void txthDelay1TextChanged(object sender, EventArgs e)
-        {
-            TextBox textBox = sender as TextBox;
-
-            try
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed || spammer == null)
             {
-                ProfileSingleton.GetCurrent().AutoRefreshSpammer1.RefreshDelay = Int16.Parse(this.txtAutoRefreshDelay.Text);
-                ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().AutoRefreshSpammer1);
+                return;
             }
-            catch(Exception ex) {
-                MessageBox.Show($"[SkillTimer] {ex.Message}", "Please share this print screen on 4RTools discord.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+            Key key;
+            if (KeyHelper.TryParseKey(keyBox.Text, out key))
+            {
+                spammer.RefreshKey = key;
+                ProfileSingleton.SetConfiguration(spammer);
             }
         }
 
-        private void txthDelay2TextChanged(object sender, EventArgs e)
+        private void OnTimerDelayChanged(NumericUpDown delayBox, AutoRefreshSpammer spammer)
         {
-            TextBox textBox = sender as TextBox;
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed || spammer == null)
+            {
+                return;
+            }
 
-            try
-            {
-                ProfileSingleton.GetCurrent().AutoRefreshSpammer2.RefreshDelay = Int16.Parse(this.txtAutoRefreshDelay2.Text);
-                ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().AutoRefreshSpammer2);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"[SkillTimer] {ex.Message}", "Please share this print screen on 4RTools discord.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
-
-        private void txthDelay3TextChanged(object sender, EventArgs e)
-        {
-            TextBox textBox = sender as TextBox;
-
-            try
-            {
-                ProfileSingleton.GetCurrent().AutoRefreshSpammer3.RefreshDelay = Int16.Parse(this.txtAutoRefreshDelay3.Text);
-                ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().AutoRefreshSpammer3);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"[SkillTimer] Error Message: {ex.Message}", "Please share this print screen on 4RTools discord.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
+            spammer.RefreshDelay = decimal.ToInt32(delayBox.Value);
+            ProfileSingleton.SetConfiguration(spammer);
         }
     }
 }

@@ -1,21 +1,14 @@
-﻿using _4RTools.Model;
-using _4RTools.Utils;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using _4RTools.Model;
 
 namespace _4RTools.Forms
 {
     public partial class EditProfileName : Form
     {
         private string tmpProfileName;
+        public string NewProfileName { get; private set; }
+
         public EditProfileName()
         {
             InitializeComponent();
@@ -29,15 +22,10 @@ namespace _4RTools.Forms
 
         private void onTextChange(object sender, EventArgs e)
         {
-            TextBox textBox = (TextBox)sender;
-
-            if (string.IsNullOrWhiteSpace(textBox.Text))
+            TextBox textBox = sender as TextBox;
+            if (textBox != null)
             {
-                this.btnSave.Enabled = false;
-            }
-            else
-            {
-                this.btnSave.Enabled = true;
+                this.btnSave.Enabled = !string.IsNullOrWhiteSpace(textBox.Text);
             }
         }
 
@@ -45,13 +33,15 @@ namespace _4RTools.Forms
         {
             try
             {
-                ProfileSingleton.Rename(this.tmpProfileName, this.txtProfileName.Text);
+                string validNewName = ProfileSingleton.ValidateProfileName(this.txtProfileName.Text);
+                ProfileSingleton.Rename(this.tmpProfileName, validNewName);
+                this.NewProfileName = validNewName;
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"[Edit Profile Name] {ex.Message}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("[Edit Profile Name] " + ex.Message, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
     }

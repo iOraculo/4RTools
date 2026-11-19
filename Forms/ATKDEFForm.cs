@@ -1,15 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using _4RTools.Utils;
-using _4RTools.Model;
 using System.Windows.Input;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
+using _4RTools.Model;
+using _4RTools.Utils;
 
 namespace _4RTools.Forms
 {
     public partial class ATKDEFForm : Form, IObserver
     {
+        private bool isUpdatingUi;
+
         public ATKDEFForm(Subject subject)
         {
             subject.Attach(this);
@@ -19,7 +20,13 @@ namespace _4RTools.Forms
 
         public void Update(ISubject subject)
         {
-            switch ((subject as Subject).Message.code)
+            Subject subj = subject as Subject;
+            if (subj == null || subj.Message == null)
+            {
+                return;
+            }
+
+            switch (subj.Message.code)
             {
                 case MessageCode.PROFILE_CHANGED:
                     UpdateUI();
@@ -35,99 +42,142 @@ namespace _4RTools.Forms
 
         private void UpdateUI()
         {
-            this.inSpammerKey.Text = ProfileSingleton.GetCurrent().AtkDefMode.keySpammer.ToString();
-            this.spammerDelay.Value = ProfileSingleton.GetCurrent().AtkDefMode.ahkDelay;
-            this.switchDelay.Value = ProfileSingleton.GetCurrent().AtkDefMode.switchDelay;
-            this.inSpammerClick.Checked = ProfileSingleton.GetCurrent().AtkDefMode.keySpammerWithClick;
-            Dictionary<string, Key> atkKeys = new Dictionary<string, Key>(ProfileSingleton.GetCurrent().AtkDefMode.atkKeys);
-            Dictionary<string, Key> defKeys = new Dictionary<string, Key>(ProfileSingleton.GetCurrent().AtkDefMode.defKeys);
-
-
-            foreach(Control control in this.panelSwitch.Controls)
+            this.isUpdatingUi = true;
+            try
             {
-                if(control is TextBox)
+                ATKDEFMode atkDef = ProfileSingleton.GetCurrent().AtkDefMode;
+                this.inSpammerKey.Text = atkDef.keySpammer.ToString();
+                FormUtils.SetNumericValue(this.spammerDelay, atkDef.ahkDelay);
+                FormUtils.SetNumericValue(this.switchDelay, atkDef.switchDelay);
+                this.inSpammerClick.Checked = atkDef.keySpammerWithClick;
+
+                Dictionary<string, Key> atkKeys = atkDef.GetKeysSnapshot(ATKDEFEnum.ATK);
+                Dictionary<string, Key> defKeys = atkDef.GetKeysSnapshot(ATKDEFEnum.DEF);
+
+                foreach (Control control in this.panelSwitch.Controls)
                 {
-                    try
+                    TextBox tb = control as TextBox;
+                    if (tb == null || tb.Tag == null)
                     {
-                        TextBox tb = (TextBox)control;
-                        if (!tb.Tag.ToString().Equals("spammerKey"))
-                        {
-                            ATKDEFEnum mode = (ATKDEFEnum)Int16.Parse(tb.Tag.ToString());
-                            if (mode == ATKDEFEnum.DEF)
-                            {
-                                tb.Text = defKeys.ContainsKey(tb.Name) ? defKeys[tb.Name].ToString() : Keys.None.ToString();
-                            }
-                            else
-                            {
-                                tb.Text = atkKeys.ContainsKey(tb.Name) ? atkKeys[tb.Name].ToString() : Keys.None.ToString();
-                            }
-                        }
+                        continue;
                     }
-                    catch { }
+
+                    string tagText = tb.Tag.ToString();
+                    if (string.Equals(tagText, "spammerKey", StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    short parsedMode;
+                    if (!short.TryParse(tagText, out parsedMode))
+                    {
+                        continue;
+                    }
+
+                    ATKDEFEnum mode = (ATKDEFEnum)parsedMode;
+                    if (mode == ATKDEFEnum.DEF)
+                    {
+                        tb.Text = defKeys.ContainsKey(tb.Name) ? defKeys[tb.Name].ToString() : Key.None.ToString();
+                    }
+                    else
+                    {
+                        tb.Text = atkKeys.ContainsKey(tb.Name) ? atkKeys[tb.Name].ToString() : Key.None.ToString();
+                    }
                 }
+            }
+            finally
+            {
+                this.isUpdatingUi = false;
             }
         }
 
         private void onDelayChange(object sender, EventArgs e)
         {
-            NumericUpDown delayInput = (NumericUpDown)sender;
-            if(delayInput.Name == "spammerDelay")
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed)
             {
-                //Spammer Delay Change
-                ProfileSingleton.GetCurrent().AtkDefMode.ahkDelay = decimal.ToInt16(delayInput.Value);
+                return;
+            }
+
+            NumericUpDown delayInput = sender as NumericUpDown;
+            if (delayInput == null)
+            {
+                return;
+            }
+
+            if (delayInput.Name == "spammerDelay")
+            {
+                ProfileSingleton.GetCurrent().AtkDefMode.ahkDelay = decimal.ToInt32(delayInput.Value);
             }
             else
             {
-                //Switch Delay Change
-                ProfileSingleton.GetCurrent().AtkDefMode.switchDelay = decimal.ToInt16(delayInput.Value);
+                ProfileSingleton.GetCurrent().AtkDefMode.switchDelay = decimal.ToInt32(delayInput.Value);
             }
-            
+
             ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().AtkDefMode);
         }
 
         private void onTextChange(object sender, EventArgs e)
         {
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed)
+            {
+                return;
+            }
 
-            TextBox textBox = (TextBox)sender;
-            Key key = (Key)Enum.Parse(typeof(Key), textBox.Text.ToString());
+            TextBox textBox = sender as TextBox;
+            if (textBox == null || textBox.Tag == null)
+            {
+                return;
+            }
 
-            //If it's ATK OR DEF
-            if (textBox.Tag.Equals("spammerKey"))
+            Key key;
+            if (!KeyHelper.TryParseKey(textBox.Text, out key))
+            {
+                return;
+            }
+
+            string tagText = textBox.Tag.ToString();
+            if (string.Equals(tagText, "spammerKey", StringComparison.Ordinal))
             {
                 ProfileSingleton.GetCurrent().AtkDefMode.keySpammer = key;
             }
             else
             {
-                ATKDEFEnum mode = (ATKDEFEnum)Int16.Parse(textBox.Tag.ToString());
-                ProfileSingleton.GetCurrent().AtkDefMode.AddSwitchItem(textBox.Name, key, mode);
-            }            
-            ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().AtkDefMode);
+                short parsedMode;
+                if (!short.TryParse(tagText, out parsedMode))
+                {
+                    return;
+                }
 
+                ATKDEFEnum mode = (ATKDEFEnum)parsedMode;
+                ProfileSingleton.GetCurrent().AtkDefMode.AddSwitchItem(textBox.Name, key, mode);
+            }
+
+            ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().AtkDefMode);
         }
 
         private void ChkBox_CheckedChanged(object sender, EventArgs e)
         {
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed)
+            {
+                return;
+            }
+
             ProfileSingleton.GetCurrent().AtkDefMode.keySpammerWithClick = this.inSpammerClick.Checked;
             ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().AtkDefMode);
         }
 
         public void SetupInputs()
         {
-            try
+            foreach (Control c in FormUtils.GetAll(this, typeof(TextBox)))
             {
-                foreach (Control c in FormUtils.GetAll(this, typeof(TextBox)))
+                TextBox textBox = c as TextBox;
+                if (textBox != null)
                 {
-                    if (c is TextBox)
-                    {
-                        TextBox textBox = (TextBox)c;
-                        textBox.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
-                        textBox.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
-                        textBox.TextChanged += new EventHandler(this.onTextChange);
-                    }
+                    textBox.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
+                    textBox.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
+                    textBox.TextChanged += new EventHandler(this.onTextChange);
                 }
             }
-            catch { }
-
         }
     }
 }

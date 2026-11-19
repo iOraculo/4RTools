@@ -1,18 +1,16 @@
-﻿using System.Windows.Forms;
-using _4RTools.Utils;
-using _4RTools.Model;
-using System.Windows.Input;
-using System.Collections.Generic;
 using System;
-using System.Linq;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Collections.Generic;
+using System.Windows.Forms;
+using System.Windows.Input;
+using _4RTools.Model;
+using _4RTools.Utils;
 
 namespace _4RTools.Forms
 {
     public partial class DebuffRecoveryForm : Form, IObserver
     {
-
-        private List<BuffContainer> skillContainers = new List<BuffContainer>();
+        private readonly List<BuffContainer> skillContainers = new List<BuffContainer>();
+        private bool isUpdatingUi;
 
         public DebuffRecoveryForm(Subject subject)
         {
@@ -26,24 +24,51 @@ namespace _4RTools.Forms
             this.txtNewStatusKey.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
             this.txtNewStatusKey.TextChanged += new EventHandler(on3RDStatusKeyChange);
 
-            skillContainers.Add(new BuffContainer(this.DebuffRecoveryGP, Buff.GetDebuffs()));
+            // Wire controls that were disconnected in Designer.
+            this.autoStandCB.CheckedChanged += new EventHandler(autoStandCB_CheckedChanged);
+            this.newStatusDelay.Maximum = 60000;
+            this.newStatusDelay.ValueChanged += new EventHandler(onNewStatusDelayChanged);
 
-            new BuffRenderer("DebuffsRecovery", skillContainers, toolTip1).doRender();
+            this.skillContainers.Add(new BuffContainer(this.DebuffRecoveryGP, Buff.GetDebuffs()));
+            new BuffRenderer("DebuffsRecovery", this.skillContainers, this.toolTip1).doRender();
 
             subject.Attach(this);
         }
 
         public void Update(ISubject subject)
         {
-            switch ((subject as Subject).Message.code)
+            Subject subj = subject as Subject;
+            if (subj == null || subj.Message == null)
+            {
+                return;
+            }
+
+            switch (subj.Message.code)
             {
                 case MessageCode.PROFILE_CHANGED:
-                    BuffRenderer.doUpdate(new Dictionary<EffectStatusIDs, Key>(ProfileSingleton.GetCurrent().DebuffsRecovery.buffMapping), this);
+                    this.isUpdatingUi = true;
+                    try
+                    {
+                        BuffRenderer.doUpdate(ProfileSingleton.GetCurrent().DebuffsRecovery.GetBuffMappingSnapshot(), this);
 
-                    this.txtStatusKey.Text = ProfileSingleton.GetCurrent().StatusRecovery.buffMapping.Keys.Contains(EffectStatusIDs.SILENCE) ? ProfileSingleton.GetCurrent().StatusRecovery.buffMapping[EffectStatusIDs.SILENCE].ToString() : Keys.None.ToString();
-                    this.txtNewStatusKey.Text = ProfileSingleton.GetCurrent().StatusRecovery.buffMapping.Keys.Contains(EffectStatusIDs.CRITICALWOUND) ? ProfileSingleton.GetCurrent().StatusRecovery.buffMapping[EffectStatusIDs.CRITICALWOUND].ToString() : Keys.None.ToString();
-                    this.autoStandCB.Checked = ProfileSingleton.GetCurrent().StatusRecovery.autoStand;
+                        StatusRecovery statusRec = ProfileSingleton.GetCurrent().StatusRecovery;
+                        Dictionary<EffectStatusIDs, Key> statusMap = statusRec.GetBuffMappingSnapshot();
 
+                        this.txtStatusKey.Text = statusMap.ContainsKey(EffectStatusIDs.SILENCE)
+                            ? statusMap[EffectStatusIDs.SILENCE].ToString()
+                            : Key.None.ToString();
+
+                        this.txtNewStatusKey.Text = statusMap.ContainsKey(EffectStatusIDs.CRITICALWOUND)
+                            ? statusMap[EffectStatusIDs.CRITICALWOUND].ToString()
+                            : Key.None.ToString();
+
+                        this.autoStandCB.Checked = statusRec.autoStand;
+                        FormUtils.SetNumericValue(this.newStatusDelay, statusRec.newStatusDelay);
+                    }
+                    finally
+                    {
+                        this.isUpdatingUi = false;
+                    }
                     break;
                 case MessageCode.TURN_OFF:
                     ProfileSingleton.GetCurrent().StatusRecovery.Stop();
@@ -58,37 +83,76 @@ namespace _4RTools.Forms
 
         private void onStatusKeyChange(object sender, EventArgs e)
         {
-            Key k = (Key)Enum.Parse(typeof(Key), this.txtStatusKey.Text.ToString());
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed)
+            {
+                return;
+            }
 
-            ProfileSingleton.GetCurrent().StatusRecovery.AddKeyToBuff(EffectStatusIDs.POISON, k);
-            ProfileSingleton.GetCurrent().StatusRecovery.AddKeyToBuff(EffectStatusIDs.SILENCE, k);
-            ProfileSingleton.GetCurrent().StatusRecovery.AddKeyToBuff(EffectStatusIDs.BLIND, k);
-            ProfileSingleton.GetCurrent().StatusRecovery.AddKeyToBuff(EffectStatusIDs.CONFUSION, k);
-            ProfileSingleton.GetCurrent().StatusRecovery.AddKeyToBuff(EffectStatusIDs.HALLUCINATIONWALK, k);
-            ProfileSingleton.GetCurrent().StatusRecovery.AddKeyToBuff(EffectStatusIDs.HALLUCINATION, k);
-            ProfileSingleton.GetCurrent().StatusRecovery.AddKeyToBuff(EffectStatusIDs.CURSE, k);
+            Key k;
+            if (!KeyHelper.TryParseKey(this.txtStatusKey.Text, out k))
+            {
+                return;
+            }
 
-            ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().StatusRecovery);
+            StatusRecovery statusRec = ProfileSingleton.GetCurrent().StatusRecovery;
+            statusRec.AddKeyToBuff(EffectStatusIDs.POISON, k);
+            statusRec.AddKeyToBuff(EffectStatusIDs.SILENCE, k);
+            statusRec.AddKeyToBuff(EffectStatusIDs.BLIND, k);
+            statusRec.AddKeyToBuff(EffectStatusIDs.CONFUSION, k);
+            statusRec.AddKeyToBuff(EffectStatusIDs.HALLUCINATIONWALK, k);
+            statusRec.AddKeyToBuff(EffectStatusIDs.HALLUCINATION, k);
+            statusRec.AddKeyToBuff(EffectStatusIDs.CURSE, k);
+
+            ProfileSingleton.SetConfiguration(statusRec);
         }
 
         private void on3RDStatusKeyChange(object sender, EventArgs e)
         {
-            Key k = (Key)Enum.Parse(typeof(Key), this.txtNewStatusKey.Text.ToString());
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed)
+            {
+                return;
+            }
 
-            ProfileSingleton.GetCurrent().StatusRecovery.AddKeyToBuff(EffectStatusIDs.CRITICALWOUND, k);
-            ProfileSingleton.GetCurrent().StatusRecovery.AddKeyToBuff(EffectStatusIDs.PROPERTYUNDEAD, k);
-            ProfileSingleton.GetCurrent().StatusRecovery.AddKeyToBuff(EffectStatusIDs.BLOODING, k);
-            ProfileSingleton.GetCurrent().StatusRecovery.AddKeyToBuff(EffectStatusIDs.MISTY_FROST, k);
-            ProfileSingleton.GetCurrent().StatusRecovery.AddKeyToBuff(EffectStatusIDs.OVERHEAT, k);
-            ProfileSingleton.GetCurrent().StatusRecovery.AddKeyToBuff(EffectStatusIDs.EFST_MANDRAGORA, k);
+            Key k;
+            if (!KeyHelper.TryParseKey(this.txtNewStatusKey.Text, out k))
+            {
+                return;
+            }
 
-            ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().StatusRecovery);
+            StatusRecovery statusRec = ProfileSingleton.GetCurrent().StatusRecovery;
+            statusRec.AddKeyToBuff(EffectStatusIDs.CRITICALWOUND, k);
+            statusRec.AddKeyToBuff(EffectStatusIDs.PROPERTYUNDEAD, k);
+            statusRec.AddKeyToBuff(EffectStatusIDs.BLOODING, k);
+            statusRec.AddKeyToBuff(EffectStatusIDs.MISTY_FROST, k);
+            statusRec.AddKeyToBuff(EffectStatusIDs.OVERHEAT, k);
+            statusRec.AddKeyToBuff(EffectStatusIDs.EFST_MANDRAGORA, k);
+
+            ProfileSingleton.SetConfiguration(statusRec);
         }
 
         private void autoStandCB_CheckedChanged(object sender, EventArgs e)
         {
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed)
+            {
+                return;
+            }
+
             CheckBox chk = sender as CheckBox;
-            ProfileSingleton.GetCurrent().StatusRecovery.autoStand = chk.Checked;
+            if (chk != null)
+            {
+                ProfileSingleton.GetCurrent().StatusRecovery.autoStand = chk.Checked;
+                ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().StatusRecovery);
+            }
+        }
+
+        private void onNewStatusDelayChanged(object sender, EventArgs e)
+        {
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed)
+            {
+                return;
+            }
+
+            ProfileSingleton.GetCurrent().StatusRecovery.newStatusDelay = decimal.ToInt32(this.newStatusDelay.Value);
             ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().StatusRecovery);
         }
     }
