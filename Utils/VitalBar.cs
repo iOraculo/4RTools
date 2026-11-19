@@ -18,9 +18,10 @@ namespace _4RTools.Utils
         public VitalBar(string prefix, Color barColor)
         {
             this.DoubleBuffered = true;
+            this.ResizeRedraw = true;
             this.labelPrefix = prefix ?? string.Empty;
             this.fillColor = barColor;
-            this.barFont = new Font("Microsoft Sans Serif", 7.5F, FontStyle.Bold);
+            this.barFont = new Font("Segoe UI", 7.5F, FontStyle.Bold);
             this.Font = this.barFont;
             ApplyTheme(false);
         }
@@ -37,9 +38,9 @@ namespace _4RTools.Utils
 
         public void ApplyTheme(bool darkMode)
         {
-            this.trackColor = darkMode ? Color.FromArgb(48, 52, 64) : Color.FromArgb(230, 232, 236);
-            this.borderColor = darkMode ? Color.FromArgb(80, 86, 102) : Color.FromArgb(180, 184, 192);
-            this.textColor = darkMode ? Color.White : Color.FromArgb(30, 30, 35);
+            this.trackColor = darkMode ? Color.FromArgb(44, 48, 60) : Color.FromArgb(226, 232, 240);
+            this.borderColor = darkMode ? Color.FromArgb(68, 74, 90) : Color.FromArgb(203, 213, 225);
+            this.textColor = darkMode ? Color.White : Color.FromArgb(24, 30, 42);
             Invalidate();
         }
 
@@ -76,9 +77,11 @@ namespace _4RTools.Utils
             }
 
             string text;
+            bool mostlyFilled = false;
             if (this.maxValue > 0)
             {
                 double ratio = Math.Min(1.0, Math.Max(0.0, (double)this.currentValue / (double)this.maxValue));
+                mostlyFilled = ratio >= 0.45;
                 int fillWidth = (int)Math.Round(bounds.Width * ratio);
                 if (fillWidth > 0)
                 {
@@ -101,12 +104,13 @@ namespace _4RTools.Utils
                 e.Graphics.DrawRectangle(borderPen, bounds);
             }
 
+            Color renderedTextColor = mostlyFilled ? Color.White : this.textColor;
             TextRenderer.DrawText(
                 e.Graphics,
                 text,
                 this.Font,
                 bounds,
-                this.textColor,
+                renderedTextColor,
                 TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
         }
     }

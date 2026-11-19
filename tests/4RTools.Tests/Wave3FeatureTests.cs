@@ -308,5 +308,90 @@ namespace _4RTools.Tests
             Assert.Equal(5, ProfileSingleton.GetCurrent().AutoRefreshSpammer5.RefreshDelay);
             Assert.Equal("AutoRefreshSpammer06", ProfileSingleton.GetCurrent().AutoRefreshSpammer6.GetActionName());
         }
+
+        [Fact]
+        public void ModernControls_ThemeAndLocalization_UpdateCorrectly()
+        {
+            using (System.Windows.Forms.Form shell = new System.Windows.Forms.Form())
+            using (System.Windows.Forms.Panel sidebar = new System.Windows.Forms.Panel())
+            using (System.Windows.Forms.Label groupLabel = new System.Windows.Forms.Label())
+            using (ModernCardPanel card = new ModernCardPanel())
+            using (SidebarNavButton navBtn = new SidebarNavButton("spammer", "Skill Spammer", SidebarIconKind.Spammer))
+            using (SegmentedTabButton tabBtn = new SegmentedTabButton("Autopot"))
+            using (StatusDot dot = new StatusDot())
+            {
+                shell.Tag = ThemeManager.TAG_CANVAS;
+                sidebar.Tag = ThemeManager.TAG_SIDEBAR;
+                groupLabel.Text = "COMBAT & AUTOMATION";
+                groupLabel.Tag = ThemeManager.TAG_MUTED_TEXT;
+
+                navBtn.IsActive = true;
+                tabBtn.IsActive = true;
+                dot.IsConnected = true;
+                dot.CustomColor = System.Drawing.Color.FromArgb(34, 197, 94);
+
+                sidebar.Controls.Add(groupLabel);
+                sidebar.Controls.Add(navBtn);
+                card.Controls.Add(tabBtn);
+                card.Controls.Add(dot);
+                shell.Controls.Add(sidebar);
+                shell.Controls.Add(card);
+
+                ThemeManager.ApplyTheme(shell, true);
+                Assert.Equal(System.Drawing.Color.FromArgb(22, 24, 30), shell.BackColor);
+                Assert.Equal(System.Drawing.Color.FromArgb(18, 20, 26), sidebar.BackColor);
+                Assert.Equal(System.Drawing.Color.FromArgb(30, 32, 38), card.BackColor);
+                Assert.Equal(System.Drawing.Color.FromArgb(48, 53, 66), card.BorderColor);
+
+                ThemeManager.ApplyTheme(shell, false);
+                Assert.Equal(System.Drawing.Color.FromArgb(243, 245, 249), shell.BackColor);
+                Assert.Equal(System.Drawing.Color.FromArgb(236, 240, 247), sidebar.BackColor);
+                Assert.Equal(System.Drawing.Color.White, card.BackColor);
+                Assert.Equal(System.Drawing.Color.FromArgb(220, 226, 236), card.BorderColor);
+
+                LocalizationManager.SetLanguage(LocalizationManager.LANG_PT_BR);
+                LocalizationManager.ApplyToControlTree(shell);
+                Assert.Equal("COMBATE & AUTOMAÇÃO", groupLabel.Text);
+                Assert.Equal("Spam de Skills", navBtn.Text);
+
+                LocalizationManager.SetLanguage(LocalizationManager.LANG_EN_US);
+                LocalizationManager.ApplyToControlTree(shell);
+                Assert.Equal("COMBAT & AUTOMATION", groupLabel.Text);
+                Assert.Equal("Skill Spammer", navBtn.Text);
+            }
+        }
+
+        [Fact]
+        public void LocalizationManager_AllModernSectionsHaveTitlesAndSubtitlesInPtAndEn()
+        {
+            string[] sectionKeys = new string[]
+            {
+                "spammer", "debuff", "buff_skills", "buff_stuffs", "timers",
+                "macro_switch", "macro_songs", "atkdef", "profiles", "servers"
+            };
+
+            string[] langs = new string[] { LocalizationManager.LANG_PT_BR, LocalizationManager.LANG_EN_US };
+            foreach (string lang in langs)
+            {
+                LocalizationManager.SetLanguage(lang);
+                foreach (string key in sectionKeys)
+                {
+                    string titleKey = "section." + key + ".title";
+                    string subtitleKey = "section." + key + ".subtitle";
+                    string title = LocalizationManager.T(titleKey);
+                    string subtitle = LocalizationManager.T(subtitleKey);
+
+                    Assert.False(string.IsNullOrWhiteSpace(title));
+                    Assert.False(string.IsNullOrWhiteSpace(subtitle));
+                    Assert.NotEqual(titleKey, title);
+                    Assert.NotEqual(subtitleKey, subtitle);
+                }
+
+                Assert.NotEqual("footer.powered", LocalizationManager.T("footer.powered"));
+                Assert.NotEqual("sidebar.status_on", LocalizationManager.T("sidebar.status_on"));
+                Assert.NotEqual("sidebar.status_chat", LocalizationManager.T("sidebar.status_chat"));
+                Assert.NotEqual("sidebar.status_off", LocalizationManager.T("sidebar.status_off"));
+            }
+        }
     }
 }

@@ -31,6 +31,7 @@ dotnet test tests/4RTools.Tests/4RTools.Tests.csproj -c Release
 ```
 
 ## Features
+- [x] Modern desktop layout with grouped sidebar navigation, vector icons, live session summary card, Autopot/Yggdrasil segmented pills, and descriptive section cards
 - [x] Full **Portuguese (PT-BR default)** & **English (EN)** interface with live language switcher (`settings.json`)
 - [x] Dark Mode, Always on Top & floating **Mini HUD** overlay (persisted in `settings.json`)
 - [x] Real-time HP/SP vital bars in the main header and Mini HUD
