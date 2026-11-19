@@ -1,12 +1,14 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System.Windows.Forms;
 
 namespace _4RTools.Model
 {
     public class UserPreferences : Action
     {
-        private string ACTION_NAME = "UserPreferences";
+        private const string ACTION_NAME = "UserPreferences";
         public string toggleStateKey { get; set; } = Keys.End.ToString();
+        public bool soundEnabled { get; set; } = true;
+        public bool pauseWhenUnfocused { get; set; } = false;
 
         public UserPreferences()
         {

@@ -1,18 +1,27 @@
-﻿using System;
-using System.Threading;
-using System.Windows.Input;
-using System.Windows.Forms;
+using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Windows.Forms;
+using System.Windows.Input;
 using Newtonsoft.Json;
 using _4RTools.Utils;
 
 namespace _4RTools.Model
 {
-
     public class AutoBuff : Action
     {
         public static string ACTION_NAME_AUTOBUFF = "Autobuff";
 
+        private static readonly HashSet<EffectStatusIDs> QuagmireBlockedBuffs = new HashSet<EffectStatusIDs>
+        {
+            EffectStatusIDs.CONCENTRATION,
+            EffectStatusIDs.INC_AGI,
+            EffectStatusIDs.TRUESIGHT,
+            EffectStatusIDs.ADRENALINE,
+            EffectStatusIDs.SPEARQUICKEN
+        };
+
+        private readonly object mappingLock = new object();
         private _4RThread thread;
         public int delay { get; set; } = 1;
         public Dictionary<EffectStatusIDs, Key> buffMapping = new Dictionary<EffectStatusIDs, Key>();
@@ -23,88 +32,120 @@ namespace _4RTools.Model
             Client roClient = ClientSingleton.GetClient();
             if (roClient != null)
             {
-                 this.thread = AutoBuffThread(roClient);
+                this.thread = AutoBuffThread(roClient);
                 _4RThread.Start(this.thread);
             }
         }
 
         public _4RThread AutoBuffThread(Client c)
         {
-            _4RThread autobuffItemThread = new _4RThread(_ =>
+            byte[] rawBuffer = new byte[Constants.STATUS_BUFFER_BYTE_SIZE];
+            uint[] statusBuffer = new uint[Constants.MAX_BUFF_LIST_INDEX_SIZE];
+
+            return new _4RThread(token =>
             {
-
-                bool foundQuag = false;
-                Dictionary<EffectStatusIDs, Key> bmClone = new Dictionary<EffectStatusIDs, Key>(this.buffMapping);
-                for (int i = 0; i < Constants.MAX_BUFF_LIST_INDEX_SIZE; i++)
+                if (c.HasMemorySupport && c.IsProcessAlive() && !c.ShouldPauseForFocus())
                 {
-                    uint currentStatus = c.CurrentBuffStatusCode(i);
-                    EffectStatusIDs status = (EffectStatusIDs)currentStatus;
-                    
-                    if (status == EffectStatusIDs.IGNORE) { continue; };
-                    if (status == EffectStatusIDs.IGNORE_2) { continue; };
+                    bool foundQuag = false;
+                    Dictionary<EffectStatusIDs, Key> missingBuffs = GetBuffMappingSnapshot();
 
-                    if (status == EffectStatusIDs.OVERTHRUSTMAX)
+                    if (missingBuffs.Count > 0)
                     {
-                        if (buffMapping.ContainsKey(EffectStatusIDs.OVERTHRUST))
+                        int count = c.ReadBuffStatusBuffer(rawBuffer, statusBuffer);
+                        for (int i = 0; i < count; i++)
                         {
-                            bmClone.Remove(EffectStatusIDs.OVERTHRUST);
+                            EffectStatusIDs status = (EffectStatusIDs)statusBuffer[i];
+
+                            if (status == EffectStatusIDs.IGNORE || status == EffectStatusIDs.IGNORE_2)
+                            {
+                                continue;
+                            }
+
+                            if (status == EffectStatusIDs.OVERTHRUSTMAX)
+                            {
+                                missingBuffs.Remove(EffectStatusIDs.OVERTHRUST);
+                            }
+
+                            missingBuffs.Remove(status);
+
+                            if (status == EffectStatusIDs.QUAGMIRE)
+                            {
+                                foundQuag = true;
+                            }
+                        }
+
+                        if (missingBuffs.Count > 0 && c.ReadCurrentHp() >= Constants.MINIMUM_HP_TO_RECOVER)
+                        {
+                            foreach (KeyValuePair<EffectStatusIDs, Key> item in missingBuffs)
+                            {
+                                if (token.IsCancellationRequested)
+                                {
+                                    break;
+                                }
+
+                                if (foundQuag && QuagmireBlockedBuffs.Contains(item.Key))
+                                {
+                                    continue;
+                                }
+
+                                UseAutobuff(c, item.Value);
+                                if (!_4RThread.Sleep(10, token))
+                                {
+                                    break;
+                                }
+                            }
                         }
                     }
-
-                    if (buffMapping.ContainsKey(status)) //CHECK IF STATUS EXISTS IN STATUS LIST AND DO ACTION
-                    {
-                        bmClone.Remove(status);
-                    }
-
-                    if (status == EffectStatusIDs.QUAGMIRE) foundQuag = true;
                 }
 
-                foreach (var item in bmClone)
-                {
-                    if (foundQuag && (item.Key == EffectStatusIDs.CONCENTRATION || item.Key == EffectStatusIDs.INC_AGI || item.Key == EffectStatusIDs.TRUESIGHT || item.Key == EffectStatusIDs.ADRENALINE || item.Key == EffectStatusIDs.SPEARQUICKEN))
-                    {
-                        break;
-                    }
-                    else if (c.ReadCurrentHp() >= Constants.MINIMUM_HP_TO_RECOVER)
-                    {
-                        this.useAutobuff(item.Value);
-                        Thread.Sleep(10);
-                    }
-                }
-
-                Thread.Sleep(300);
-                return 0;
-
-            });
-
-            return autobuffItemThread;
+                _4RThread.Sleep(300, token);
+            }, ACTION_NAME_AUTOBUFF);
         }
 
         public void AddKeyToBuff(EffectStatusIDs status, Key key)
         {
-            if (buffMapping.ContainsKey(status))
+            lock (this.mappingLock)
             {
-                buffMapping.Remove(status);
-            }
+                if (this.buffMapping.ContainsKey(status))
+                {
+                    this.buffMapping.Remove(status);
+                }
 
-            if (FormUtils.IsValidKey(key))
-            {
-                buffMapping.Add(status, key);
+                if (FormUtils.IsValidKey(key))
+                {
+                    this.buffMapping.Add(status, key);
+                }
             }
         }
+
         public void ClearKeyMapping()
         {
-            buffMapping.Clear();
+            lock (this.mappingLock)
+            {
+                this.buffMapping.Clear();
+            }
+        }
+
+        public Dictionary<EffectStatusIDs, Key> GetBuffMappingSnapshot()
+        {
+            lock (this.mappingLock)
+            {
+                return new Dictionary<EffectStatusIDs, Key>(this.buffMapping);
+            }
         }
 
         public void Stop()
         {
             _4RThread.Stop(this.thread);
+            this.thread = null;
         }
 
         public string GetConfiguration()
         {
-            return JsonConvert.SerializeObject(this);
+            lock (this.mappingLock)
+            {
+                return JsonConvert.SerializeObject(this);
+            }
         }
 
         public string GetActionName()
@@ -112,10 +153,15 @@ namespace _4RTools.Model
             return ACTION_NAME_AUTOBUFF;
         }
 
-        private void useAutobuff(Key key)
+        private void UseAutobuff(Client client, Key key)
         {
-            if((key != Key.None) && !Keyboard.IsKeyDown(Key.LeftAlt) && !Keyboard.IsKeyDown(Key.RightAlt))
-                Interop.PostMessage(ClientSingleton.GetClient().process.MainWindowHandle, Constants.WM_KEYDOWN_MSG_ID, (Keys)Enum.Parse(typeof(Keys), key.ToString()), 0);
+            if (key == Key.None || KeyHelper.IsAltPressed() || client == null)
+            {
+                return;
+            }
+
+            Keys formsKey = KeyHelper.ToFormsKeys(key);
+            Interop.SendKeyDown(client.GetWindowHandle(), formsKey);
         }
     }
 }

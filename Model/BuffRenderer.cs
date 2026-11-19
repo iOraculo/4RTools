@@ -1,27 +1,33 @@
-﻿using _4RTools.Utils;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Dynamic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
+using _4RTools.Utils;
 
 namespace _4RTools.Model
 {
     internal class BuffRenderer
     {
+        private const int BUFFS_PER_ROW = 5;
+        private const int DISTANCE_BETWEEN_CONTAINERS = 10;
+        private const int DISTANCE_BETWEEN_ROWS = 30;
+        private const int ITEM_COLUMN_WIDTH = 100;
+        private const int ITEM_START_X = 10;
+        private const int ITEM_START_Y = 20;
 
-        private readonly int BUFFS_PER_ROW = 5;
-        private readonly int DISTANCE_BETWEEN_CONTAINERS = 10;
-        private readonly int DISTANCE_BETWEEN_ROWS = 30;
+        private sealed class RenderedBuffItem
+        {
+            public Buff Skill { get; set; }
+            public PictureBox IconBox { get; set; }
+            public TextBox KeyBox { get; set; }
+        }
 
-        private string _modelName;
-        private List<BuffContainer> _containers;
-        private ToolTip _toolTip;
+        private readonly string _modelName;
+        private readonly List<BuffContainer> _containers;
+        private readonly ToolTip _toolTip;
+        private readonly Dictionary<BuffContainer, List<RenderedBuffItem>> _renderedItems = new Dictionary<BuffContainer, List<RenderedBuffItem>>();
+        private int _initialTopY;
 
         public BuffRenderer(string model, List<BuffContainer> containers, ToolTip toolTip)
         {
@@ -30,20 +36,22 @@ namespace _4RTools.Model
             this._toolTip = toolTip;
         }
 
-        public void doRender()
+        public void doRender(int startY = -1)
         {
-            for (int i = 0; i < _containers.Count; i++)
+            if (this._containers == null || this._containers.Count == 0)
             {
-                BuffContainer bk = _containers[i];
-                Point lastLocation = new Point(bk.container.Location.X, 20);
-                int colCount = 0;
+                return;
+            }
 
-                if (i > 0)
-                {
-                    //If not first container to be rendered, get last container height and append 70
-                    bk.container.Location = new Point(_containers[i - 1].container.Location.X, _containers[i - 1].container.Location.Y + _containers[i - 1].container.Height + DISTANCE_BETWEEN_CONTAINERS);
-                }
+            this._initialTopY = startY >= 0 ? startY : this._containers[0].container.Location.Y;
 
+            for (int i = 0; i < this._containers.Count; i++)
+            {
+                BuffContainer bk = this._containers[i];
+                List<RenderedBuffItem> items = new List<RenderedBuffItem>();
+                this._renderedItems[bk] = items;
+
+                bk.container.SuspendLayout();
                 foreach (Buff skill in bk.skills)
                 {
                     PictureBox pb = new PictureBox();
@@ -52,71 +60,233 @@ namespace _4RTools.Model
                     pb.Image = skill.icon;
                     pb.SizeMode = PictureBoxSizeMode.CenterImage;
                     pb.BackgroundImageLayout = ImageLayout.Center;
-                    pb.Location = new Point(lastLocation.X + (colCount * 100), lastLocation.Y);
-                    pb.Name = "pbox" + ((int)skill.effectStatusID);
+                    pb.Name = "pbox" + (int)skill.effectStatusID;
                     pb.Size = new Size(26, 26);
-                    _toolTip.SetToolTip(pb, skill.name);
+                    this._toolTip.SetToolTip(pb, skill.name);
 
                     textBox.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
                     textBox.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
                     textBox.TextChanged += new EventHandler(onTextChange);
                     textBox.Size = new Size(55, 20);
-                    textBox.Tag = ((int)skill.effectStatusID);
-                    textBox.Name = "in" + ((int)skill.effectStatusID);
-                    textBox.Location = new Point(pb.Location.X + 35, pb.Location.Y + 3);
+                    textBox.Tag = (int)skill.effectStatusID;
+                    textBox.Name = "in" + (int)skill.effectStatusID;
+                    this._toolTip.SetToolTip(textBox, skill.name);
 
                     bk.container.Controls.Add(textBox);
                     bk.container.Controls.Add(pb);
 
-                    colCount++;
-
-                    if (colCount == BUFFS_PER_ROW)
+                    items.Add(new RenderedBuffItem
                     {
-                        //5 Buffs per row
-                        colCount = 0;
-                        lastLocation = new Point(bk.container.Location.X, lastLocation.Y + DISTANCE_BETWEEN_ROWS);
+                        Skill = skill,
+                        IconBox = pb,
+                        KeyBox = textBox
+                    });
+                }
+                bk.container.ResumeLayout(false);
+            }
+
+            ApplyFilter(string.Empty);
+        }
+
+        public void ApplyFilter(string searchQuery)
+        {
+            if (this._containers == null || this._containers.Count == 0)
+            {
+                return;
+            }
+
+            string query = string.IsNullOrWhiteSpace(searchQuery) ? string.Empty : searchQuery.Trim();
+            ScrollableControl parentForm = this._containers[0].container.Parent as ScrollableControl;
+
+            if (parentForm != null)
+            {
+                parentForm.SuspendLayout();
+                parentForm.AutoScrollPosition = Point.Empty;
+            }
+
+            int currentY = this._initialTopY;
+
+            foreach (BuffContainer bk in this._containers)
+            {
+                List<RenderedBuffItem> items;
+                if (!this._renderedItems.TryGetValue(bk, out items))
+                {
+                    continue;
+                }
+
+                bool groupMatches = query.Length > 0
+                    && bk.container.Text.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
+
+                bk.container.SuspendLayout();
+
+                int colCount = 0;
+                int rowY = ITEM_START_Y;
+                int visibleCount = 0;
+
+                foreach (RenderedBuffItem item in items)
+                {
+                    bool visible = query.Length == 0
+                        || groupMatches
+                        || item.Skill.name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
+
+                    item.IconBox.Visible = visible;
+                    item.KeyBox.Visible = visible;
+
+                    if (visible)
+                    {
+                        int x = ITEM_START_X + (colCount * ITEM_COLUMN_WIDTH);
+                        item.IconBox.Location = new Point(x, rowY);
+                        item.KeyBox.Location = new Point(x + 35, rowY + 3);
+
+                        visibleCount++;
+                        colCount++;
+                        if (colCount == BUFFS_PER_ROW)
+                        {
+                            colCount = 0;
+                            rowY += DISTANCE_BETWEEN_ROWS;
+                        }
                     }
                 }
+
+                bk.container.Visible = visibleCount > 0;
+                if (visibleCount > 0)
+                {
+                    int rows = (visibleCount + BUFFS_PER_ROW - 1) / BUFFS_PER_ROW;
+                    int containerHeight = ITEM_START_Y + (rows * DISTANCE_BETWEEN_ROWS) + 10;
+                    bk.container.Location = new Point(bk.container.Location.X, currentY);
+                    bk.container.MinimumSize = new Size(520, containerHeight);
+                    bk.container.Size = new Size(520, containerHeight);
+                    currentY += containerHeight + DISTANCE_BETWEEN_CONTAINERS;
+                }
+
+                bk.container.ResumeLayout(true);
+            }
+
+            if (parentForm != null)
+            {
+                parentForm.ResumeLayout(true);
+            }
+        }
+
+        public void ClearAll()
+        {
+            if (this._containers == null || this._containers.Count == 0)
+            {
+                return;
+            }
+
+            using (ProfileSingleton.SuppressSave())
+            {
+                foreach (BuffContainer bk in this._containers)
+                {
+                    List<RenderedBuffItem> items;
+                    if (!this._renderedItems.TryGetValue(bk, out items))
+                    {
+                        continue;
+                    }
+
+                    foreach (RenderedBuffItem item in items)
+                    {
+                        item.KeyBox.Text = Key.None.ToString();
+                        RemoveKeyFromModel(item.Skill.effectStatusID);
+                    }
+                }
+            }
+
+            PersistModel();
+        }
+
+        private void RemoveKeyFromModel(EffectStatusIDs statusID)
+        {
+            switch (this._modelName)
+            {
+                case "Autobuff":
+                    ProfileSingleton.GetCurrent().Autobuff.AddKeyToBuff(statusID, Key.None);
+                    break;
+                case "DebuffsRecovery":
+                    ProfileSingleton.GetCurrent().DebuffsRecovery.AddKeyToBuff(statusID, Key.None);
+                    break;
+            }
+        }
+
+        private void PersistModel()
+        {
+            switch (this._modelName)
+            {
+                case "Autobuff":
+                    ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().Autobuff);
+                    break;
+                case "DebuffsRecovery":
+                    ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().DebuffsRecovery);
+                    break;
             }
         }
 
         private void onTextChange(object sender, EventArgs e)
         {
+            if (ProfileSingleton.IsSaveSuppressed)
+            {
+                return;
+            }
+
             try
             {
-
-                TextBox txtBox = (TextBox)sender;
-                if (txtBox.Text.ToString() != String.Empty)
+                TextBox txtBox = sender as TextBox;
+                if (txtBox == null || string.IsNullOrWhiteSpace(txtBox.Text))
                 {
-                    Key key = (Key)Enum.Parse(typeof(Key), txtBox.Text.ToString());
-                    EffectStatusIDs statusID = (EffectStatusIDs)Int16.Parse(txtBox.Name.Split(new[] { "in" }, StringSplitOptions.None)[1]);
+                    return;
+                }
 
-                    switch (this._modelName)
-                    {
-                        case "Autobuff":
-                            ProfileSingleton.GetCurrent().Autobuff.AddKeyToBuff(statusID, key);
-                            ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().Autobuff);
-                            break;
-                        case "DebuffsRecovery":
-                            ProfileSingleton.GetCurrent().DebuffsRecovery.AddKeyToBuff(statusID, key);
-                            ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().DebuffsRecovery);
-                            break;
-                    }
+                Key key;
+                if (!KeyHelper.TryParseKey(txtBox.Text, out key))
+                {
+                    return;
+                }
+
+                EffectStatusIDs statusID;
+                if (txtBox.Tag is int)
+                {
+                    statusID = (EffectStatusIDs)(int)txtBox.Tag;
+                }
+                else
+                {
+                    statusID = (EffectStatusIDs)uint.Parse(txtBox.Name.Substring(2));
+                }
+
+                switch (this._modelName)
+                {
+                    case "Autobuff":
+                        ProfileSingleton.GetCurrent().Autobuff.AddKeyToBuff(statusID, key);
+                        ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().Autobuff);
+                        break;
+                    case "DebuffsRecovery":
+                        ProfileSingleton.GetCurrent().DebuffsRecovery.AddKeyToBuff(statusID, key);
+                        ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().DebuffsRecovery);
+                        break;
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Logger.Warn("BuffRenderer", "Error handling key binding change", ex);
+            }
         }
 
         public static void doUpdate(Dictionary<EffectStatusIDs, Key> autobuffDict, Control control)
         {
-            FormUtils.ResetForm(control);
-            foreach (EffectStatusIDs effect in autobuffDict.Keys)
+            using (ProfileSingleton.SuppressSave())
             {
-                Control[] c = control.Controls.Find("in" + (int)effect, true);
-                if (c.Length > 0)
+                FormUtils.ResetForm(control);
+                foreach (KeyValuePair<EffectStatusIDs, Key> entry in autobuffDict)
                 {
-                    TextBox textBox = (TextBox)c[0];
-                    textBox.Text = autobuffDict[effect].ToString();
+                    Control[] controls = control.Controls.Find("in" + (int)entry.Key, true);
+                    foreach (Control found in controls)
+                    {
+                        TextBox textBox = found as TextBox;
+                        if (textBox != null)
+                        {
+                            textBox.Text = entry.Value.ToString();
+                        }
+                    }
                 }
             }
         }

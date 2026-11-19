@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using _4RTools.Utils;
@@ -51,7 +51,7 @@ namespace _4RTools.Model
             List<Buff> skills = new List<Buff>
             {
                 new Buff("Endure", EffectStatusIDs.ENDURE, Resources._4RTools.Icons.sm_endure),
-                new Buff("Auto Beserk", EffectStatusIDs.AUTOBERSERK, Resources._4RTools.Icons.sm_autoberserk),
+                new Buff("Auto Berserk", EffectStatusIDs.AUTOBERSERK, Resources._4RTools.Icons.sm_autoberserk),
                 new Buff("Guard", EffectStatusIDs.AUTOGUARD, Resources._4RTools.Icons.cr_autoguard),
                 new Buff("Shield Reflection", EffectStatusIDs.REFLECTSHIELD, Resources._4RTools.Icons.cr_reflectshield),
                 new Buff("Spear Quicken", EffectStatusIDs.SPEARQUICKEN, Resources._4RTools.Icons.cr_spearquicken),
@@ -224,7 +224,7 @@ namespace _4RTools.Model
         }
 
         // [Summoner](https://irowiki.org/wiki/Summoner)
-        public static List<Buff> GeSummonerSkills()
+        public static List<Buff> GetSummonerSkills()
         {
             List<Buff> skills = new List<Buff>
             {
@@ -238,17 +238,6 @@ namespace _4RTools.Model
                 new Buff("Colors of Hyunrok Lv 4", EffectStatusIDs.EFST_COLORS_OF_HYUN_ROK_4, Resources._4RTools.Icons.colors_of_hyunrok_4),
                 new Buff("Colors of Hyunrok Lv 5", EffectStatusIDs.EFST_COLORS_OF_HYUN_ROK_5, Resources._4RTools.Icons.colors_of_hyunrok_5),
                 new Buff("Colors of Hyunrok Lv 6", EffectStatusIDs.EFST_COLORS_OF_HYUN_ROK_6, Resources._4RTools.Icons.colors_of_hyunrok_6),
-            };
-
-            return skills;
-        }
-
-        // [Cardinal](https://irowiki.org/wiki/Cardinal)
-        public static List<Buff> GeCardinalSkills()
-        {
-            List<Buff> skills = new List<Buff>
-            {
-
             };
 
             return skills;
@@ -274,14 +263,14 @@ namespace _4RTools.Model
                 new Buff("Intensive Aim", EffectStatusIDs.EFST_INTENSIVE_AIM, Resources._4RTools.Icons.intensive_aim),
                 new Buff("Auto Firing Launcher", EffectStatusIDs.EFST_AUTO_FIRING_LAUNCHEREFST, Resources._4RTools.Icons.auto_firing_launcher),
                 new Buff("Platinum Altar", EffectStatusIDs.EFST_P_ALTER, Resources._4RTools.Icons.platinum_altar),
-                new Buff("Hit Barrel", EffectStatusIDs.EFST_HEAT_BARREL, Resources._4RTools.Icons.hit_barrel),
+                new Buff("Heat Barrel", EffectStatusIDs.EFST_HEAT_BARREL, Resources._4RTools.Icons.hit_barrel),
                 new Buff("Eternal Chain", EffectStatusIDs.EFST_E_CHAIN, Resources._4RTools.Icons.eternal_chain),
-                new Buff("Grenade Fragmenth Lv 1", EffectStatusIDs.EFST_GRENADE_FRAGMENT_1, Resources._4RTools.Icons.grenade_fragment_1),
-                new Buff("Grenade Fragmenth Lv 2", EffectStatusIDs.EFST_GRENADE_FRAGMENT_2, Resources._4RTools.Icons.grenade_fragment_2),
-                new Buff("Grenade Fragmenth Lv 3", EffectStatusIDs.EFST_GRENADE_FRAGMENT_3, Resources._4RTools.Icons.grenade_fragment_3),
-                new Buff("Grenade Fragmenth Lv 4", EffectStatusIDs.EFST_GRENADE_FRAGMENT_4, Resources._4RTools.Icons.grenade_fragment_4),
-                new Buff("Grenade Fragmenth Lv 5", EffectStatusIDs.EFST_GRENADE_FRAGMENT_5, Resources._4RTools.Icons.grenade_fragment_5),
-                new Buff("Grenade Fragmenth Lv 6", EffectStatusIDs.EFST_GRENADE_FRAGMENT_6, Resources._4RTools.Icons.grenade_fragment_6),
+                new Buff("Grenade Fragment Lv 1", EffectStatusIDs.EFST_GRENADE_FRAGMENT_1, Resources._4RTools.Icons.grenade_fragment_1),
+                new Buff("Grenade Fragment Lv 2", EffectStatusIDs.EFST_GRENADE_FRAGMENT_2, Resources._4RTools.Icons.grenade_fragment_2),
+                new Buff("Grenade Fragment Lv 3", EffectStatusIDs.EFST_GRENADE_FRAGMENT_3, Resources._4RTools.Icons.grenade_fragment_3),
+                new Buff("Grenade Fragment Lv 4", EffectStatusIDs.EFST_GRENADE_FRAGMENT_4, Resources._4RTools.Icons.grenade_fragment_4),
+                new Buff("Grenade Fragment Lv 5", EffectStatusIDs.EFST_GRENADE_FRAGMENT_5, Resources._4RTools.Icons.grenade_fragment_5),
+                new Buff("Grenade Fragment Lv 6", EffectStatusIDs.EFST_GRENADE_FRAGMENT_6, Resources._4RTools.Icons.grenade_fragment_6),
             };
 
             return skills;
@@ -384,8 +373,8 @@ namespace _4RTools.Model
                 new Buff("DEX Biscuit Stick", EffectStatusIDs.DEX_Biscuit_Stick, Resources._4RTools.Icons.dex_biscuit_stick),
                 new Buff("LUK Biscuit Stick", EffectStatusIDs.LUK_Biscuit_Stick, Resources._4RTools.Icons.luk_biscuit_stick),
 
-                new Buff("STR Bubble Gum Orange", EffectStatusIDs.EFST_Bubble_Gum_Green, Resources._4RTools.Icons.str_bubble_gum_green),
-                new Buff("AGI Biscuit Stick", EffectStatusIDs.EFST_Bubble_Gum_Red, Resources._4RTools.Icons.agi_bubble_gum_red),
+                new Buff("STR Bubble Gum Green", EffectStatusIDs.EFST_Bubble_Gum_Green, Resources._4RTools.Icons.str_bubble_gum_green),
+                new Buff("AGI Bubble Gum Red", EffectStatusIDs.EFST_Bubble_Gum_Red, Resources._4RTools.Icons.agi_bubble_gum_red),
                 new Buff("INT Bubble Gum Yellow", EffectStatusIDs.EFST_Bubble_Gum_Yellow, Resources._4RTools.Icons.int_bubble_gum_yellow),
                 new Buff("DEX Bubble Gum Orange", EffectStatusIDs.EFST_Bubble_Gum_Orange, Resources._4RTools.Icons.dex_bubble_gum_orange),
 
@@ -517,7 +506,7 @@ namespace _4RTools.Model
                 new Buff("Confusion / chaos", EffectStatusIDs.CONFUSION, Resources._4RTools.Icons.chaos),
                 new Buff("STUN", EffectStatusIDs.EFST_STUN, Resources._4RTools.Icons.stun),
                 new Buff("Deep Sleep", EffectStatusIDs.EFST_DEEP_SLEEP, Resources._4RTools.Icons.deep_sleep),
-                new Buff("Posion", EffectStatusIDs.POISON, Resources._4RTools.Icons.poison_status),
+                new Buff("Poison", EffectStatusIDs.POISON, Resources._4RTools.Icons.poison_status),
                 new Buff("Lucky Water", EffectStatusIDs.EFST_HANDICAPSTATE_MISFORTUNE, Resources._4RTools.Icons.water_of_lucky),
             };
 

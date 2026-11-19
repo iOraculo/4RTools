@@ -1,107 +1,173 @@
-﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
+using _4RTools.Utils;
 
 namespace _4RTools.Model
 {
-    internal class LocalServerManager
+    public class LocalServerManager
     {
+        private static readonly object FileLock = new object();
+        private static string localServerName = "supported_servers.json";
 
-        private static readonly string localServerName = "supported_servers.json";
+        public static string LocalServerFilePath
+        {
+            get { return localServerName; }
+            set { localServerName = value; }
+        }
 
         public static void AddServer(string hpAddress, string nameAddress, string processName)
         {
-            if (!isValid(hpAddress))
+            if (string.IsNullOrWhiteSpace(processName))
+            {
+                throw new ArgumentException("Process name cannot be empty.");
+            }
+
+            string normalizedHp = NormalizeHexAddress(hpAddress);
+            if (normalizedHp == null)
             {
                 throw new ArgumentException("HP Address is Invalid. Please type a valid Hex value.");
             }
 
-            if(!isValid(nameAddress))
+            string normalizedName = NormalizeHexAddress(nameAddress);
+            if (normalizedName == null)
             {
                 throw new ArgumentException("Name Address is Invalid. Please type a valid Hex value.");
             }
-            ClientDTO dto = new ClientDTO(processName, null, hpAddress, nameAddress);
+
+            ClientDTO dto = new ClientDTO(processName.Trim(), null, normalizedHp, normalizedName);
             ClientListSingleton.AddClient(new Client(dto));
 
-            List<ClientDTO> clients = GetLocalClients();
-            clients.Add(dto);
-            OverwriteLocalFile(clients);
-
-            /**
-             * Cases
-             * 1. Local file don't exists
-             *  Solution: Create a empty file
-             * 2. Local file exists with wrong syntax
-             *  Solution: Remove invalid file and create new one
-             * 3. Arquivo Local existe e é válido
-             */
+            lock (FileLock)
+            {
+                List<ClientDTO> clients = GetLocalClients();
+                clients.Add(dto);
+                OverwriteLocalFile(clients);
+            }
         }
 
         public static void RemoveClient(ClientDTO dto)
         {
-            List<ClientDTO> clients = GetLocalClients();
-            clients.RemoveAt(dto.index);
-            OverwriteLocalFile(clients);
-            ClientListSingleton.RemoveClient(Client.FromDTO(dto));
+            if (dto == null)
+            {
+                return;
+            }
+
+            lock (FileLock)
+            {
+                List<ClientDTO> clients = GetLocalClients();
+                if (dto.index >= 0 && dto.index < clients.Count)
+                {
+                    clients.RemoveAt(dto.index);
+                }
+                else
+                {
+                    int idx = clients.FindIndex(c =>
+                        string.Equals(c.name, dto.name, StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(c.hpAddress, dto.hpAddress, StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(c.nameAddress, dto.nameAddress, StringComparison.OrdinalIgnoreCase));
+                    if (idx >= 0)
+                    {
+                        clients.RemoveAt(idx);
+                    }
+                }
+
+                OverwriteLocalFile(clients);
+            }
+
+            Client matched = Client.FromDTO(dto);
+            if (matched != null)
+            {
+                ClientListSingleton.RemoveClient(matched);
+            }
         }
 
         private static void OverwriteLocalFile(List<ClientDTO> clients)
         {
             string output = JsonConvert.SerializeObject(clients, Formatting.Indented);
-            File.WriteAllText(localServerName, string.Empty);
-            File.WriteAllText(localServerName, output);
+            string tempPath = localServerName + ".tmp";
+            File.WriteAllText(tempPath, output);
+            File.Copy(tempPath, localServerName, true);
+            File.Delete(tempPath);
         }
-
 
         private static string LoadLocalServerFile()
         {
-            if (!File.Exists(localServerName))
+            lock (FileLock)
             {
-                string startJson = "[]";
-                FileStream f = File.Create(localServerName);
-                f.Close();
-                File.WriteAllText(localServerName, startJson);
-                return startJson;
+                if (!File.Exists(localServerName))
+                {
+                    const string startJson = "[]";
+                    File.WriteAllText(localServerName, startJson);
+                    return startJson;
+                }
+
+                return File.ReadAllText(localServerName);
             }
-            string json = File.ReadAllText(localServerName);
-            return json;
         }
 
-        public static List<ClientDTO> GetLocalClients() {
+        public static List<ClientDTO> GetLocalClients()
+        {
             string localServers = LoadLocalServerFile();
 
-            if (string.IsNullOrEmpty(localServers)) return new List<ClientDTO>();
+            if (string.IsNullOrWhiteSpace(localServers))
+            {
+                return new List<ClientDTO>();
+            }
 
             try
             {
-                return JsonConvert.DeserializeObject<List<ClientDTO>>(localServers);
-            }catch
+                List<ClientDTO> deserialized = JsonConvert.DeserializeObject<List<ClientDTO>>(localServers);
+                return deserialized != null ? deserialized : new List<ClientDTO>();
+            }
+            catch (Exception ex)
             {
+                Logger.Warn("LocalServerManager", "Failed to parse local servers JSON", ex);
                 return new List<ClientDTO>();
             }
         }
 
-        private static bool isValid(IEnumerable<char> chars)
+        public static string NormalizeHexAddress(string rawAddress)
         {
-            return IsHex(chars) && chars.Count() == 8;
+            if (string.IsNullOrWhiteSpace(rawAddress))
+            {
+                return null;
+            }
+
+            string trimmed = rawAddress.Trim();
+            if (trimmed.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                trimmed = trimmed.Substring(2);
+            }
+
+            if (trimmed.Length == 0 || trimmed.Length > 8 || !IsHex(trimmed))
+            {
+                return null;
+            }
+
+            return trimmed.PadLeft(8, '0').ToUpperInvariant();
         }
 
         public static bool IsHex(IEnumerable<char> chars)
         {
-            bool isHex;
-            foreach (var c in chars)
+            if (chars == null)
             {
-                isHex = ((c >= '0' && c <= '9') ||
-                         (c >= 'a' && c <= 'f') ||
-                         (c >= 'A' && c <= 'F'));
+                return false;
+            }
+
+            foreach (char c in chars)
+            {
+                bool isHex = (c >= '0' && c <= '9') ||
+                             (c >= 'a' && c <= 'f') ||
+                             (c >= 'A' && c <= 'F');
 
                 if (!isHex)
+                {
                     return false;
+                }
             }
+
             return true;
         }
     }
