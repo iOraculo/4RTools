@@ -12,7 +12,7 @@ namespace _4RTools.Utils
         private bool stopped;
 
         public _4RThread(Func<int, int> toRun, string name = null)
-            : this(_ => toRun(0), name)
+            : this((CancellationToken _) => { toRun(0); }, name)
         {
         }
 
