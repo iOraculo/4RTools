@@ -1,0 +1,46 @@
+name: Windows CI
+
+on:
+  push:
+    branches: [ main, "improve/**" ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v2
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore NuGet packages (4RTools)
+        run: nuget restore 4RTools.csproj -PackagesDirectory packages
+
+      - name: Restore NuGet packages (Tests)
+        run: dotnet restore tests/4RTools.Tests/4RTools.Tests.csproj
+
+      - name: Build solution (Release)
+        run: msbuild 4RTools.sln /p:Configuration=Release /p:Platform="Any CPU" /m
+
+      - name: Run unit tests
+        run: dotnet test tests/4RTools.Tests/4RTools.Tests.csproj --no-build -c Release --verbosity normal
+
+      - name: Upload Release executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: 4RTools-Release
+          path: bin/Release/4RTools.exe
+          if-no-files-found: error
