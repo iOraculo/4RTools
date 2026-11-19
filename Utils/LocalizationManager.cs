@@ -102,6 +102,9 @@ namespace _4RTools.Utils
             { "Skill timer 1", "Timer de Skill 1" },
             { "Skill timer 2", "Timer de Skill 2" },
             { "Skill timer 3", "Timer de Skill 3" },
+            { "Skill timer 4", "Timer de Skill 4" },
+            { "Skill timer 5", "Timer de Skill 5" },
+            { "Skill timer 6", "Timer de Skill 6" },
             { "Key", "Tecla" },
             { "sec", "seg" },
 

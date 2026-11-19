@@ -270,5 +270,43 @@ namespace _4RTools.Tests
                 Assert.False(hud.ShowInTaskbar);
             }
         }
+
+        [Fact]
+        public void Profile_SkillTimers4To6_PersistLoadAndDetectConflicts()
+        {
+            ProfileSingleton.Create("TimerTest");
+            Profile current = ProfileSingleton.GetCurrent();
+            current.AutoRefreshSpammer4.RefreshKey = Key.F4;
+            current.AutoRefreshSpammer4.RefreshDelay = 12;
+            current.AutoRefreshSpammer5.RefreshKey = Key.F5;
+            current.AutoRefreshSpammer5.RefreshDelay = 30;
+            current.AutoRefreshSpammer6.RefreshKey = Key.F4; // Intentional duplicate with Timer 4 for conflict test
+            current.AutoRefreshSpammer6.RefreshDelay = 60;
+
+            ProfileSingleton.SetConfiguration(current.AutoRefreshSpammer4);
+            ProfileSingleton.SetConfiguration(current.AutoRefreshSpammer5);
+            ProfileSingleton.SetConfiguration(current.AutoRefreshSpammer6);
+
+            ProfileSingleton.Load("TimerTest");
+            Profile reloaded = ProfileSingleton.GetCurrent();
+
+            Assert.Equal(Key.F4, reloaded.AutoRefreshSpammer4.RefreshKey);
+            Assert.Equal(12, reloaded.AutoRefreshSpammer4.RefreshDelay);
+            Assert.Equal(Key.F5, reloaded.AutoRefreshSpammer5.RefreshKey);
+            Assert.Equal(30, reloaded.AutoRefreshSpammer5.RefreshDelay);
+            Assert.Equal(Key.F4, reloaded.AutoRefreshSpammer6.RefreshKey);
+            Assert.Equal(60, reloaded.AutoRefreshSpammer6.RefreshDelay);
+
+            List<KeybindConflict> conflicts = KeybindConflictDetector.DetectConflicts(reloaded);
+            Assert.Contains(conflicts, c => c.Key == Key.F4);
+
+            // Legacy profile JSON without AutoRefreshSpammer04-06 must still load cleanly with defaults.
+            string legacyPath = ProfileSingleton.GetProfilePath("LegacyTimers");
+            File.WriteAllText(legacyPath, "{\"Name\":\"LegacyTimers\"}");
+            ProfileSingleton.Load("LegacyTimers");
+            Assert.Equal(Key.None, ProfileSingleton.GetCurrent().AutoRefreshSpammer4.RefreshKey);
+            Assert.Equal(5, ProfileSingleton.GetCurrent().AutoRefreshSpammer5.RefreshDelay);
+            Assert.Equal("AutoRefreshSpammer06", ProfileSingleton.GetCurrent().AutoRefreshSpammer6.GetActionName());
+        }
     }
 }

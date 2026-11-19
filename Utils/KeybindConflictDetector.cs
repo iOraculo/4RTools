@@ -108,6 +108,21 @@ namespace _4RTools.Utils
                 AddUsage(usagesByKey, profile.AutoRefreshSpammer3.RefreshKey, LocalizationManager.T("usage.skill_timer", 3));
             }
 
+            if (profile.AutoRefreshSpammer4 != null)
+            {
+                AddUsage(usagesByKey, profile.AutoRefreshSpammer4.RefreshKey, LocalizationManager.T("usage.skill_timer", 4));
+            }
+
+            if (profile.AutoRefreshSpammer5 != null)
+            {
+                AddUsage(usagesByKey, profile.AutoRefreshSpammer5.RefreshKey, LocalizationManager.T("usage.skill_timer", 5));
+            }
+
+            if (profile.AutoRefreshSpammer6 != null)
+            {
+                AddUsage(usagesByKey, profile.AutoRefreshSpammer6.RefreshKey, LocalizationManager.T("usage.skill_timer", 6));
+            }
+
             if (profile.AtkDefMode != null)
             {
                 AddUsage(usagesByKey, profile.AtkDefMode.keySpammer, LocalizationManager.T("usage.atkdef_spam"));

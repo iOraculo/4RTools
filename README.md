@@ -40,7 +40,7 @@ dotnet test tests/4RTools.Tests/4RTools.Tests.csproj -c Release
 - [x] Autobuff status & Elvira Candy cooldown support + Auto Stand
 - [x] Manage Profiles (Create, Rename, Copy, Delete, Import/Export, Full `.zip` Backup/Restore, Auto-Switch by Character & Keybind Conflict Inspector)
 - [x] AHK Spammer (Compatibility & Speed Boost modes + Clear All Keys)
-- [x] Auto Refresh Spammer (Skill Timers)
+- [x] Auto Refresh Spammer (6 Skill Timer slots)
 - [x] Smart Autobuff Stuffs & Skills (instant search filter, Clear All, Min SP% threshold, per-buff recast cooldown & incapacitating debuff pause)
 - [x] Song Macro (with working per-lane Reset)
 - [x] Macro Switch / Macro Chain (with click support & per-lane Loop toggle)
