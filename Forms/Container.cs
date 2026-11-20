@@ -147,7 +147,7 @@ namespace _4RTools.Forms
                 HideLegacyControl(this.panelDiscImage);
                 HideLegacyControl(this.label1);
 
-                Font brandTitleFont = TrackFont("Segoe UI", 12.5F, FontStyle.Bold);
+                Font brandTitleFont = TrackFont("Segoe UI", 11F, FontStyle.Bold);
                 Font brandVersionFont = TrackFont("Segoe UI", 8F, FontStyle.Regular);
                 Font uiRegularFont = TrackFont("Segoe UI", 8.5F, FontStyle.Regular);
                 Font uiBoldFont = TrackFont("Segoe UI", 8F, FontStyle.Bold);
@@ -182,9 +182,9 @@ namespace _4RTools.Forms
                 {
                     AutoSize = true,
                     Font = brandTitleFont,
-                    Location = new Point(56, 8),
+                    Location = new Point(54, 10),
                     Name = "lblBrandTitle",
-                    Text = AppConfig.ServerName,
+                    Text = AppConfig.Name,
                     Tag = ThemeManager.TAG_ACCENT_TEXT
                 };
 
@@ -192,9 +192,9 @@ namespace _4RTools.Forms
                 {
                     AutoSize = true,
                     Font = brandVersionFont,
-                    Location = new Point(57, 34),
+                    Location = new Point(55, 34),
                     Name = "lblBrandVersion",
-                    Text = "4RTools " + AppConfig.Version,
+                    Text = AppConfig.Version + " · Oráculo",
                     Tag = ThemeManager.TAG_MUTED_TEXT
                 };
 

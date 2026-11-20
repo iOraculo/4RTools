@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // As informações gerais sobre um assembly são controladas por
 // conjunto de atributos. Altere estes valores de atributo para modificar as informações
 // associadas a um assembly.
-[assembly: AssemblyTitle("AureumRO — 4RTools")]
-[assembly: AssemblyDescription("AureumRO themed 4RTools companion")]
+[assembly: AssemblyTitle("AureumRO 4Tools")]
+[assembly: AssemblyDescription("AureumRO 4Tools — Desenvolvido por Oráculo")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("AureumRO")]
-[assembly: AssemblyProduct("AureumRO — 4RTools")]
-[assembly: AssemblyCopyright("Copyright ©  2022")]
+[assembly: AssemblyCompany("Oráculo")]
+[assembly: AssemblyProduct("AureumRO 4Tools")]
+[assembly: AssemblyCopyright("Copyright © 2026 Oráculo")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,6 +32,6 @@ using System.Runtime.InteropServices;
 // É possível especificar todos os valores ou usar como padrão os Números de Build e da Revisão
 // usando o "*" como mostrado abaixo:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.13.1.0")]
-[assembly: AssemblyFileVersion("2.13.1.0")]
+[assembly: AssemblyVersion("2.13.2.0")]
+[assembly: AssemblyFileVersion("2.13.2.0")]
 [assembly: InternalsVisibleTo("4RTools.Tests")]

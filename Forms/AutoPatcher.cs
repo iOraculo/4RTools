@@ -210,7 +210,7 @@ namespace _4RTools.Forms
         {
             using (WebClient webClient = new WebClient())
             {
-                webClient.Headers.Add("User-Agent", "4RTools/" + AppConfig.Version);
+                webClient.Headers.Add("User-Agent", "AureumRO-4Tools/" + AppConfig.Version);
                 webClient.DownloadProgressChanged += OnDownloadProgressChanged;
                 await webClient.DownloadFileTaskAsync(new Uri(url), filePath);
             }

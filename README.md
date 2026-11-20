@@ -1,20 +1,11 @@
-<p align="center">
-  <img src="/assets/images/combo-tools.png">
-</p>
+# AureumRO 4Tools
+Ferramenta oficial de utilitários para **AureumRO** (Ragnarök Online Pré-Renewal / Gold Times): Autopot, Spam de Skills, Autobuff inteligente, Timers de Skill, Macro de Troca/Músicas, Modo ATK x DEF, Mini HUD e muito mais.
 
-# 4RTools
-This is an all-in-one tool for **Ragnarök Online** servers. You will be able to Autopot, Spam Skill, Use Macro Songs and much more. Hope you enjoy it and collaborate with us. If you have found a bug or want to request a feature, feel free to open an issue!
+**Desenvolvimento:** Oráculo
 
-**THIS IS A FREE TOOL, YOU CAN MAKE EVERYTHING YOU WANT UNDER MIT LICENSE. WE ARE OPEN FOR IDEAS AND COLLABORATIONS**
-
-*Made from community TO community*.
-
-Your Feedback is Welcome!
-
-**Discord:** https://discord.gg/HRWvG5ut
-**Website:** https://www.4rtools.com.br/
-
-<img src='assets/images/ragnarok-icon.png' width='40'>
+- **Website:** https://aureumro.com/
+- **Wiki:** https://aureumro.com/wiki/
+- **Discord:** https://discord.gg/aureumro
 
 ## Running & Building the Project
 This project targets **.NET Framework 4.7.2** (WinForms) and can be built on Windows with Visual Studio 2022 or MSBuild:
@@ -48,10 +39,5 @@ dotnet test tests/4RTools.Tests/4RTools.Tests.csproj -c Release
 - [x] ATK x DEF Mode switch
 - [x] Custom Server memory address manager with live **Test** verification
 
-#### References
-https://github.com/k1ngJ/dtAP
-
-## Collaborators
-<a href="https://github.com/4RTools/4RTools/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=4RTools/4RTools" />
-</a>
+## Desenvolvimento
+Desenvolvido por **Oráculo** para o servidor **AureumRO**.

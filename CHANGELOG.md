@@ -1,5 +1,10 @@
 # Changelogs
 
+## [v2.13.2] - 2026-11-20 — AureumRO 4Tools
+### Changed
+- **Rebranding to `AureumRO 4Tools`**: renamed project display name, executable output (`AureumRO 4Tools.exe`), window/Mini HUD titles, dialogs, release packages (`AureumRO-4Tools-<tag>.zip`), and documentation to **AureumRO 4Tools**.
+- **Developer Credits**: updated application footer, assembly metadata, and documentation development credits to **Oráculo**.
+
 ## [v2.13.1] - 2026-11-20 — AureumRO Distribution Polish
 ### Fixed
 - **Guaranteed Built-in AureumRO Server Support (`Forms/ClientUpdaterForm.cs`, `Utils/AppConfig.cs`)**: always merges embedded `supported_servers.txt` (including `AureumRO` `0x015FF908` / `0x01602568`) with local overrides and remote `iOraculo/4RTools/main/supported_servers.json` (deduplicated by process & addresses), so standalone `4RTools.exe` detects `AureumRO` immediately even offline or without an external `supported_servers.json`.
