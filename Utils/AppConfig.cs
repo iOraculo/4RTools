@@ -9,8 +9,8 @@ namespace _4RTools.Utils
         public static string WikiLink = "https://aureumro.com/wiki/";
         public static string GithubLink = "https://github.com/iOraculo/4RTools";
         public static string DiscordLink = "https://discord.gg/aureumro";
-        public static string _4RClientsURL = "https://storage.googleapis.com/4rtools/supported_servers.json";
+        public static string _4RClientsURL = "https://raw.githubusercontent.com/iOraculo/4RTools/main/supported_servers.json";
         public static string _4RLatestVersionURL = "https://api.github.com/repos/iOraculo/4RTools/releases/latest";
-        public static string Version = "v2.13.0";
+        public static string Version = "v2.13.1";
     }
 }

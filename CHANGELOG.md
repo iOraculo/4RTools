@@ -1,5 +1,11 @@
 # Changelogs
 
+## [v2.13.1] - 2026-11-20 — AureumRO Distribution Polish
+### Fixed
+- **Guaranteed Built-in AureumRO Server Support (`Forms/ClientUpdaterForm.cs`, `Utils/AppConfig.cs`)**: always merges embedded `supported_servers.txt` (including `AureumRO` `0x015FF908` / `0x01602568`) with local overrides and remote `iOraculo/4RTools/main/supported_servers.json` (deduplicated by process & addresses), so standalone `4RTools.exe` detects `AureumRO` immediately even offline or without an external `supported_servers.json`.
+- **Reliable AutoPatcher Asset Selection & Relaunch (`Forms/AutoPatcher.cs`)**: explicitly selects `.zip`/`.rar` release archives instead of assuming `assets[0]` and automatically relaunches the updated `4RTools.exe` after patching.
+- **Themed Startup Splash Dialogs (`Forms/AutoPatcher.cs`, `Forms/ClientUpdaterForm.cs`)**: applied the AureumRO Obsidian & Gold theme to startup updater windows.
+
 ## [v2.13.0] - 2026-11-20 — AureumRO Edition
 ### Added & Changed
 - **AureumRO Official Visual Identity (`Utils/ThemeManager.cs`, `Utils/ModernControls.cs`, `Utils/VitalBar.cs`, `Forms/Container.cs`, `Forms/MiniHudForm.cs`)**:

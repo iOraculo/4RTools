@@ -19,6 +19,7 @@ namespace _4RTools.Forms
         {
             InitializeComponent();
             LocalizationManager.ApplyToControlTree(this);
+            ThemeManager.ApplyTheme(this, Model.AppSettings.Load().DarkMode);
             this.Shown += AutoPatcher_Shown;
         }
 
@@ -63,8 +64,14 @@ namespace _4RTools.Forms
                     return;
                 }
 
-                string downloadUrl = (string)assets[0]["browser_download_url"];
-                string assetName = (string)assets[0]["name"];
+                JToken selectedAsset = SelectArchiveAsset(assets);
+                if (selectedAsset == null)
+                {
+                    return;
+                }
+
+                string downloadUrl = (string)selectedAsset["browser_download_url"];
+                string assetName = (string)selectedAsset["name"];
                 if (string.IsNullOrWhiteSpace(downloadUrl) || string.IsNullOrWhiteSpace(assetName))
                 {
                     return;
@@ -81,6 +88,10 @@ namespace _4RTools.Forms
                 {
                     ExtractArchiveSafely(downloadPath, baseDirectory);
                     this.UpdateApplied = true;
+                    if (File.Exists(currentExePath))
+                    {
+                        Process.Start(new ProcessStartInfo(currentExePath) { UseShellExecute = true });
+                    }
                 }
                 catch
                 {
@@ -110,6 +121,34 @@ namespace _4RTools.Forms
                     this.Close();
                 }
             }
+        }
+
+        private static JToken SelectArchiveAsset(JArray assets)
+        {
+            if (assets == null)
+            {
+                return null;
+            }
+
+            foreach (JToken asset in assets)
+            {
+                string name = (string)asset["name"];
+                if (!string.IsNullOrWhiteSpace(name) && name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                {
+                    return asset;
+                }
+            }
+
+            foreach (JToken asset in assets)
+            {
+                string name = (string)asset["name"];
+                if (!string.IsNullOrWhiteSpace(name) && name.EndsWith(".rar", StringComparison.OrdinalIgnoreCase))
+                {
+                    return asset;
+                }
+            }
+
+            return null;
         }
 
         private static void ExtractArchiveSafely(string archivePath, string destinationDirectory)

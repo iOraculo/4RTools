@@ -479,5 +479,19 @@ namespace _4RTools.Tests
                 Assert.Equal("Berserk Potion", tip.GetToolTip(icon));
             }
         }
+
+        [Fact]
+        public void EmbeddedServers_AlwaysIncludeAureumROWithExpectedAddresses()
+        {
+            string raw = ClientUpdaterForm.LoadResourceServerFile();
+            List<ClientDTO> servers = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ClientDTO>>(raw);
+
+            Assert.NotNull(servers);
+            ClientDTO aureum = servers.FirstOrDefault(s => string.Equals(s.name, "AureumRO", StringComparison.OrdinalIgnoreCase));
+            Assert.NotNull(aureum);
+            Assert.Equal("0x015FF908", aureum.hpAddress);
+            Assert.Equal("0x01602568", aureum.nameAddress);
+            Assert.Contains("iOraculo/4RTools", AppConfig._4RClientsURL);
+        }
     }
 }

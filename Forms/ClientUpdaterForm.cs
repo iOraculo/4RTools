@@ -14,6 +14,7 @@ namespace _4RTools.Forms
         {
             InitializeComponent();
             LocalizationManager.ApplyToControlTree(this);
+            ThemeManager.ApplyTheme(this, AppSettings.Load().DarkMode);
             this.Shown += ClientUpdaterForm_Shown;
         }
 
@@ -28,18 +29,25 @@ namespace _4RTools.Forms
 
             try
             {
+                // 1. Highest priority: local supported_servers.json overrides next to the executable.
                 clients.AddRange(LocalServerManager.GetLocalClients());
 
-                string remoteServersRaw = await HttpClientProvider.GetStringAsync(AppConfig._4RClientsURL, TimeSpan.FromSeconds(5));
-                List<ClientDTO> remoteClients = JsonConvert.DeserializeObject<List<ClientDTO>>(remoteServersRaw);
-                if (remoteClients != null)
+                // 2. Remote supported_servers.json from the server's repository (allows live address updates).
+                try
                 {
-                    clients.AddRange(remoteClients);
+                    string remoteServersRaw = await HttpClientProvider.GetStringAsync(AppConfig._4RClientsURL, TimeSpan.FromSeconds(5));
+                    List<ClientDTO> remoteClients = JsonConvert.DeserializeObject<List<ClientDTO>>(remoteServersRaw);
+                    if (remoteClients != null)
+                    {
+                        clients.AddRange(remoteClients);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Logger.Warn("ClientUpdaterForm", "Cannot load remote supported_servers.json, falling back to embedded resource", ex);
+                catch (Exception remoteEx)
+                {
+                    Logger.Warn("ClientUpdaterForm", "Cannot load remote supported_servers.json; using local and embedded servers", remoteEx);
+                }
+
+                // 3. Always include embedded servers (including AureumRO) so standalone .exe works offline too.
                 try
                 {
                     List<ClientDTO> resourceClients = JsonConvert.DeserializeObject<List<ClientDTO>>(LoadResourceServerFile());
@@ -63,13 +71,14 @@ namespace _4RTools.Forms
             }
         }
 
-        private string LoadResourceServerFile()
+        public static string LoadResourceServerFile()
         {
             return Resources._4RTools.ETCResource.supported_servers;
         }
 
         private void LoadServers(List<ClientDTO> clients)
         {
+            HashSet<string> seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             this.pbSupportedServer.Maximum = Math.Max(1, clients.Count);
             this.pbSupportedServer.Value = 0;
 
@@ -77,7 +86,21 @@ namespace _4RTools.Forms
             {
                 try
                 {
-                    ClientListSingleton.AddClient(new Client(clientDTO));
+                    if (clientDTO == null || string.IsNullOrWhiteSpace(clientDTO.name))
+                    {
+                        continue;
+                    }
+
+                    string dedupKey = string.Format(
+                        "{0}|{1}|{2}",
+                        clientDTO.name.Trim(),
+                        (clientDTO.hpAddress ?? string.Empty).Trim(),
+                        (clientDTO.nameAddress ?? string.Empty).Trim());
+
+                    if (seen.Add(dedupKey))
+                    {
+                        ClientListSingleton.AddClient(new Client(clientDTO));
+                    }
                 }
                 catch (Exception ex)
                 {
