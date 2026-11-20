@@ -223,6 +223,15 @@ namespace _4RTools.Forms
                 {
                     this.cbPauseWhenSitting.Checked = autobuff.pauseWhenSitting;
                 }
+                if (this.cbPreRenewal != null)
+                {
+                    bool preRenewal = AppSettings.Load().PreRenewalMode;
+                    if (this.cbPreRenewal.Checked != preRenewal)
+                    {
+                        this.cbPreRenewal.Checked = preRenewal;
+                        this.renderer.SetPreRenewalOnly(preRenewal);
+                    }
+                }
             }
             finally
             {

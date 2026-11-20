@@ -1,5 +1,12 @@
 # Changelogs
 
+## [v2.20.0] - 2026-11-20 — Pre-Renewal Common vs. ROPs Consumables & Progressive Skill Timers
+### Added & Changed
+- **Pre-Renewal Filter + Common vs. ROPs Split on `Autobuff - Itens` (`Model/Buff.cs`, `Model/BuffRenderer.cs`, `Forms/StuffAutoBuffForm.cs`, `Forms/SkillAutoBuffForm.cs`)**:
+  - Reorganized consumables into clear **Itens Comuns** (*Poções e Utilidades*, *Elementais e Resistências*, *Comidas e Caixas*) and **Itens de ROPs** (*Combate e Poções*, *Comidas e EXP*, *Pergaminhos*) sections, plus a **Renewal / Outros** group automatically hidden when **Modo Pré-Renewal** is checked (synced globally with *Autobuff - Skills*).
+  - Added an instant origin selector (**Todos (Comuns + ROPs)** / **Apenas Itens Comuns** / **Apenas Itens de ROPs**) alongside bilingual search and **Pausar ao sentar**.
+- **Simplified Progressive `Skill Timers` (`Forms/SkillTimerForm.cs`)**: starts cleanly with only **Timer 1** visible and expands on demand via **`+ Adicionar timer`** (up to 6 timers in a clean 3×2 grid) with per-timer **`Limpar`** and **`Remover timer`** controls, auto-expanding any configured timers from saved profiles.
+
 ## [v2.19.0] - 2026-11-20 — Simplified Progressive Song Macro UI
 ### Changed
 - **Simplified `Macro Músicas` (`Forms/MacroSongForm.cs`, `Utils/LocalizationManager.cs`)**: replaced the 4×8 static grid with a clean progressive interface that starts with **Música 1** showing **1 campo de música** (plus Trigger, Delay, Dagger, and Instrument) and expands on demand via **`+ Adicionar música`** (up to 8 steps across 2 neat rows with `→`/`↴` indicators), **`- Remover música`**, **`Resetar`**, **`+ Adicionar macro musical`** (up to 4 lanes), and **`Remover macro`** while staying 100% compatible with existing saved profiles.

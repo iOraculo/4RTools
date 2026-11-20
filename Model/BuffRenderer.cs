@@ -29,6 +29,7 @@ namespace _4RTools.Model
         private readonly Dictionary<BuffContainer, List<RenderedBuffItem>> _renderedItems = new Dictionary<BuffContainer, List<RenderedBuffItem>>();
         private int _initialTopY;
         private bool _preRenewalOnly;
+        private BuffOrigin? _originFilter;
         private string _lastSearchQuery = string.Empty;
 
         public BuffRenderer(string model, List<BuffContainer> containers, ToolTip toolTip)
@@ -127,6 +128,12 @@ namespace _4RTools.Model
             ApplyFilter(this._lastSearchQuery);
         }
 
+        public void SetOriginFilter(BuffOrigin? origin)
+        {
+            this._originFilter = origin;
+            ApplyFilter(this._lastSearchQuery);
+        }
+
         public void ApplyFilter(string searchQuery)
         {
             if (this._containers == null || this._containers.Count == 0)
@@ -165,8 +172,9 @@ namespace _4RTools.Model
 
                 foreach (RenderedBuffItem item in items)
                 {
-                    bool allowedByMode = !this._preRenewalOnly || Buff.IsPreRenewalSkill(item.Skill.effectStatusID);
-                    bool visible = allowedByMode && (query.Length == 0
+                    bool allowedByMode = !this._preRenewalOnly || item.Skill.IsPreRenewal;
+                    bool allowedByOrigin = !this._originFilter.HasValue || item.Skill.Origin == this._originFilter.Value;
+                    bool visible = allowedByMode && allowedByOrigin && (query.Length == 0
                         || groupMatches
                         || LocalizationManager.MatchesBuffSearch(item.Skill.name, query));
 

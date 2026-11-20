@@ -14,27 +14,51 @@ namespace _4RTools.Forms
         private TextBox txtSearch;
         private NumericUpDown numMinSp;
         private NumericUpDown numCooldown;
+        private CheckBox cbPreRenewal;
+        private ComboBox cbOriginFilter;
         private CheckBox cbPauseWhenSitting;
         private bool isUpdatingOptions;
 
         public StuffAutoBuffForm(Subject subject)
         {
             InitializeComponent();
-            this.stuffContainers.Add(new BuffContainer(this.PotionsGP, Buff.GetPotionsBuffs()));
-            this.stuffContainers.Add(new BuffContainer(this.ElementalsGP, Buff.GetElementalsBuffs()));
-            this.stuffContainers.Add(new BuffContainer(this.BoxesGP, Buff.GetBoxesBuffs()));
-            this.stuffContainers.Add(new BuffContainer(this.FoodsGP, Buff.GetFoodBuffs()));
-            this.stuffContainers.Add(new BuffContainer(this.ScrollBuffsGP, Buff.GetScrollBuffs()));
-            this.stuffContainers.Add(new BuffContainer(this.EtcGP, Buff.GetETCBuffs()));
-            this.stuffContainers.Add(new BuffContainer(this.CandiesGP, Buff.GetCandiesBuffs()));
-            this.stuffContainers.Add(new BuffContainer(this.ExpGP, Buff.GetEXPBuffs()));
+            BuildCategorizedContainers();
 
             this.renderer = new BuffRenderer("Autobuff", this.stuffContainers, this.toolTip1);
             InitializeSearchBar();
-            this.renderer.doRender(64);
+            this.renderer.doRender(66);
+            this.renderer.SetPreRenewalOnly(this.cbPreRenewal != null && this.cbPreRenewal.Checked);
             this.VisibleChanged += (s, e) => SyncAutobuffOptionsFromProfile();
 
             subject.Attach(this);
+        }
+
+        private void BuildCategorizedContainers()
+        {
+            this.Controls.Clear();
+
+            AddCategoryGroup("CommonPotionsGP", "Common Items — Potions & Utilities", Buff.GetCommonPotionsAndUtilities());
+            AddCategoryGroup("CommonElementalsGP", "Common Items — Elementals & Resists", Buff.GetCommonElementals());
+            AddCategoryGroup("CommonFoodsBoxesGP", "Common Items — Foods & Boxes", Buff.GetCommonFoodsAndBoxes());
+            AddCategoryGroup("RopsCombatGP", "ROPs Items — Combat & Potions", Buff.GetRopsCombatAndPotions());
+            AddCategoryGroup("RopsFoodsExpGP", "ROPs Items — Foods & EXP", Buff.GetRopsFoodsAndExp());
+            AddCategoryGroup("RopsScrollsGP", "ROPs Items — Scrolls", Buff.GetRopsScrolls());
+            AddCategoryGroup("RenewalOtherGP", "Renewal / Other (Runes, 3rd/4th, Candies)", Buff.GetRenewalAndCustomConsumables());
+        }
+
+        private void AddCategoryGroup(string name, string title, List<Buff> buffs)
+        {
+            GroupBox gp = new GroupBox
+            {
+                AutoSize = true,
+                Location = new Point(10, 66),
+                Name = name,
+                Size = new Size(520, 32),
+                TabStop = false,
+                Text = title
+            };
+            this.Controls.Add(gp);
+            this.stuffContainers.Add(new BuffContainer(gp, buffs));
         }
 
         private void InitializeSearchBar()
@@ -111,13 +135,39 @@ namespace _4RTools.Forms
                 }
             };
 
+            AppSettings currentSettings = AppSettings.Load();
+            this.cbPreRenewal = new CheckBox
+            {
+                AutoSize = true,
+                Cursor = Cursors.Hand,
+                Location = new Point(8, 38),
+                Name = "cbStuffPreRenewal",
+                Text = "Pre-Renewal Mode",
+                Checked = currentSettings.PreRenewalMode,
+                UseVisualStyleBackColor = true,
+                Tag = FormUtils.SKIP_RESET_TAG
+            };
+            this.cbPreRenewal.CheckedChanged += OnPreRenewalModeChanged;
+
+            this.cbOriginFilter = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                FormattingEnabled = true,
+                Location = new Point(150, 36),
+                Name = "cbStuffOriginFilter",
+                Size = new Size(182, 21),
+                Tag = FormUtils.SKIP_RESET_TAG
+            };
+            PopulateOriginFilterItems(0);
+            this.cbOriginFilter.SelectedIndexChanged += OnOriginFilterChanged;
+
             this.cbPauseWhenSitting = new CheckBox
             {
                 AutoSize = true,
                 Cursor = Cursors.Hand,
-                Location = new Point(8, 37),
+                Location = new Point(342, 38),
                 Name = "cbStuffPauseWhenSitting",
-                Text = "Pause when sitting (save consumables)",
+                Text = "Pause when sitting",
                 Checked = true,
                 UseVisualStyleBackColor = true,
                 Tag = FormUtils.SKIP_RESET_TAG
@@ -131,9 +181,90 @@ namespace _4RTools.Forms
             this.Controls.Add(lblCooldown);
             this.Controls.Add(this.numCooldown);
             this.Controls.Add(btnClear);
+            this.Controls.Add(this.cbPreRenewal);
+            this.Controls.Add(this.cbOriginFilter);
             this.Controls.Add(this.cbPauseWhenSitting);
 
             RefreshLocalizedTooltips();
+        }
+
+        private void PopulateOriginFilterItems(int selectedIndex)
+        {
+            if (this.cbOriginFilter == null)
+            {
+                return;
+            }
+
+            this.isUpdatingOptions = true;
+            try
+            {
+                this.cbOriginFilter.Items.Clear();
+                this.cbOriginFilter.Items.Add(LocalizationManager.T("filter.items_all"));
+                this.cbOriginFilter.Items.Add(LocalizationManager.T("filter.items_common"));
+                this.cbOriginFilter.Items.Add(LocalizationManager.T("filter.items_rops"));
+                this.cbOriginFilter.SelectedIndex = Math.Max(0, Math.Min(2, selectedIndex));
+            }
+            finally
+            {
+                this.isUpdatingOptions = false;
+            }
+        }
+
+        private void OnPreRenewalModeChanged(object sender, EventArgs e)
+        {
+            if (this.cbPreRenewal == null || this.renderer == null)
+            {
+                return;
+            }
+
+            bool preRenewalOnly = this.cbPreRenewal.Checked;
+            this.renderer.SetPreRenewalOnly(preRenewalOnly);
+
+            if (!this.isUpdatingOptions)
+            {
+                AppSettings settings = AppSettings.Load();
+                settings.PreRenewalMode = preRenewalOnly;
+                AppSettings.Save(settings);
+            }
+        }
+
+        private void OnOriginFilterChanged(object sender, EventArgs e)
+        {
+            if (this.isUpdatingOptions || this.cbOriginFilter == null || this.renderer == null)
+            {
+                return;
+            }
+
+            ApplyOriginFilterIndex(this.cbOriginFilter.SelectedIndex);
+        }
+
+        public void SetPreRenewalFilter(bool preRenewalOnly)
+        {
+            if (this.cbPreRenewal != null)
+            {
+                this.cbPreRenewal.Checked = preRenewalOnly;
+            }
+        }
+
+        public void ApplyOriginFilterIndex(int index)
+        {
+            if (this.renderer == null)
+            {
+                return;
+            }
+
+            if (index == 1)
+            {
+                this.renderer.SetOriginFilter(BuffOrigin.Common);
+            }
+            else if (index == 2)
+            {
+                this.renderer.SetOriginFilter(BuffOrigin.Rops);
+            }
+            else
+            {
+                this.renderer.SetOriginFilter(null);
+            }
         }
 
         private void RefreshLocalizedTooltips()
@@ -145,6 +276,15 @@ namespace _4RTools.Forms
             if (this.numCooldown != null)
             {
                 this.toolTip1.SetToolTip(this.numCooldown, LocalizationManager.T("tooltip.buff_cd"));
+            }
+            if (this.cbPreRenewal != null)
+            {
+                this.toolTip1.SetToolTip(this.cbPreRenewal, LocalizationManager.T("tooltip.pre_renewal_items"));
+            }
+            if (this.cbOriginFilter != null)
+            {
+                this.toolTip1.SetToolTip(this.cbOriginFilter, LocalizationManager.T("tooltip.item_origin"));
+                PopulateOriginFilterItems(this.cbOriginFilter.SelectedIndex);
             }
             if (this.cbPauseWhenSitting != null)
             {
@@ -176,6 +316,15 @@ namespace _4RTools.Forms
                 if (this.cbPauseWhenSitting != null)
                 {
                     this.cbPauseWhenSitting.Checked = autobuff.pauseWhenSitting;
+                }
+                if (this.cbPreRenewal != null)
+                {
+                    bool preRenewal = AppSettings.Load().PreRenewalMode;
+                    if (this.cbPreRenewal.Checked != preRenewal)
+                    {
+                        this.cbPreRenewal.Checked = preRenewal;
+                        this.renderer.SetPreRenewalOnly(preRenewal);
+                    }
                 }
             }
             finally

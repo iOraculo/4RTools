@@ -785,5 +785,72 @@ namespace _4RTools.Tests
                 Assert.Equal(1, form.GetVisibleSlotCount(3));
             }
         }
+
+        [Fact]
+        public void StuffAutoBuffForm_PreRenewalAndCommonVsRopsFiltersWorkCorrectly()
+        {
+            Subject subject = new Subject();
+            using (StuffAutoBuffForm form = new StuffAutoBuffForm(subject))
+            {
+                // Default Pre-Renewal Mode ON + All Origins: Common & ROPs visible, Renewal/Other hidden.
+                form.SetPreRenewalFilter(true);
+                form.ApplyOriginFilterIndex(0);
+                Assert.True(form.Controls.Find("CommonPotionsGP", true)[0].Visible);
+                Assert.True(form.Controls.Find("CommonElementalsGP", true)[0].Visible);
+                Assert.True(form.Controls.Find("CommonFoodsBoxesGP", true)[0].Visible);
+                Assert.True(form.Controls.Find("RopsCombatGP", true)[0].Visible);
+                Assert.True(form.Controls.Find("RopsFoodsExpGP", true)[0].Visible);
+                Assert.True(form.Controls.Find("RopsScrollsGP", true)[0].Visible);
+                Assert.False(form.Controls.Find("RenewalOtherGP", true)[0].Visible);
+
+                // Filter: Common Items Only (index 1).
+                form.ApplyOriginFilterIndex(1);
+                Assert.True(form.Controls.Find("CommonPotionsGP", true)[0].Visible);
+                Assert.False(form.Controls.Find("RopsCombatGP", true)[0].Visible);
+                Assert.False(form.Controls.Find("RopsScrollsGP", true)[0].Visible);
+
+                // Filter: ROPs Items Only (index 2).
+                form.ApplyOriginFilterIndex(2);
+                Assert.False(form.Controls.Find("CommonPotionsGP", true)[0].Visible);
+                Assert.True(form.Controls.Find("RopsCombatGP", true)[0].Visible);
+                Assert.True(form.Controls.Find("RopsFoodsExpGP", true)[0].Visible);
+                Assert.True(form.Controls.Find("RopsScrollsGP", true)[0].Visible);
+
+                // Disabling Pre-Renewal Mode with All Origins reveals Renewal / Other items.
+                form.ApplyOriginFilterIndex(0);
+                form.SetPreRenewalFilter(false);
+                Assert.True(form.Controls.Find("RenewalOtherGP", true)[0].Visible);
+            }
+        }
+
+        [Fact]
+        public void SkillTimerForm_StartsWithOneTimerAndExpandsDynamically()
+        {
+            ProfileSingleton.Create("SkillTimerUiTest");
+            ProfileSingleton.Load("SkillTimerUiTest");
+
+            Subject subject = new Subject();
+            using (SkillTimerForm form = new SkillTimerForm(subject))
+            {
+                Assert.True(form.IsTimerVisible(1));
+                Assert.False(form.IsTimerVisible(2));
+                Assert.False(form.IsTimerVisible(4));
+
+                Assert.True(form.AddNextTimer());
+                Assert.True(form.IsTimerVisible(2));
+
+                form.ClearTimer(2, true);
+                Assert.False(form.IsTimerVisible(2));
+
+                ProfileSingleton.GetCurrent().AutoRefreshSpammer4.RefreshKey = Key.F8;
+                ProfileSingleton.GetCurrent().AutoRefreshSpammer4.RefreshDelay = 12;
+                subject.Notify(new _4RTools.Utils.Message(MessageCode.PROFILE_CHANGED, null));
+
+                Assert.True(form.IsTimerVisible(1));
+                Assert.False(form.IsTimerVisible(2));
+                Assert.True(form.IsTimerVisible(4));
+                Assert.Equal("F8", form.Controls.Find("txtSkillTimerKey4", true)[0].Text);
+            }
+        }
     }
 }

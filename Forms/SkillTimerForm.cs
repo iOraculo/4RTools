@@ -9,103 +9,120 @@ namespace _4RTools.Forms
 {
     public partial class SkillTimerForm : Form, IObserver
     {
-        private bool isUpdatingUi;
-        private TextBox txtSkillTimerKey4;
-        private NumericUpDown txtAutoRefreshDelay4;
-        private TextBox txtSkillTimerKey5;
-        private NumericUpDown txtAutoRefreshDelay5;
-        private TextBox txtSkillTimerKey6;
-        private NumericUpDown txtAutoRefreshDelay6;
+        public const int TOTAL_TIMER_SLOTS = 6;
+
+        private const int CARD_WIDTH = 174;
+        private const int CARD_HEIGHT = 122;
+        private const int COLS_PER_ROW = 3;
+        private const int GRID_START_X = 12;
+        private const int GRID_START_Y = 10;
+        private const int COL_STEP_X = 184;
+        private const int ROW_STEP_Y = 132;
+
+        private sealed class TimerSlotUi
+        {
+            public int SlotNumber;
+            public GroupBox Group;
+            public TextBox KeyBox;
+            public NumericUpDown DelayBox;
+            public Button BtnClear;
+            public Button BtnRemove;
+            public bool IsVisible;
+        }
+
+        private readonly TimerSlotUi[] slots = new TimerSlotUi[TOTAL_TIMER_SLOTS];
+        private Button btnAddTimer;
         private Font labelFont;
         private Font inputFont;
+        private bool isUpdatingUi;
 
         public SkillTimerForm(Subject subject)
         {
             InitializeComponent();
-
-            // Normalize row 1 label/input alignment so translated PT-BR labels ("Atraso"/"Tecla"/"seg") never overlap inputs.
-            AlignTimerSlotControls(this.lblAutoRefreshDelay, this.txtAutoRefreshDelay, this.label2, this.lblAutoRefreshKey, this.txtSkillTimerKey);
-            AlignTimerSlotControls(this.label1, this.txtAutoRefreshDelay2, this.label4, this.label3, this.txtSkillTimerKey2);
-            AlignTimerSlotControls(this.label5, this.txtAutoRefreshDelay3, this.label7, this.label6, this.txtSkillTimerKey3);
-
-            InitializeExtraTimerSlots();
+            BuildSimplifiedUi();
             subject.Attach(this);
-
-            SetupTimerInputs(this.txtSkillTimerKey, this.txtAutoRefreshDelay, () => ProfileSingleton.GetCurrent().AutoRefreshSpammer1);
-            SetupTimerInputs(this.txtSkillTimerKey2, this.txtAutoRefreshDelay2, () => ProfileSingleton.GetCurrent().AutoRefreshSpammer2);
-            SetupTimerInputs(this.txtSkillTimerKey3, this.txtAutoRefreshDelay3, () => ProfileSingleton.GetCurrent().AutoRefreshSpammer3);
-            SetupTimerInputs(this.txtSkillTimerKey4, this.txtAutoRefreshDelay4, () => ProfileSingleton.GetCurrent().AutoRefreshSpammer4);
-            SetupTimerInputs(this.txtSkillTimerKey5, this.txtAutoRefreshDelay5, () => ProfileSingleton.GetCurrent().AutoRefreshSpammer5);
-            SetupTimerInputs(this.txtSkillTimerKey6, this.txtAutoRefreshDelay6, () => ProfileSingleton.GetCurrent().AutoRefreshSpammer6);
+            SyncFromProfile();
         }
 
-        private void InitializeExtraTimerSlots()
+        private void BuildSimplifiedUi()
         {
-            this.labelFont = new Font("Microsoft Sans Serif", 8.5F);
-            this.inputFont = new Font("Microsoft Sans Serif", 10F);
+            this.SuspendLayout();
+            try
+            {
+                this.Controls.Clear();
+                this.AutoScroll = true;
+                this.labelFont = new Font("Microsoft Sans Serif", 8.5F);
+                this.inputFont = new Font("Microsoft Sans Serif", 10F);
 
-            CreateSkillTimerGroup(4, new Point(15, 124), out this.txtSkillTimerKey4, out this.txtAutoRefreshDelay4);
-            CreateSkillTimerGroup(5, new Point(194, 124), out this.txtSkillTimerKey5, out this.txtAutoRefreshDelay5);
-            CreateSkillTimerGroup(6, new Point(373, 124), out this.txtSkillTimerKey6, out this.txtAutoRefreshDelay6);
+                for (int i = 0; i < TOTAL_TIMER_SLOTS; i++)
+                {
+                    int slotNum = i + 1;
+                    TimerSlotUi slot = CreateTimerSlotUi(slotNum);
+                    slot.IsVisible = (slotNum == 1);
+                    this.slots[i] = slot;
+                    this.Controls.Add(slot.Group);
+                }
+
+                this.btnAddTimer = new Button
+                {
+                    Cursor = System.Windows.Forms.Cursors.Hand,
+                    Name = "btnAddSkillTimer",
+                    Size = new Size(156, 25),
+                    Text = "+ Add Timer",
+                    UseVisualStyleBackColor = true
+                };
+                this.btnAddTimer.Click += (s, e) => AddNextTimer();
+                this.Controls.Add(this.btnAddTimer);
+
+                LayoutVisibleTimers();
+            }
+            finally
+            {
+                this.ResumeLayout(true);
+            }
         }
 
-        private static void AlignTimerSlotControls(Label lblDelay, NumericUpDown delayBox, Label lblSec, Label lblKey, TextBox keyBox)
+        private TimerSlotUi CreateTimerSlotUi(int slotNumber)
         {
-            lblDelay.AutoSize = false;
-            lblDelay.Location = new Point(4, 27);
-            lblDelay.Size = new Size(54, 19);
-            lblDelay.TextAlign = ContentAlignment.MiddleRight;
+            TimerSlotUi slot = new TimerSlotUi { SlotNumber = slotNumber };
 
-            delayBox.Location = new Point(62, 25);
-            delayBox.Size = new Size(58, 23);
-
-            lblSec.Location = new Point(124, 29);
-
-            lblKey.AutoSize = false;
-            lblKey.Location = new Point(4, 55);
-            lblKey.Size = new Size(54, 19);
-            lblKey.TextAlign = ContentAlignment.MiddleRight;
-
-            keyBox.Location = new Point(62, 53);
-            keyBox.Size = new Size(58, 23);
-        }
-
-        private void CreateSkillTimerGroup(int slotNumber, Point location, out TextBox keyBox, out NumericUpDown delayBox)
-        {
             GroupBox group = new GroupBox
             {
-                Location = location,
                 Name = "groupBox" + slotNumber,
-                Size = new Size(173, 100),
+                Size = new Size(CARD_WIDTH, CARD_HEIGHT),
                 TabStop = false,
                 Text = "Skill timer " + slotNumber
             };
+            slot.Group = group;
 
             Label lblDelay = new Label
             {
                 AutoSize = false,
                 Font = this.labelFont,
-                Location = new Point(4, 27),
+                Location = new Point(4, 26),
                 Name = "lblAutoRefreshDelay" + slotNumber,
-                Size = new Size(54, 19),
+                Size = new Size(52, 19),
                 Text = "Delay",
                 TextAlign = ContentAlignment.MiddleRight
             };
 
-            delayBox = new NumericUpDown
+            NumericUpDown delayBox = new NumericUpDown
             {
                 Font = this.inputFont,
-                Location = new Point(62, 25),
+                Location = new Point(60, 24),
                 Maximum = new decimal(new int[] { 10000, 0, 0, 0 }),
-                Name = "txtAutoRefreshDelay" + slotNumber,
-                Size = new Size(58, 23)
+                Minimum = 0,
+                Name = slotNumber == 1 ? "txtAutoRefreshDelay" : "txtAutoRefreshDelay" + slotNumber,
+                Size = new Size(58, 23),
+                Value = 5
             };
+            delayBox.ValueChanged += (s, e) => OnTimerDelayChanged(delayBox, GetSpammer(slotNumber));
 
             Label lblSec = new Label
             {
                 AutoSize = true,
                 Font = this.labelFont,
-                Location = new Point(124, 29),
+                Location = new Point(122, 28),
                 Name = "lblAutoRefreshSec" + slotNumber,
                 Text = "sec"
             };
@@ -114,36 +131,218 @@ namespace _4RTools.Forms
             {
                 AutoSize = false,
                 Font = this.labelFont,
-                Location = new Point(4, 55),
+                Location = new Point(4, 56),
                 Name = "lblAutoRefreshKey" + slotNumber,
-                Size = new Size(54, 19),
+                Size = new Size(52, 19),
                 Text = "Key",
                 TextAlign = ContentAlignment.MiddleRight
             };
 
-            keyBox = new TextBox
+            TextBox keyBox = new TextBox
             {
                 Font = this.inputFont,
-                Location = new Point(62, 53),
-                Name = "txtSkillTimerKey" + slotNumber,
-                Size = new Size(58, 23)
+                Location = new Point(60, 54),
+                Name = slotNumber == 1 ? "txtSkillTimerKey" : "txtSkillTimerKey" + slotNumber,
+                Size = new Size(58, 23),
+                Text = Key.None.ToString()
             };
+            keyBox.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
+            keyBox.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
+            keyBox.TextChanged += (s, e) => OnTimerKeyChanged(keyBox, GetSpammer(slotNumber));
+
+            Button btnClear = new Button
+            {
+                Cursor = System.Windows.Forms.Cursors.Hand,
+                Location = new Point(10, 88),
+                Name = "btnClearTimer" + slotNumber,
+                Size = new Size(slotNumber == 1 ? 154 : 62, 22),
+                Text = "Clear",
+                UseVisualStyleBackColor = true
+            };
+            btnClear.Click += (s, e) => ClearTimer(slotNumber, false);
+
+            slot.DelayBox = delayBox;
+            slot.KeyBox = keyBox;
+            slot.BtnClear = btnClear;
 
             group.Controls.Add(lblDelay);
             group.Controls.Add(delayBox);
-            group.Controls.Add(lblKey);
             group.Controls.Add(lblSec);
+            group.Controls.Add(lblKey);
             group.Controls.Add(keyBox);
+            group.Controls.Add(btnClear);
 
-            this.Controls.Add(group);
+            if (slotNumber > 1)
+            {
+                Button btnRemove = new Button
+                {
+                    Cursor = System.Windows.Forms.Cursors.Hand,
+                    Location = new Point(78, 88),
+                    Name = "btnRemoveTimer" + slotNumber,
+                    Size = new Size(86, 22),
+                    Text = "Remove Timer",
+                    UseVisualStyleBackColor = true
+                };
+                btnRemove.Click += (s, e) => ClearTimer(slotNumber, true);
+                slot.BtnRemove = btnRemove;
+                group.Controls.Add(btnRemove);
+            }
+
+            return slot;
         }
 
-        private void SetupTimerInputs(TextBox keyBox, NumericUpDown delayBox, Func<AutoRefreshSpammer> getSpammer)
+        private void LayoutVisibleTimers()
         {
-            keyBox.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
-            keyBox.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
-            keyBox.TextChanged += (sender, e) => OnTimerKeyChanged(keyBox, getSpammer());
-            delayBox.ValueChanged += (sender, e) => OnTimerDelayChanged(delayBox, getSpammer());
+            this.SuspendLayout();
+            try
+            {
+                int visibleIdx = 0;
+                bool hasHidden = false;
+
+                for (int i = 0; i < this.slots.Length; i++)
+                {
+                    TimerSlotUi slot = this.slots[i];
+                    if (slot == null)
+                    {
+                        continue;
+                    }
+
+                    slot.Group.Visible = slot.IsVisible;
+                    if (slot.IsVisible)
+                    {
+                        int row = visibleIdx / COLS_PER_ROW;
+                        int col = visibleIdx % COLS_PER_ROW;
+                        slot.Group.Location = new Point(GRID_START_X + (col * COL_STEP_X), GRID_START_Y + (row * ROW_STEP_Y));
+                        visibleIdx++;
+                    }
+                    else
+                    {
+                        hasHidden = true;
+                    }
+                }
+
+                if (this.btnAddTimer != null)
+                {
+                    int addRow = visibleIdx / COLS_PER_ROW;
+                    int addCol = visibleIdx % COLS_PER_ROW;
+                    int btnX = GRID_START_X + (addCol * COL_STEP_X);
+                    int btnY = GRID_START_Y + (addRow * ROW_STEP_Y) + 46;
+                    this.btnAddTimer.Location = new Point(btnX, btnY);
+                    this.btnAddTimer.Visible = hasHidden;
+                    this.btnAddTimer.Enabled = hasHidden;
+                }
+            }
+            finally
+            {
+                this.ResumeLayout(true);
+            }
+        }
+
+        private static AutoRefreshSpammer GetSpammer(int slotNumber)
+        {
+            Profile profile = ProfileSingleton.GetCurrent();
+            switch (slotNumber)
+            {
+                case 1: return profile.AutoRefreshSpammer1;
+                case 2: return profile.AutoRefreshSpammer2;
+                case 3: return profile.AutoRefreshSpammer3;
+                case 4: return profile.AutoRefreshSpammer4;
+                case 5: return profile.AutoRefreshSpammer5;
+                case 6: return profile.AutoRefreshSpammer6;
+                default: return null;
+            }
+        }
+
+        public bool AddNextTimer()
+        {
+            for (int i = 1; i < this.slots.Length; i++)
+            {
+                TimerSlotUi slot = this.slots[i];
+                if (slot != null && !slot.IsVisible)
+                {
+                    slot.IsVisible = true;
+                    LayoutVisibleTimers();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void ClearTimer(int slotNumber, bool hideSlot = false)
+        {
+            if (slotNumber < 1 || slotNumber > TOTAL_TIMER_SLOTS)
+            {
+                return;
+            }
+
+            TimerSlotUi slot = this.slots[slotNumber - 1];
+            AutoRefreshSpammer spammer = GetSpammer(slotNumber);
+
+            this.isUpdatingUi = true;
+            try
+            {
+                slot.KeyBox.Text = Key.None.ToString();
+                FormUtils.SetNumericValue(slot.DelayBox, 5);
+            }
+            finally
+            {
+                this.isUpdatingUi = false;
+            }
+
+            if (spammer != null)
+            {
+                spammer.RefreshKey = Key.None;
+                spammer.RefreshDelay = 5;
+                if (!ProfileSingleton.IsSaveSuppressed)
+                {
+                    ProfileSingleton.SetConfiguration(spammer);
+                }
+            }
+
+            if (hideSlot && slotNumber > 1)
+            {
+                slot.IsVisible = false;
+                LayoutVisibleTimers();
+            }
+        }
+
+        public bool IsTimerVisible(int slotNumber)
+        {
+            if (slotNumber < 1 || slotNumber > TOTAL_TIMER_SLOTS)
+            {
+                return false;
+            }
+
+            return this.slots[slotNumber - 1] != null && this.slots[slotNumber - 1].IsVisible;
+        }
+
+        private void SyncFromProfile()
+        {
+            this.isUpdatingUi = true;
+            try
+            {
+                for (int i = 0; i < TOTAL_TIMER_SLOTS; i++)
+                {
+                    int slotNum = i + 1;
+                    TimerSlotUi slot = this.slots[i];
+                    AutoRefreshSpammer spammer = GetSpammer(slotNum);
+                    if (slot == null || spammer == null)
+                    {
+                        continue;
+                    }
+
+                    slot.KeyBox.Text = spammer.RefreshKey.ToString();
+                    FormUtils.SetNumericValue(slot.DelayBox, spammer.RefreshDelay);
+                    slot.IsVisible = (slotNum == 1) || (spammer.RefreshKey != Key.None);
+                }
+
+                LayoutVisibleTimers();
+            }
+            finally
+            {
+                this.isUpdatingUi = false;
+            }
         }
 
         public void Update(ISubject subject)
@@ -157,23 +356,7 @@ namespace _4RTools.Forms
             switch (subj.Message.code)
             {
                 case MessageCode.PROFILE_CHANGED:
-                    this.isUpdatingUi = true;
-                    try
-                    {
-                        Profile profile = ProfileSingleton.GetCurrent();
-                        FormUtils.ResetForm(this);
-
-                        ApplySpammerToInputs(profile.AutoRefreshSpammer1, this.txtSkillTimerKey, this.txtAutoRefreshDelay);
-                        ApplySpammerToInputs(profile.AutoRefreshSpammer2, this.txtSkillTimerKey2, this.txtAutoRefreshDelay2);
-                        ApplySpammerToInputs(profile.AutoRefreshSpammer3, this.txtSkillTimerKey3, this.txtAutoRefreshDelay3);
-                        ApplySpammerToInputs(profile.AutoRefreshSpammer4, this.txtSkillTimerKey4, this.txtAutoRefreshDelay4);
-                        ApplySpammerToInputs(profile.AutoRefreshSpammer5, this.txtSkillTimerKey5, this.txtAutoRefreshDelay5);
-                        ApplySpammerToInputs(profile.AutoRefreshSpammer6, this.txtSkillTimerKey6, this.txtAutoRefreshDelay6);
-                    }
-                    finally
-                    {
-                        this.isUpdatingUi = false;
-                    }
+                    SyncFromProfile();
                     break;
                 case MessageCode.TURN_ON:
                     Profile currentOn = ProfileSingleton.GetCurrent();
@@ -194,17 +377,6 @@ namespace _4RTools.Forms
                     currentOff.AutoRefreshSpammer6.Stop();
                     break;
             }
-        }
-
-        private static void ApplySpammerToInputs(AutoRefreshSpammer spammer, TextBox keyBox, NumericUpDown delayBox)
-        {
-            if (spammer == null || keyBox == null || delayBox == null)
-            {
-                return;
-            }
-
-            keyBox.Text = spammer.RefreshKey.ToString();
-            FormUtils.SetNumericValue(delayBox, spammer.RefreshDelay);
         }
 
         private void OnTimerKeyChanged(TextBox keyBox, AutoRefreshSpammer spammer)

@@ -5,17 +5,32 @@ using _4RTools.Utils;
 
 namespace _4RTools.Model
 {
+    internal enum BuffOrigin
+    {
+        Common = 0,
+        Rops = 1
+    }
+
     internal class Buff
     {
         public String name { get; set; }
         public EffectStatusIDs effectStatusID { get; set; }
         public Bitmap icon { get; set; }
+        public bool IsPreRenewal { get; set; }
+        public BuffOrigin Origin { get; set; }
 
         public Buff(string name, EffectStatusIDs effectStatus, Bitmap icon)
+            : this(name, effectStatus, icon, IsPreRenewalSkill(effectStatus), BuffOrigin.Common)
+        {
+        }
+
+        public Buff(string name, EffectStatusIDs effectStatus, Bitmap icon, bool isPreRenewal, BuffOrigin origin)
         {
             this.name = name;
             this.effectStatusID = effectStatus;
             this.icon = icon;
+            this.IsPreRenewal = isPreRenewal;
+            this.Origin = origin;
         }
 
         // Authentic Pre-Renewal (Ep. 13.1 / Transclasses + Ninja/Gunslinger/Taekwon) skill buff IDs.
@@ -420,28 +435,28 @@ namespace _4RTools.Model
         {
             List<Buff> skills = new List<Buff>
             {
-                new Buff("Concentration Potion", EffectStatusIDs.CONCENTRATION_POTION, Resources._4RTools.Icons.concentration_potiongif),
-                new Buff("Awakening Potion", EffectStatusIDs.AWAKENING_POTION, Resources._4RTools.Icons.awakening_potion),
-                new Buff("Berserk Potion", EffectStatusIDs.BERSERK_POTION, Resources._4RTools.Icons.berserk_potion),
-                new Buff("Regeneration Potion", EffectStatusIDs.REGENERATION_POTION, Resources._4RTools.Icons.regeneration),
-                new Buff("HP Increase Potion", EffectStatusIDs.HP_INCREASE_POTION_LARGE, Resources._4RTools.Icons.ghp),
-                new Buff("SP Increase Potion", EffectStatusIDs.SP_INCREASE_POTION_LARGE, Resources._4RTools.Icons.gsp),
-                new Buff("Red Herb Activator", EffectStatusIDs.RED_HERB_ACTIVATOR, Resources._4RTools.Icons.red_herb_activator),
-                new Buff("Blue Herb Activator", EffectStatusIDs.BLUE_HERB_ACTIVATOR, Resources._4RTools.Icons.blue_herb_activator),
-                new Buff("Golden X", EffectStatusIDs.REF_T_POTION, Resources._4RTools.Icons.Golden_X),
-                new Buff("Energy Drink", EffectStatusIDs.ENERGY_DRINK_RESERCH, Resources._4RTools.Icons.energetic_drink),
-                new Buff("Mega Resist Potion", EffectStatusIDs.TARGET_BLOOD, Resources._4RTools.Icons.mega_resist_potion),
-                new Buff("Full SwingK Potion", EffectStatusIDs.FULL_SWINGK, Resources._4RTools.Icons.swing_k),
-                new Buff("Mana Plus Potion", EffectStatusIDs.MANA_PLUS, Resources._4RTools.Icons.mana_plus),
-                new Buff("Blessing Of Tyr", EffectStatusIDs.BASICHIT, Resources._4RTools.Icons.blessing_of_tyr),
-                new Buff("True Limit Power Booster (Poção Ilimitada)", EffectStatusIDs.EFST_LIMIT_POWER_BOOSTER, Resources._4RTools.Icons.true_limit_power_booster),
-                new Buff("Infinity Drink", EffectStatusIDs.EFST_INFINITY_DRINK, Resources._4RTools.Icons.infinity_drink),
-                new Buff("Red Booster (ATK +30, MATK +30)", EffectStatusIDs.RWC_2011_SCROLL, Resources._4RTools.Icons.red_booster),
-                new Buff("Poção Fantástica (Sealed Kiel Card)", EffectStatusIDs.EFST_KIEL_CARD, Resources._4RTools.Icons.pocao_fantastica),
-                new Buff("Poção do Furor Físico", EffectStatusIDs.EFST_DF_FULLSWINGK, Resources._4RTools.Icons.full_swingK),
-                new Buff("Poção Mágica", EffectStatusIDs.EFST_DRACULA_CARD, Resources._4RTools.Icons.pocao_magica),
-                new Buff("True ASPD Intensifying Potion", EffectStatusIDs.EFST_REUSE_LIMIT_ASPD_POTION, Resources._4RTools.Icons.G_ASPD_Potion),
-                new Buff("True Medium Life Potion", EffectStatusIDs.EFST_L_LIFEPOTION, Resources._4RTools.Icons.g_med_life_potion),
+                new Buff("Concentration Potion", EffectStatusIDs.CONCENTRATION_POTION, Resources._4RTools.Icons.concentration_potiongif, true, BuffOrigin.Common),
+                new Buff("Awakening Potion", EffectStatusIDs.AWAKENING_POTION, Resources._4RTools.Icons.awakening_potion, true, BuffOrigin.Common),
+                new Buff("Berserk Potion", EffectStatusIDs.BERSERK_POTION, Resources._4RTools.Icons.berserk_potion, true, BuffOrigin.Common),
+                new Buff("Regeneration Potion", EffectStatusIDs.REGENERATION_POTION, Resources._4RTools.Icons.regeneration, true, BuffOrigin.Rops),
+                new Buff("HP Increase Potion", EffectStatusIDs.HP_INCREASE_POTION_LARGE, Resources._4RTools.Icons.ghp, true, BuffOrigin.Rops),
+                new Buff("SP Increase Potion", EffectStatusIDs.SP_INCREASE_POTION_LARGE, Resources._4RTools.Icons.gsp, true, BuffOrigin.Rops),
+                new Buff("Red Herb Activator", EffectStatusIDs.RED_HERB_ACTIVATOR, Resources._4RTools.Icons.red_herb_activator, false, BuffOrigin.Rops),
+                new Buff("Blue Herb Activator", EffectStatusIDs.BLUE_HERB_ACTIVATOR, Resources._4RTools.Icons.blue_herb_activator, false, BuffOrigin.Rops),
+                new Buff("Golden X", EffectStatusIDs.REF_T_POTION, Resources._4RTools.Icons.Golden_X, false, BuffOrigin.Rops),
+                new Buff("Energy Drink", EffectStatusIDs.ENERGY_DRINK_RESERCH, Resources._4RTools.Icons.energetic_drink, false, BuffOrigin.Rops),
+                new Buff("Mega Resist Potion", EffectStatusIDs.TARGET_BLOOD, Resources._4RTools.Icons.mega_resist_potion, false, BuffOrigin.Rops),
+                new Buff("Full SwingK Potion", EffectStatusIDs.FULL_SWINGK, Resources._4RTools.Icons.swing_k, false, BuffOrigin.Rops),
+                new Buff("Mana Plus Potion", EffectStatusIDs.MANA_PLUS, Resources._4RTools.Icons.mana_plus, false, BuffOrigin.Rops),
+                new Buff("Blessing Of Tyr", EffectStatusIDs.BASICHIT, Resources._4RTools.Icons.blessing_of_tyr, true, BuffOrigin.Rops),
+                new Buff("True Limit Power Booster (Poção Ilimitada)", EffectStatusIDs.EFST_LIMIT_POWER_BOOSTER, Resources._4RTools.Icons.true_limit_power_booster, false, BuffOrigin.Rops),
+                new Buff("Infinity Drink", EffectStatusIDs.EFST_INFINITY_DRINK, Resources._4RTools.Icons.infinity_drink, false, BuffOrigin.Rops),
+                new Buff("Red Booster (ATK +30, MATK +30)", EffectStatusIDs.RWC_2011_SCROLL, Resources._4RTools.Icons.red_booster, true, BuffOrigin.Rops),
+                new Buff("Poção Fantástica (Sealed Kiel Card)", EffectStatusIDs.EFST_KIEL_CARD, Resources._4RTools.Icons.pocao_fantastica, false, BuffOrigin.Rops),
+                new Buff("Poção do Furor Físico", EffectStatusIDs.EFST_DF_FULLSWINGK, Resources._4RTools.Icons.full_swingK, false, BuffOrigin.Rops),
+                new Buff("Poção Mágica", EffectStatusIDs.EFST_DRACULA_CARD, Resources._4RTools.Icons.pocao_magica, false, BuffOrigin.Rops),
+                new Buff("True ASPD Intensifying Potion", EffectStatusIDs.EFST_REUSE_LIMIT_ASPD_POTION, Resources._4RTools.Icons.G_ASPD_Potion, false, BuffOrigin.Rops),
+                new Buff("True Medium Life Potion", EffectStatusIDs.EFST_L_LIFEPOTION, Resources._4RTools.Icons.g_med_life_potion, true, BuffOrigin.Rops),
             };
 
             return skills;
@@ -451,21 +466,21 @@ namespace _4RTools.Model
         {
             List<Buff> skills = new List<Buff>
             {
-                new Buff("Elemental Converter (Fire)", EffectStatusIDs.EFST_ATTACK_PROPERTY_FIRE, Resources._4RTools.Icons.PROPERTY_FIRE),
-                new Buff("Elemental Converter (Wind)", EffectStatusIDs.EFST_ATTACK_PROPERTY_WIND, Resources._4RTools.Icons.PROPERTY_WIND),
-                new Buff("Elemental Converter (Earth)", EffectStatusIDs.EFST_ATTACK_PROPERTY_GROUND, Resources._4RTools.Icons.PROPERTY_GROUND),
-                new Buff("Elemental Converter (Water)", EffectStatusIDs.EFST_ATTACK_PROPERTY_WATER, Resources._4RTools.Icons.PROPERTY_WATER),
-                new Buff("Cursed Water", EffectStatusIDs.EFST_ATTACK_PROPERTY_DARKNESS, Resources._4RTools.Icons.cursed_water),
-                new Buff("Fire Conversor", EffectStatusIDs.PROPERTYFIRE, Resources._4RTools.Icons.ele_fire_converter),
-                new Buff("Wind Conversor", EffectStatusIDs.PROPERTYWIND, Resources._4RTools.Icons.ele_wind_converter),
-                new Buff("Earth Conversor", EffectStatusIDs.PROPERTYGROUND, Resources._4RTools.Icons.ele_earth_converter),
-                new Buff("Water Conversor", EffectStatusIDs.PROPERTYWATER, Resources._4RTools.Icons.ele_water_converter),
-                new Buff("Aspersio Scroll", EffectStatusIDs.ASPERSIO, Resources._4RTools.Icons.ele_holy_converter),
-                new Buff("GHOST Conversor", EffectStatusIDs.PROPERTYTELEKINESIS, Resources._4RTools.Icons.ele_ghost_converter),
-                new Buff("Fireproof Potion", EffectStatusIDs.RESIST_PROPERTY_FIRE, Resources._4RTools.Icons.fireproof),
-                new Buff("Waterproof Potion", EffectStatusIDs.RESIST_PROPERTY_WATER, Resources._4RTools.Icons.coldproof),
-                new Buff("Windproof Potion", EffectStatusIDs.RESIST_PROPERTY_WIND, Resources._4RTools.Icons.thunderproof),
-                new Buff("Earthproof Potion", EffectStatusIDs.RESIST_PROPERTY_GROUND, Resources._4RTools.Icons.earhproof)
+                new Buff("Elemental Converter (Fire)", EffectStatusIDs.EFST_ATTACK_PROPERTY_FIRE, Resources._4RTools.Icons.PROPERTY_FIRE, false, BuffOrigin.Common),
+                new Buff("Elemental Converter (Wind)", EffectStatusIDs.EFST_ATTACK_PROPERTY_WIND, Resources._4RTools.Icons.PROPERTY_WIND, false, BuffOrigin.Common),
+                new Buff("Elemental Converter (Earth)", EffectStatusIDs.EFST_ATTACK_PROPERTY_GROUND, Resources._4RTools.Icons.PROPERTY_GROUND, false, BuffOrigin.Common),
+                new Buff("Elemental Converter (Water)", EffectStatusIDs.EFST_ATTACK_PROPERTY_WATER, Resources._4RTools.Icons.PROPERTY_WATER, false, BuffOrigin.Common),
+                new Buff("Cursed Water", EffectStatusIDs.EFST_ATTACK_PROPERTY_DARKNESS, Resources._4RTools.Icons.cursed_water, true, BuffOrigin.Common),
+                new Buff("Fire Conversor", EffectStatusIDs.PROPERTYFIRE, Resources._4RTools.Icons.ele_fire_converter, true, BuffOrigin.Common),
+                new Buff("Wind Conversor", EffectStatusIDs.PROPERTYWIND, Resources._4RTools.Icons.ele_wind_converter, true, BuffOrigin.Common),
+                new Buff("Earth Conversor", EffectStatusIDs.PROPERTYGROUND, Resources._4RTools.Icons.ele_earth_converter, true, BuffOrigin.Common),
+                new Buff("Water Conversor", EffectStatusIDs.PROPERTYWATER, Resources._4RTools.Icons.ele_water_converter, true, BuffOrigin.Common),
+                new Buff("Aspersio Scroll", EffectStatusIDs.ASPERSIO, Resources._4RTools.Icons.ele_holy_converter, true, BuffOrigin.Rops),
+                new Buff("GHOST Conversor", EffectStatusIDs.PROPERTYTELEKINESIS, Resources._4RTools.Icons.ele_ghost_converter, false, BuffOrigin.Common),
+                new Buff("Fireproof Potion", EffectStatusIDs.RESIST_PROPERTY_FIRE, Resources._4RTools.Icons.fireproof, true, BuffOrigin.Common),
+                new Buff("Waterproof Potion", EffectStatusIDs.RESIST_PROPERTY_WATER, Resources._4RTools.Icons.coldproof, true, BuffOrigin.Common),
+                new Buff("Windproof Potion", EffectStatusIDs.RESIST_PROPERTY_WIND, Resources._4RTools.Icons.thunderproof, true, BuffOrigin.Common),
+                new Buff("Earthproof Potion", EffectStatusIDs.RESIST_PROPERTY_GROUND, Resources._4RTools.Icons.earhproof, true, BuffOrigin.Common)
             };
 
             return skills;
@@ -475,38 +490,38 @@ namespace _4RTools.Model
         {
             List<Buff> skills = new List<Buff>
             {
-                new Buff("STR Food", EffectStatusIDs.FOOD_STR, Resources._4RTools.Icons.strfood),
-                new Buff("AGI Food", EffectStatusIDs.FOOD_AGI, Resources._4RTools.Icons.agi_food),
-                new Buff("VIT Food", EffectStatusIDs.FOOD_VIT, Resources._4RTools.Icons.vit_food),
-                new Buff("INT Food", EffectStatusIDs.FOOD_INT, Resources._4RTools.Icons.int_food),
-                new Buff("DEX Food", EffectStatusIDs.FOOD_DEX, Resources._4RTools.Icons.dex_food),
-                new Buff("LUK Food", EffectStatusIDs.FOOD_LUK, Resources._4RTools.Icons.luk_food),
+                new Buff("STR Food", EffectStatusIDs.FOOD_STR, Resources._4RTools.Icons.strfood, true, BuffOrigin.Common),
+                new Buff("AGI Food", EffectStatusIDs.FOOD_AGI, Resources._4RTools.Icons.agi_food, true, BuffOrigin.Common),
+                new Buff("VIT Food", EffectStatusIDs.FOOD_VIT, Resources._4RTools.Icons.vit_food, true, BuffOrigin.Common),
+                new Buff("INT Food", EffectStatusIDs.FOOD_INT, Resources._4RTools.Icons.int_food, true, BuffOrigin.Common),
+                new Buff("DEX Food", EffectStatusIDs.FOOD_DEX, Resources._4RTools.Icons.dex_food, true, BuffOrigin.Common),
+                new Buff("LUK Food", EffectStatusIDs.FOOD_LUK, Resources._4RTools.Icons.luk_food, true, BuffOrigin.Common),
 
-                new Buff("3RD STR Food", EffectStatusIDs.STR_3RD_FOOD, Resources._4RTools.Icons.str_3rd_food),
-                new Buff("3RD AGI Food", EffectStatusIDs.AGI_3RD_FOOD, Resources._4RTools.Icons.agi_3rd_food),
-                new Buff("3RD VIT Food", EffectStatusIDs.VIT_3RD_FOOD, Resources._4RTools.Icons.vit_3rd_food),
-                new Buff("3RD INT Food", EffectStatusIDs.INT_3RD_FOOD, Resources._4RTools.Icons.int_3rd_food),
-                new Buff("3RD DEX Food", EffectStatusIDs.DEX_3RD_FOOD, Resources._4RTools.Icons.dex_3rd_food),
-                new Buff("3RD LUK Food", EffectStatusIDs.LUK_3RD_FOOD, Resources._4RTools.Icons.luk_3rd_food),
-                new Buff("Almighty", EffectStatusIDs.RWC_2011_SCROLL, Resources._4RTools.Icons.almighty),
-                new Buff("CASH Food", EffectStatusIDs.FOOD_VIT_CASH, Resources._4RTools.Icons.cash_food),
-                new Buff("Acarajé", EffectStatusIDs.EFST_ACARAJE, Resources._4RTools.Icons.acaraje),
+                new Buff("3RD STR Food", EffectStatusIDs.STR_3RD_FOOD, Resources._4RTools.Icons.str_3rd_food, false, BuffOrigin.Rops),
+                new Buff("3RD AGI Food", EffectStatusIDs.AGI_3RD_FOOD, Resources._4RTools.Icons.agi_3rd_food, false, BuffOrigin.Rops),
+                new Buff("3RD VIT Food", EffectStatusIDs.VIT_3RD_FOOD, Resources._4RTools.Icons.vit_3rd_food, false, BuffOrigin.Rops),
+                new Buff("3RD INT Food", EffectStatusIDs.INT_3RD_FOOD, Resources._4RTools.Icons.int_3rd_food, false, BuffOrigin.Rops),
+                new Buff("3RD DEX Food", EffectStatusIDs.DEX_3RD_FOOD, Resources._4RTools.Icons.dex_3rd_food, false, BuffOrigin.Rops),
+                new Buff("3RD LUK Food", EffectStatusIDs.LUK_3RD_FOOD, Resources._4RTools.Icons.luk_3rd_food, false, BuffOrigin.Rops),
+                new Buff("Almighty", EffectStatusIDs.RWC_2011_SCROLL, Resources._4RTools.Icons.almighty, true, BuffOrigin.Rops),
+                new Buff("CASH Food", EffectStatusIDs.FOOD_VIT_CASH, Resources._4RTools.Icons.cash_food, true, BuffOrigin.Rops),
+                new Buff("Acarajé", EffectStatusIDs.EFST_ACARAJE, Resources._4RTools.Icons.acaraje, true, BuffOrigin.Rops),
 
-                new Buff("STR Biscuit Stick", EffectStatusIDs.STR_Biscuit_Stick, Resources._4RTools.Icons.str_biscuit_stick),
-                new Buff("AGI Biscuit Stick", EffectStatusIDs.AGI_Biscuit_Stick, Resources._4RTools.Icons.agi_biscuit_stick),
-                new Buff("VIT Biscuit Stick", EffectStatusIDs.VIT_Biscuit_Stick, Resources._4RTools.Icons.vit_biscuit_stick),
-                new Buff("INT Biscuit Stick", EffectStatusIDs.INT_Biscuit_Stick, Resources._4RTools.Icons.int_biscuit_stick),
-                new Buff("DEX Biscuit Stick", EffectStatusIDs.DEX_Biscuit_Stick, Resources._4RTools.Icons.dex_biscuit_stick),
-                new Buff("LUK Biscuit Stick", EffectStatusIDs.LUK_Biscuit_Stick, Resources._4RTools.Icons.luk_biscuit_stick),
+                new Buff("STR Biscuit Stick", EffectStatusIDs.STR_Biscuit_Stick, Resources._4RTools.Icons.str_biscuit_stick, false, BuffOrigin.Rops),
+                new Buff("AGI Biscuit Stick", EffectStatusIDs.AGI_Biscuit_Stick, Resources._4RTools.Icons.agi_biscuit_stick, false, BuffOrigin.Rops),
+                new Buff("VIT Biscuit Stick", EffectStatusIDs.VIT_Biscuit_Stick, Resources._4RTools.Icons.vit_biscuit_stick, false, BuffOrigin.Rops),
+                new Buff("INT Biscuit Stick", EffectStatusIDs.INT_Biscuit_Stick, Resources._4RTools.Icons.int_biscuit_stick, false, BuffOrigin.Rops),
+                new Buff("DEX Biscuit Stick", EffectStatusIDs.DEX_Biscuit_Stick, Resources._4RTools.Icons.dex_biscuit_stick, false, BuffOrigin.Rops),
+                new Buff("LUK Biscuit Stick", EffectStatusIDs.LUK_Biscuit_Stick, Resources._4RTools.Icons.luk_biscuit_stick, false, BuffOrigin.Rops),
 
-                new Buff("STR Bubble Gum Green", EffectStatusIDs.EFST_Bubble_Gum_Green, Resources._4RTools.Icons.str_bubble_gum_green),
-                new Buff("AGI Bubble Gum Red", EffectStatusIDs.EFST_Bubble_Gum_Red, Resources._4RTools.Icons.agi_bubble_gum_red),
-                new Buff("INT Bubble Gum Yellow", EffectStatusIDs.EFST_Bubble_Gum_Yellow, Resources._4RTools.Icons.int_bubble_gum_yellow),
-                new Buff("DEX Bubble Gum Orange", EffectStatusIDs.EFST_Bubble_Gum_Orange, Resources._4RTools.Icons.dex_bubble_gum_orange),
+                new Buff("STR Bubble Gum Green", EffectStatusIDs.EFST_Bubble_Gum_Green, Resources._4RTools.Icons.str_bubble_gum_green, false, BuffOrigin.Rops),
+                new Buff("AGI Bubble Gum Red", EffectStatusIDs.EFST_Bubble_Gum_Red, Resources._4RTools.Icons.agi_bubble_gum_red, false, BuffOrigin.Rops),
+                new Buff("INT Bubble Gum Yellow", EffectStatusIDs.EFST_Bubble_Gum_Yellow, Resources._4RTools.Icons.int_bubble_gum_yellow, false, BuffOrigin.Rops),
+                new Buff("DEX Bubble Gum Orange", EffectStatusIDs.EFST_Bubble_Gum_Orange, Resources._4RTools.Icons.dex_bubble_gum_orange, false, BuffOrigin.Rops),
 
-                new Buff("Winter Cookie ATK ", EffectStatusIDs.EFST_ATK_POPCORN, Resources._4RTools.Icons.winter_cookie),
-                new Buff("Flora Cookie MATK", EffectStatusIDs.EFST_MATK_POPCORN, Resources._4RTools.Icons.flora_cookie),
-                new Buff("Banquete Revigorante", EffectStatusIDs.STR_3RD_FOOD, Resources._4RTools.Icons.banquete),
+                new Buff("Winter Cookie ATK ", EffectStatusIDs.EFST_ATK_POPCORN, Resources._4RTools.Icons.winter_cookie, false, BuffOrigin.Rops),
+                new Buff("Flora Cookie MATK", EffectStatusIDs.EFST_MATK_POPCORN, Resources._4RTools.Icons.flora_cookie, false, BuffOrigin.Rops),
+                new Buff("Banquete Revigorante", EffectStatusIDs.STR_3RD_FOOD, Resources._4RTools.Icons.banquete, false, BuffOrigin.Rops),
             };
 
             return skills;
@@ -516,20 +531,20 @@ namespace _4RTools.Model
         {
             List<Buff> skills = new List<Buff>
             {
-                new Buff("Drowsiness Box", EffectStatusIDs.DROWSINESS_BOX, Resources._4RTools.Icons.drowsiness),
-                new Buff("Resentment Box", EffectStatusIDs.RESENTMENT_BOX, Resources._4RTools.Icons.resentment),
-                new Buff("Sunlight Box", EffectStatusIDs.SUNLIGHT_BOX, Resources._4RTools.Icons.sunbox),
-                new Buff("Box of Gloom", EffectStatusIDs.CONCENTRATION, Resources._4RTools.Icons.gloom),
-                new Buff("Box of Thunder", EffectStatusIDs.BOX_OF_THUNDER, Resources._4RTools.Icons.speed),
-                new Buff("Speed Potion / Guyak", EffectStatusIDs.SPEED_POT, Resources._4RTools.Icons.speedpotion),
-                new Buff("Anodyne", EffectStatusIDs.ENDURE, Resources._4RTools.Icons.anodyne),
-                new Buff("Aloevera", EffectStatusIDs.PROVOKE, Resources._4RTools.Icons.aloevera),
-                new Buff("Abrasivo", EffectStatusIDs.CRITICALPERCENT, Resources._4RTools.Icons.abrasive),
-                new Buff("Combat Pill", EffectStatusIDs.COMBAT_PILL, Resources._4RTools.Icons.combat_pill),
-                new Buff("Advance Combat Pill", EffectStatusIDs.EFST_GM_BATTLE2, Resources._4RTools.Icons.advance_combat_pill),
-                new Buff("Celermine Juice", EffectStatusIDs.ENRICH_CELERMINE_JUICE, Resources._4RTools.Icons.celermine),
-                new Buff("Guarana Candy", EffectStatusIDs.SPEED_POT, Resources._4RTools.Icons.guarana_candy),
-                new Buff("Poison Bottle", EffectStatusIDs.ASPDPOTIONINFINITY, Resources._4RTools.Icons.poison),
+                new Buff("Drowsiness Box", EffectStatusIDs.DROWSINESS_BOX, Resources._4RTools.Icons.drowsiness, true, BuffOrigin.Common),
+                new Buff("Resentment Box", EffectStatusIDs.RESENTMENT_BOX, Resources._4RTools.Icons.resentment, true, BuffOrigin.Common),
+                new Buff("Sunlight Box", EffectStatusIDs.SUNLIGHT_BOX, Resources._4RTools.Icons.sunbox, true, BuffOrigin.Common),
+                new Buff("Box of Gloom", EffectStatusIDs.CONCENTRATION, Resources._4RTools.Icons.gloom, true, BuffOrigin.Common),
+                new Buff("Box of Thunder", EffectStatusIDs.BOX_OF_THUNDER, Resources._4RTools.Icons.speed, true, BuffOrigin.Common),
+                new Buff("Speed Potion / Guyak", EffectStatusIDs.SPEED_POT, Resources._4RTools.Icons.speedpotion, true, BuffOrigin.Common),
+                new Buff("Anodyne", EffectStatusIDs.ENDURE, Resources._4RTools.Icons.anodyne, true, BuffOrigin.Common),
+                new Buff("Aloevera", EffectStatusIDs.PROVOKE, Resources._4RTools.Icons.aloevera, true, BuffOrigin.Common),
+                new Buff("Abrasivo", EffectStatusIDs.CRITICALPERCENT, Resources._4RTools.Icons.abrasive, true, BuffOrigin.Rops),
+                new Buff("Combat Pill", EffectStatusIDs.COMBAT_PILL, Resources._4RTools.Icons.combat_pill, true, BuffOrigin.Rops),
+                new Buff("Advance Combat Pill", EffectStatusIDs.EFST_GM_BATTLE2, Resources._4RTools.Icons.advance_combat_pill, true, BuffOrigin.Rops),
+                new Buff("Celermine Juice", EffectStatusIDs.ENRICH_CELERMINE_JUICE, Resources._4RTools.Icons.celermine, true, BuffOrigin.Rops),
+                new Buff("Guarana Candy", EffectStatusIDs.SPEED_POT, Resources._4RTools.Icons.guarana_candy, true, BuffOrigin.Common),
+                new Buff("Poison Bottle", EffectStatusIDs.ASPDPOTIONINFINITY, Resources._4RTools.Icons.poison, true, BuffOrigin.Common),
             };
 
             return skills;
@@ -539,18 +554,18 @@ namespace _4RTools.Model
         {
             List<Buff> skills = new List<Buff>
             {
-                new Buff("Éden Scroll", EffectStatusIDs.EFST_EDEN, Resources._4RTools.Icons.eden_scroll),
-                new Buff("Increase Agility Scroll", EffectStatusIDs.INC_AGI, Resources._4RTools.Icons.al_incagi1),
-                new Buff("Bless Scroll", EffectStatusIDs.BLESSING, Resources._4RTools.Icons.al_blessing1),
-                new Buff("Full Chemical Protection (Scroll)", EffectStatusIDs.PROTECTARMOR, Resources._4RTools.Icons.cr_fullprotection),
-                new Buff("Burn Incense",  EffectStatusIDs.EFST_BURNT_INCENSE, Resources._4RTools.Icons.burnt_incense),
-                new Buff("Link Scroll", EffectStatusIDs.SOULLINK, Resources._4RTools.Icons.sl_soullinker),
-                new Buff("Monster Transform",  EffectStatusIDs.MONSTER_TRANSFORM, Resources._4RTools.Icons.mob_transform),
-                new Buff("Assumptio",  EffectStatusIDs.ASSUMPTIO, Resources._4RTools.Icons.assumptio),
-                new Buff("Holy Armor Scroll",  EffectStatusIDs.EFST_ARMOR_PROPERTY, Resources._4RTools.Icons.holy_armor),
-                new Buff("Shadow Armor Scroll",  EffectStatusIDs.EFST_ARMOR_PROPERTY, Resources._4RTools.Icons.shadow_armor_scroll),
-                new Buff("Soul Scroll",  EffectStatusIDs.EFST_SOULSCROLL, Resources._4RTools.Icons.soul_scroll),
-                new Buff("Undead Element Scroll",  EffectStatusIDs.EFST_RESIST_PROPERTY_UNDEAD, Resources._4RTools.Icons.undead_element_scroll),
+                new Buff("Éden Scroll", EffectStatusIDs.EFST_EDEN, Resources._4RTools.Icons.eden_scroll, false, BuffOrigin.Rops),
+                new Buff("Increase Agility Scroll", EffectStatusIDs.INC_AGI, Resources._4RTools.Icons.al_incagi1, true, BuffOrigin.Rops),
+                new Buff("Bless Scroll", EffectStatusIDs.BLESSING, Resources._4RTools.Icons.al_blessing1, true, BuffOrigin.Rops),
+                new Buff("Full Chemical Protection (Scroll)", EffectStatusIDs.PROTECTARMOR, Resources._4RTools.Icons.cr_fullprotection, true, BuffOrigin.Rops),
+                new Buff("Burn Incense",  EffectStatusIDs.EFST_BURNT_INCENSE, Resources._4RTools.Icons.burnt_incense, false, BuffOrigin.Rops),
+                new Buff("Link Scroll", EffectStatusIDs.SOULLINK, Resources._4RTools.Icons.sl_soullinker, true, BuffOrigin.Rops),
+                new Buff("Monster Transform",  EffectStatusIDs.MONSTER_TRANSFORM, Resources._4RTools.Icons.mob_transform, false, BuffOrigin.Rops),
+                new Buff("Assumptio",  EffectStatusIDs.ASSUMPTIO, Resources._4RTools.Icons.assumptio, true, BuffOrigin.Rops),
+                new Buff("Holy Armor Scroll",  EffectStatusIDs.EFST_ARMOR_PROPERTY, Resources._4RTools.Icons.holy_armor, true, BuffOrigin.Rops),
+                new Buff("Shadow Armor Scroll",  EffectStatusIDs.EFST_ARMOR_PROPERTY, Resources._4RTools.Icons.shadow_armor_scroll, true, BuffOrigin.Rops),
+                new Buff("Soul Scroll",  EffectStatusIDs.EFST_SOULSCROLL, Resources._4RTools.Icons.soul_scroll, false, BuffOrigin.Rops),
+                new Buff("Undead Element Scroll",  EffectStatusIDs.EFST_RESIST_PROPERTY_UNDEAD, Resources._4RTools.Icons.undead_element_scroll, false, BuffOrigin.Rops),
             };
 
             return skills;
@@ -560,21 +575,21 @@ namespace _4RTools.Model
         {
             List<Buff> skills = new List<Buff>
             {
-                new Buff("THURISAZ Rune", EffectStatusIDs.THURISAZ, Resources._4RTools.Icons.THURISAZ),
-                new Buff("OTHILA Rune", EffectStatusIDs.OTHILA, Resources._4RTools.Icons.OTHILA),
-                new Buff("HAGALAZ Rune", EffectStatusIDs.HAGALAZ, Resources._4RTools.Icons.HAGALAZ),
-                new Buff("LUX AMINA Rune", EffectStatusIDs.LUX_AMINA, Resources._4RTools.Icons.LUX_AMINA),
-                new Buff("Cat Can", EffectStatusIDs.OVERLAPEXPUP, Resources._4RTools.Icons.cat_can),
-                new Buff("HE Bubble Gum", EffectStatusIDs.CASH_RECEIVEITEM, Resources._4RTools.Icons.he_bubble_gum2),
-                new Buff("Frost Giant Blood (GvG GIANT)", EffectStatusIDs.EFST_GVG_GIANT, Resources._4RTools.Icons.frost_giant_blood),
-                new Buff("Battle Manual (GvG GOLEM)", EffectStatusIDs.EFST_GVG_GOLEM, Resources._4RTools.Icons.golem_stone),
-                new Buff("Magic Candy", EffectStatusIDs.EFST_MAGIC_CANDY, Resources._4RTools.Icons.magic_candy),
-                new Buff("Ghostring", EffectStatusIDs.EFST_GHOSTRING, Resources._4RTools.Icons.perg_ghostring),
-                new Buff("Angeling", EffectStatusIDs.EFST_ANGELING, Resources._4RTools.Icons.perg_angeling),
-                new Buff("Tao Gunka", EffectStatusIDs.EFST_TAO_GUNKA, Resources._4RTools.Icons.perg_taogunka),
-                new Buff("Orc Lord", EffectStatusIDs.EFST_ORC_LORD, Resources._4RTools.Icons.perg_senhororc),
-                new Buff("Orc Hero", EffectStatusIDs.EFST_ORC_HERO, Resources._4RTools.Icons.perg_orcheroi),
-                new Buff("MISTRESS", EffectStatusIDs.EFST_MISTRESS, Resources._4RTools.Icons.perg_abelha),
+                new Buff("THURISAZ Rune", EffectStatusIDs.THURISAZ, Resources._4RTools.Icons.THURISAZ, false, BuffOrigin.Common),
+                new Buff("OTHILA Rune", EffectStatusIDs.OTHILA, Resources._4RTools.Icons.OTHILA, false, BuffOrigin.Common),
+                new Buff("HAGALAZ Rune", EffectStatusIDs.HAGALAZ, Resources._4RTools.Icons.HAGALAZ, false, BuffOrigin.Common),
+                new Buff("LUX AMINA Rune", EffectStatusIDs.LUX_AMINA, Resources._4RTools.Icons.LUX_AMINA, false, BuffOrigin.Common),
+                new Buff("Cat Can", EffectStatusIDs.OVERLAPEXPUP, Resources._4RTools.Icons.cat_can, false, BuffOrigin.Rops),
+                new Buff("HE Bubble Gum", EffectStatusIDs.CASH_RECEIVEITEM, Resources._4RTools.Icons.he_bubble_gum2, true, BuffOrigin.Rops),
+                new Buff("Frost Giant Blood (GvG GIANT)", EffectStatusIDs.EFST_GVG_GIANT, Resources._4RTools.Icons.frost_giant_blood, false, BuffOrigin.Rops),
+                new Buff("Battle Manual (GvG GOLEM)", EffectStatusIDs.EFST_GVG_GOLEM, Resources._4RTools.Icons.golem_stone, false, BuffOrigin.Rops),
+                new Buff("Magic Candy", EffectStatusIDs.EFST_MAGIC_CANDY, Resources._4RTools.Icons.magic_candy, false, BuffOrigin.Rops),
+                new Buff("Ghostring", EffectStatusIDs.EFST_GHOSTRING, Resources._4RTools.Icons.perg_ghostring, false, BuffOrigin.Rops),
+                new Buff("Angeling", EffectStatusIDs.EFST_ANGELING, Resources._4RTools.Icons.perg_angeling, false, BuffOrigin.Rops),
+                new Buff("Tao Gunka", EffectStatusIDs.EFST_TAO_GUNKA, Resources._4RTools.Icons.perg_taogunka, false, BuffOrigin.Rops),
+                new Buff("Orc Lord", EffectStatusIDs.EFST_ORC_LORD, Resources._4RTools.Icons.perg_senhororc, false, BuffOrigin.Rops),
+                new Buff("Orc Hero", EffectStatusIDs.EFST_ORC_HERO, Resources._4RTools.Icons.perg_orcheroi, false, BuffOrigin.Rops),
+                new Buff("MISTRESS", EffectStatusIDs.EFST_MISTRESS, Resources._4RTools.Icons.perg_abelha, false, BuffOrigin.Rops),
             };
 
             return skills;
@@ -584,12 +599,12 @@ namespace _4RTools.Model
         {
             List<Buff> skills = new List<Buff>
             {
-                new Buff("Sweets Macaron Cake", EffectStatusIDs.EFST_SWEETSFAIR_ATK, Resources._4RTools.Icons.sweets_macacake),
-                new Buff("Sweets Strawberry Parfait", EffectStatusIDs.EFST_SWEETSFAIR_MATK, Resources._4RTools.Icons.sweets_sparfait),
-                new Buff("Popcorn Festival Buff", EffectStatusIDs.EFST_FLOWER_LEAF2, Resources._4RTools.Icons.pop_corn_fes_buff),
-                new Buff("Doce Hiper Açucarado", EffectStatusIDs.EFST_STEAMPACK, Resources._4RTools.Icons.spark_candy),
-                new Buff("Elixir Ultra Milagroso", EffectStatusIDs.EFST_ALMIGHTY, Resources._4RTools.Icons.g_almighty),
-                new Buff("Cherry Blossom Rice Cake", EffectStatusIDs.EFST_FLOWER_LEAF4, Resources._4RTools.Icons.cherry_blossom_cake),
+                new Buff("Sweets Macaron Cake", EffectStatusIDs.EFST_SWEETSFAIR_ATK, Resources._4RTools.Icons.sweets_macacake, false, BuffOrigin.Rops),
+                new Buff("Sweets Strawberry Parfait", EffectStatusIDs.EFST_SWEETSFAIR_MATK, Resources._4RTools.Icons.sweets_sparfait, false, BuffOrigin.Rops),
+                new Buff("Popcorn Festival Buff", EffectStatusIDs.EFST_FLOWER_LEAF2, Resources._4RTools.Icons.pop_corn_fes_buff, false, BuffOrigin.Rops),
+                new Buff("Doce Hiper Açucarado", EffectStatusIDs.EFST_STEAMPACK, Resources._4RTools.Icons.spark_candy, false, BuffOrigin.Rops),
+                new Buff("Elixir Ultra Milagroso", EffectStatusIDs.EFST_ALMIGHTY, Resources._4RTools.Icons.g_almighty, false, BuffOrigin.Rops),
+                new Buff("Cherry Blossom Rice Cake", EffectStatusIDs.EFST_FLOWER_LEAF4, Resources._4RTools.Icons.cherry_blossom_cake, false, BuffOrigin.Rops),
             };
 
             return skills;
@@ -599,12 +614,133 @@ namespace _4RTools.Model
         {
             List<Buff> skills = new List<Buff>
             {
-                new Buff("Goma de Mascar", EffectStatusIDs.CASH_RECEIVEITEM, Resources._4RTools.Icons.he_bubble_gum),
-                new Buff("Manual de Combate", EffectStatusIDs.CASH_PLUSEXP, Resources._4RTools.Icons.combat_manual_base),
-                new Buff("Manual de Combate de classe", EffectStatusIDs.CASH_PLUSECLASSXP, Resources._4RTools.Icons.combat_manual_class),
+                new Buff("Goma de Mascar", EffectStatusIDs.CASH_RECEIVEITEM, Resources._4RTools.Icons.he_bubble_gum, true, BuffOrigin.Rops),
+                new Buff("Manual de Combate", EffectStatusIDs.CASH_PLUSEXP, Resources._4RTools.Icons.combat_manual_base, true, BuffOrigin.Rops),
+                new Buff("Manual de Combate de classe", EffectStatusIDs.CASH_PLUSECLASSXP, Resources._4RTools.Icons.combat_manual_class, true, BuffOrigin.Rops),
             };
 
             return skills;
+        }
+
+        public static List<Buff> GetCommonPotionsAndUtilities()
+        {
+            List<Buff> result = new List<Buff>();
+            foreach (Buff b in GetPotionsBuffs())
+            {
+                if (b.IsPreRenewal && b.Origin == BuffOrigin.Common) result.Add(b);
+            }
+            foreach (Buff b in GetBoxesBuffs())
+            {
+                if (b.IsPreRenewal && b.Origin == BuffOrigin.Common
+                    && (b.name == "Speed Potion / Guyak" || b.name == "Anodyne" || b.name == "Aloevera" || b.name == "Guarana Candy" || b.name == "Poison Bottle"))
+                {
+                    result.Add(b);
+                }
+            }
+            return result;
+        }
+
+        public static List<Buff> GetCommonElementals()
+        {
+            List<Buff> result = new List<Buff>();
+            foreach (Buff b in GetElementalsBuffs())
+            {
+                if (b.IsPreRenewal && b.Origin == BuffOrigin.Common) result.Add(b);
+            }
+            return result;
+        }
+
+        public static List<Buff> GetCommonFoodsAndBoxes()
+        {
+            List<Buff> result = new List<Buff>();
+            foreach (Buff b in GetFoodBuffs())
+            {
+                if (b.IsPreRenewal && b.Origin == BuffOrigin.Common) result.Add(b);
+            }
+            foreach (Buff b in GetBoxesBuffs())
+            {
+                if (b.IsPreRenewal && b.Origin == BuffOrigin.Common
+                    && b.name != "Speed Potion / Guyak" && b.name != "Anodyne" && b.name != "Aloevera" && b.name != "Guarana Candy" && b.name != "Poison Bottle")
+                {
+                    result.Add(b);
+                }
+            }
+            return result;
+        }
+
+        public static List<Buff> GetRopsCombatAndPotions()
+        {
+            List<Buff> result = new List<Buff>();
+            foreach (Buff b in GetPotionsBuffs())
+            {
+                if (b.IsPreRenewal && b.Origin == BuffOrigin.Rops) result.Add(b);
+            }
+            foreach (Buff b in GetBoxesBuffs())
+            {
+                if (b.IsPreRenewal && b.Origin == BuffOrigin.Rops) result.Add(b);
+            }
+            return result;
+        }
+
+        public static List<Buff> GetRopsFoodsAndExp()
+        {
+            List<Buff> result = new List<Buff>();
+            foreach (Buff b in GetFoodBuffs())
+            {
+                if (b.IsPreRenewal && b.Origin == BuffOrigin.Rops) result.Add(b);
+            }
+            foreach (Buff b in GetEXPBuffs())
+            {
+                if (b.IsPreRenewal && b.Origin == BuffOrigin.Rops) result.Add(b);
+            }
+            foreach (Buff b in GetETCBuffs())
+            {
+                if (b.IsPreRenewal && b.Origin == BuffOrigin.Rops) result.Add(b);
+            }
+            return result;
+        }
+
+        public static List<Buff> GetRopsScrolls()
+        {
+            List<Buff> result = new List<Buff>();
+            foreach (Buff b in GetScrollBuffs())
+            {
+                if (b.IsPreRenewal && b.Origin == BuffOrigin.Rops) result.Add(b);
+            }
+            foreach (Buff b in GetElementalsBuffs())
+            {
+                if (b.IsPreRenewal && b.Origin == BuffOrigin.Rops) result.Add(b);
+            }
+            return result;
+        }
+
+        public static List<Buff> GetRenewalAndCustomConsumables()
+        {
+            List<Buff> result = new List<Buff>();
+            List<Buff>[] sources = new List<Buff>[]
+            {
+                GetPotionsBuffs(),
+                GetElementalsBuffs(),
+                GetFoodBuffs(),
+                GetBoxesBuffs(),
+                GetScrollBuffs(),
+                GetETCBuffs(),
+                GetCandiesBuffs(),
+                GetEXPBuffs()
+            };
+
+            foreach (List<Buff> source in sources)
+            {
+                foreach (Buff b in source)
+                {
+                    if (!b.IsPreRenewal)
+                    {
+                        result.Add(b);
+                    }
+                }
+            }
+
+            return result;
         }
 
         public static List<Buff> GetHomunculusBuffs()
