@@ -491,7 +491,7 @@ namespace _4RTools.Tests
             Assert.NotNull(aureum);
             Assert.Equal("0x015FF908", aureum.hpAddress);
             Assert.Equal("0x01602568", aureum.nameAddress);
-            Assert.Contains("iOraculo/4RTools", AppConfig._4RClientsURL);
+            Assert.Contains("iOraculo/AureumRO-4Tools", AppConfig._4RClientsURL);
         }
 
         [Fact]
