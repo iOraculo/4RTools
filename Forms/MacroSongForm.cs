@@ -14,7 +14,8 @@ namespace _4RTools.Forms
         public const int MAX_SONG_SLOTS_PER_LANE = 8;
 
         private const int LANE_WIDTH = 548;
-        private const int LANE_HEIGHT = 128;
+        private const int LANE_HEIGHT_ONE_ROW = 122;
+        private const int LANE_HEIGHT_TWO_ROWS = 148;
         private const int LANE_LEFT = 10;
         private const int LANE_TOP_START = 8;
         private const int LANE_SPACING = 10;
@@ -113,26 +114,27 @@ namespace _4RTools.Forms
             GroupBox group = new GroupBox
             {
                 Name = "panelMacro" + id,
-                Size = new Size(LANE_WIDTH, LANE_HEIGHT),
+                Size = new Size(LANE_WIDTH, LANE_HEIGHT_ONE_ROW),
                 TabStop = false,
                 Text = "Song Macro " + id
             };
             lane.Group = group;
 
-            Label lblKey = new Label
+            // Standardized Row 0 Header: Trigger + Delay(ms) + Dagger + Instrument + Clear / Remove Macro
+            Label lblTrigger = new Label
             {
                 AutoSize = false,
                 Location = new Point(4, 21),
-                Size = new Size(46, 18),
-                Text = "Key",
+                Size = new Size(54, 18),
+                Text = "Trigger:",
                 TextAlign = ContentAlignment.MiddleRight
             };
 
             lane.TriggerBox = new TextBox
             {
-                Location = new Point(53, 20),
+                Location = new Point(62, 20),
                 Name = "inTriggerMacro" + id,
-                Size = new Size(50, 20),
+                Size = new Size(48, 20),
                 Tag = id + ":Trigger",
                 Text = Key.None.ToString()
             };
@@ -141,57 +143,134 @@ namespace _4RTools.Forms
             Label lblDelay = new Label
             {
                 AutoSize = false,
-                Location = new Point(4, 49),
-                Size = new Size(46, 18),
-                Text = "Delay",
+                Location = new Point(114, 21),
+                Size = new Size(60, 18),
+                Text = "Delays(ms):",
                 TextAlign = ContentAlignment.MiddleRight
             };
 
             lane.DelayInput = new NumericUpDown
             {
-                Location = new Point(53, 48),
+                Location = new Point(176, 20),
                 Maximum = 99999,
                 Minimum = 0,
                 Name = "delayMac" + id,
-                Size = new Size(50, 20),
+                Size = new Size(52, 20),
                 Value = 50
             };
             lane.DelayInput.ValueChanged += new EventHandler(this.onDelayChange);
 
-            Label lblMs = new Label
+            PictureBox pbDagger = new PictureBox
             {
-                AutoSize = true,
-                Location = new Point(105, 50),
-                Text = "ms"
+                BackColor = Color.Transparent,
+                Image = this.daggerIcon,
+                Location = new Point(236, 18),
+                Name = "pbDagger" + id,
+                Size = new Size(22, 22),
+                SizeMode = PictureBoxSizeMode.Zoom,
+                TabStop = false
             };
 
-            Panel leftDivider = new Panel
+            lane.DaggerBox = new TextBox
             {
-                Location = new Point(130, 18),
-                Size = new Size(1, 66)
+                Location = new Point(260, 20),
+                Name = "inDaggerMacro" + id,
+                Size = new Size(44, 20),
+                Tag = id + ":Dagger",
+                Text = Key.None.ToString()
+            };
+            AttachKeyHandlers(lane.DaggerBox);
+
+            PictureBox pbInstrument = new PictureBox
+            {
+                BackColor = Color.Transparent,
+                Image = this.instrumentIcon,
+                Location = new Point(310, 18),
+                Name = "pbInstrument" + id,
+                Size = new Size(22, 22),
+                SizeMode = PictureBoxSizeMode.Zoom,
+                TabStop = false
             };
 
-            group.Controls.Add(lblKey);
+            lane.InstrumentBox = new TextBox
+            {
+                Location = new Point(334, 20),
+                Name = "inInstrumentMacro" + id,
+                Size = new Size(44, 20),
+                Tag = id + ":Instrument",
+                Text = Key.None.ToString()
+            };
+            AttachKeyHandlers(lane.InstrumentBox);
+
+            lane.BtnResetLane = new Button
+            {
+                Cursor = System.Windows.Forms.Cursors.Hand,
+                Location = new Point(id == 1 ? 472 : 384, 19),
+                Name = "btnResMac" + id,
+                Size = new Size(id == 1 ? 66 : 54, 22),
+                Text = "Clear",
+                Tag = id,
+                UseVisualStyleBackColor = true
+            };
+            lane.BtnResetLane.Click += OnResetLaneClick;
+
+            Panel headerDivider = new Panel
+            {
+                Location = new Point(10, 47),
+                Size = new Size(LANE_WIDTH - 20, 1)
+            };
+
+            group.Controls.Add(lblTrigger);
             group.Controls.Add(lane.TriggerBox);
             group.Controls.Add(lblDelay);
             group.Controls.Add(lane.DelayInput);
-            group.Controls.Add(lblMs);
-            group.Controls.Add(leftDivider);
+            group.Controls.Add(pbDagger);
+            group.Controls.Add(lane.DaggerBox);
+            group.Controls.Add(pbInstrument);
+            group.Controls.Add(lane.InstrumentBox);
+            group.Controls.Add(lane.BtnResetLane);
+            group.Controls.Add(headerDivider);
 
-            // Song slots 1..8 arranged in 2 clean rows of 4 (1->2->3->4, 5->6->7->8)
+            if (id > 1)
+            {
+                lane.BtnRemoveLane = new Button
+                {
+                    Cursor = System.Windows.Forms.Cursors.Hand,
+                    Location = new Point(442, 19),
+                    Name = "btnRemoveSongLane" + id,
+                    Size = new Size(96, 22),
+                    Text = "Remove Macro",
+                    Tag = id,
+                    UseVisualStyleBackColor = true
+                };
+                lane.BtnRemoveLane.Click += OnRemoveLaneClick;
+                group.Controls.Add(lane.BtnRemoveLane);
+            }
+
+            // Below divider: Songs sequence (2 rows of 4 slots, 1..8)
+            Label lblSongs = new Label
+            {
+                AutoSize = false,
+                Location = new Point(4, 57),
+                Size = new Size(54, 18),
+                Text = "Songs:",
+                TextAlign = ContentAlignment.MiddleRight
+            };
+            group.Controls.Add(lblSongs);
+
             for (int s = 0; s < MAX_SONG_SLOTS_PER_LANE; s++)
             {
                 int slotNum = s + 1;
                 int row = s / 4;
                 int col = s % 4;
-                int x = 142 + (col * 70);
-                int y = row == 0 ? 20 : 50;
+                int x = 62 + (col * 72);
+                int y = row == 0 ? 56 : 84;
 
                 TextBox tb = new TextBox
                 {
                     Location = new Point(x, y),
                     Name = "in" + slotNum + "mac" + id,
-                    Size = new Size(50, 20),
+                    Size = new Size(52, 20),
                     Text = Key.None.ToString()
                 };
                 AttachKeyHandlers(tb);
@@ -203,13 +282,12 @@ namespace _4RTools.Forms
                     Label arrow;
                     if (s == 3)
                     {
-                        // Transition indicator from row 1 (slot 4) to row 2 (slot 5)
                         arrow = new Label
                         {
                             AutoSize = false,
-                            Location = new Point(404, 21),
+                            Location = new Point(x + 54, y + 1),
                             Name = "arrow" + slotNum + "mac" + id,
-                            Size = new Size(14, 18),
+                            Size = new Size(16, 18),
                             Tag = ThemeManager.TAG_ACCENT_TEXT,
                             Text = "↴",
                             TextAlign = ContentAlignment.MiddleCenter
@@ -220,7 +298,7 @@ namespace _4RTools.Forms
                         arrow = new Label
                         {
                             AutoSize = false,
-                            Location = new Point(x + 52, y + 1),
+                            Location = new Point(x + 54, y + 1),
                             Name = "arrow" + slotNum + "mac" + id,
                             Size = new Size(16, 18),
                             Tag = ThemeManager.TAG_ACCENT_TEXT,
@@ -234,65 +312,10 @@ namespace _4RTools.Forms
                 }
             }
 
-            Panel rightDivider = new Panel
-            {
-                Location = new Point(424, 18),
-                Size = new Size(1, 66)
-            };
-
-            PictureBox pbDagger = new PictureBox
-            {
-                BackColor = Color.Transparent,
-                Image = this.daggerIcon,
-                Location = new Point(434, 18),
-                Name = "pbDagger" + id,
-                Size = new Size(24, 24),
-                SizeMode = PictureBoxSizeMode.CenterImage,
-                TabStop = false
-            };
-
-            lane.DaggerBox = new TextBox
-            {
-                Location = new Point(462, 20),
-                Name = "inDaggerMacro" + id,
-                Size = new Size(56, 20),
-                Tag = id + ":Dagger",
-                Text = Key.None.ToString()
-            };
-            AttachKeyHandlers(lane.DaggerBox);
-
-            PictureBox pbInstrument = new PictureBox
-            {
-                BackColor = Color.Transparent,
-                Image = this.instrumentIcon,
-                Location = new Point(434, 48),
-                Name = "pbInstrument" + id,
-                Size = new Size(24, 24),
-                SizeMode = PictureBoxSizeMode.CenterImage,
-                TabStop = false
-            };
-
-            lane.InstrumentBox = new TextBox
-            {
-                Location = new Point(462, 50),
-                Name = "inInstrumentMacro" + id,
-                Size = new Size(56, 20),
-                Tag = id + ":Instrument",
-                Text = Key.None.ToString()
-            };
-            AttachKeyHandlers(lane.InstrumentBox);
-
-            group.Controls.Add(rightDivider);
-            group.Controls.Add(pbDagger);
-            group.Controls.Add(lane.DaggerBox);
-            group.Controls.Add(pbInstrument);
-            group.Controls.Add(lane.InstrumentBox);
-
-            // Bottom action bar inside each Song Macro card
             lane.BtnAddSlot = new Button
             {
                 Cursor = System.Windows.Forms.Cursors.Hand,
-                Location = new Point(10, 95),
+                Location = new Point(62, 88),
                 Name = "btnAddSongSlot" + id,
                 Size = new Size(128, 22),
                 Text = "+ Add Song",
@@ -305,7 +328,7 @@ namespace _4RTools.Forms
             lane.BtnRemoveSlot = new Button
             {
                 Cursor = System.Windows.Forms.Cursors.Hand,
-                Location = new Point(144, 95),
+                Location = new Point(196, 88),
                 Name = "btnRemoveSongSlot" + id,
                 Size = new Size(124, 22),
                 Text = "- Remove Song",
@@ -314,35 +337,6 @@ namespace _4RTools.Forms
             };
             lane.BtnRemoveSlot.Click += OnRemoveSlotClick;
             group.Controls.Add(lane.BtnRemoveSlot);
-
-            lane.BtnResetLane = new Button
-            {
-                Cursor = System.Windows.Forms.Cursors.Hand,
-                Location = new Point(id == 1 ? 470 : 368, 95),
-                Name = "btnResMac" + id,
-                Size = new Size(68, 22),
-                Text = "Reset",
-                Tag = id,
-                UseVisualStyleBackColor = true
-            };
-            lane.BtnResetLane.Click += OnResetLaneClick;
-            group.Controls.Add(lane.BtnResetLane);
-
-            if (id > 1)
-            {
-                lane.BtnRemoveLane = new Button
-                {
-                    Cursor = System.Windows.Forms.Cursors.Hand,
-                    Location = new Point(442, 95),
-                    Name = "btnRemoveSongLane" + id,
-                    Size = new Size(96, 22),
-                    Text = "Remove Macro",
-                    Tag = id,
-                    UseVisualStyleBackColor = true
-                };
-                lane.BtnRemoveLane.Click += OnRemoveLaneClick;
-                group.Controls.Add(lane.BtnRemoveLane);
-            }
 
             return lane;
         }
@@ -396,6 +390,9 @@ namespace _4RTools.Forms
 
             int visible = Math.Max(1, Math.Min(MAX_SONG_SLOTS_PER_LANE, lane.VisibleSlots));
             lane.VisibleSlots = visible;
+            bool twoRows = visible > 4;
+            int actionY = twoRows ? 114 : 88;
+            int targetHeight = twoRows ? LANE_HEIGHT_TWO_ROWS : LANE_HEIGHT_ONE_ROW;
 
             lane.Group.SuspendLayout();
             try
@@ -409,11 +406,15 @@ namespace _4RTools.Forms
                     }
                 }
 
+                lane.BtnAddSlot.Location = new Point(62, actionY);
                 lane.BtnAddSlot.Visible = visible < MAX_SONG_SLOTS_PER_LANE;
                 lane.BtnAddSlot.Enabled = visible < MAX_SONG_SLOTS_PER_LANE;
+
                 lane.BtnRemoveSlot.Visible = visible > 1;
                 lane.BtnRemoveSlot.Enabled = visible > 1;
-                lane.BtnRemoveSlot.Location = new Point(visible < MAX_SONG_SLOTS_PER_LANE ? 144 : 10, 95);
+                lane.BtnRemoveSlot.Location = new Point(visible < MAX_SONG_SLOTS_PER_LANE ? 196 : 62, actionY);
+
+                lane.Group.Size = new Size(LANE_WIDTH, targetHeight);
             }
             finally
             {
@@ -443,7 +444,7 @@ namespace _4RTools.Forms
                     if (lane.IsLaneVisible)
                     {
                         lane.Group.Location = new Point(LANE_LEFT, y);
-                        y += LANE_HEIGHT + LANE_SPACING;
+                        y += lane.Group.Height + LANE_SPACING;
                     }
                     else
                     {
@@ -483,7 +484,7 @@ namespace _4RTools.Forms
             }
 
             lane.VisibleSlots++;
-            RefreshLaneSlots(lane);
+            LayoutVisibleLanes();
         }
 
         public void RemoveLastSlotFromLane(int id)
@@ -516,7 +517,7 @@ namespace _4RTools.Forms
             }
 
             lane.VisibleSlots--;
-            RefreshLaneSlots(lane);
+            LayoutVisibleLanes();
         }
 
         public void ResetLane(int id, bool hideLane = false)

@@ -879,5 +879,32 @@ namespace _4RTools.Tests
                 Assert.Equal(Key.Q, lane1.trigger);
             }
         }
+
+        [Fact]
+        public void DebuffRecoveryForm_ShowsOnlyPreRenewalDebuffsWithFullLabels()
+        {
+            List<Buff> debuffs = Buff.GetDebuffs();
+            Assert.Equal(8, debuffs.Count);
+            Assert.DoesNotContain(debuffs, b => b.effectStatusID == EffectStatusIDs.EFST_FREEZING);
+            Assert.DoesNotContain(debuffs, b => b.effectStatusID == EffectStatusIDs.EFST_DEEP_SLEEP);
+            Assert.DoesNotContain(debuffs, b => b.effectStatusID == EffectStatusIDs.EFST_HANDICAPSTATE_MISFORTUNE);
+
+            LocalizationManager.SetLanguage(LocalizationManager.LANG_PT_BR);
+            Subject subject = new Subject();
+            using (DebuffRecoveryForm form = new DebuffRecoveryForm(subject))
+            {
+                foreach (Buff debuff in debuffs)
+                {
+                    System.Windows.Forms.Control[] labelMatches = form.Controls.Find("lblDebuff" + (int)debuff.effectStatusID, true);
+                    System.Windows.Forms.Control[] inputMatches = form.Controls.Find("in" + (int)debuff.effectStatusID, true);
+                    Assert.Single(labelMatches);
+                    Assert.Single(inputMatches);
+                    Assert.False(string.IsNullOrWhiteSpace(labelMatches[0].Text));
+                }
+
+                Assert.Equal("Ferimento Crítico", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.CRITICALWOUND, true)[0].Text);
+                Assert.Equal("Silêncio", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.SILENCE, true)[0].Text);
+            }
+        }
     }
 }

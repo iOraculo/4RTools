@@ -1,5 +1,14 @@
 # Changelogs
 
+## [v2.22.0] - 2026-11-20 — Standardized Macros Suite & Clean Pre-Renewal Debuff Layout
+### Changed & Removed
+- **Standardized `Macros` Sub-Tabs (`Forms/MacroSongForm.cs`, `Forms/ATKDEFForm.cs`, `Utils/LocalizationManager.cs`)**:
+  - Unified `Macro Músicas` to the exact same card grammar as `Macro Troca` (`Gatilho:` + `Delay(ms):` + Dagger + Instrument + `Limpar` / `Remover macro` in the top header bar above a horizontal divider; `Músicas:` progressive sequence + `+ Adicionar música` below).
+  - Framed `Troca DEF` and `Troca ATK` in matching bordered cards with **`Limpar DEF`** / **`Limpar ATK`** buttons, standardized labels (`Gatilho:`, `Delay(ms):`, `Troca(ms):`), and added a clear tooltip on **`Com clique`** explaining when to keep it checked (target/ground skills vs. self-cast skills).
+- **Pre-Renewal Debuffs Audit & Full-Name Layout (`Model/Buff.cs`, `Forms/DebuffRecoveryForm.cs`)**:
+  - Removed 3 Renewal-only debuffs that do not exist in Pre-Renewal (**Hipotermia / Freezing** `EFST_FREEZING`, **Sono Profundo / Deep Sleep** `EFST_DEEP_SLEEP`, and **Azar / Infortúnio** `EFST_HANDICAPSTATE_MISFORTUNE`).
+  - Redesigned **Efeitos / Debuffs** into a crisp 2-column × 4-row grid displaying the **full localized status name** next to each icon and hotkey box (*Ferimento Crítico*, *Maldição*, *Sangramento*, *Silêncio*, *Diminuir Agilidade*, *Caos / Confusão*, *Atordoamento*, *Veneno*).
+
 ## [v2.21.0] - 2026-11-20 — Unified Macros Tab & Dedicated Switch Trigger Key
 ### Added & Changed
 - **Unified `Macros` Tab (`Forms/MacrosHubForm.cs`, `Forms/Container.cs`, `Forms/ATKDEFForm.cs`)**: grouped **Macro Troca**, **Macro Músicas**, and **Macro ATK x DEF** under a single **`Macros`** item in the left sidebar with 3 golden segmented sub-tabs, keeping the sidebar cleaner and more organized.

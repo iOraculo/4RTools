@@ -155,6 +155,10 @@ namespace _4RTools.Utils
             { "ATK x DEF Macro", "Macro ATK x DEF" },
             { "Trigger:", "Gatilho:" },
             { "(Key that triggers this switch)", "(Tecla que aciona esta troca)" },
+            { "Songs:", "Músicas:" },
+            { "Switch(ms):", "Troca(ms):" },
+            { "Clear DEF", "Limpar DEF" },
+            { "Clear ATK", "Limpar ATK" },
 
             // ATKDEFForm
             { "ATK Switch", "Troca ATK" },
@@ -302,6 +306,7 @@ namespace _4RTools.Utils
             { "tooltip.song_step", "Tecla da música/dança nesta etapa da sequência" },
             { "tooltip.song_dagger", "Tecla da Adaga/Arma secundária (equipada após cada música para cancelar animação)" },
             { "tooltip.song_instrument", "Tecla do Instrumento/Chicote (equipado antes de tocar cada música)" },
+            { "tooltip.atkdef_click", "Envia clique esquerdo junto com a tecla de ataque (marque para skills de alvo/chão; desmarque para skills sem alvo)" },
 
             // ATKDEFForm equipment slot tooltips
             { "equip.hat_top", "Cabeça (Topo)" },
@@ -484,6 +489,7 @@ namespace _4RTools.Utils
             { "tooltip.song_step", "Song/dance skill hotkey for this step" },
             { "tooltip.song_dagger", "Dagger/Secondary weapon key (equipped after each song to cancel animation)" },
             { "tooltip.song_instrument", "Instrument/Whip key (equipped before playing each song)" },
+            { "tooltip.atkdef_click", "Sends a left click with the attack spam key (check for target/ground skills; uncheck for self-cast skills)" },
 
             { "equip.hat_top", "Headgear (Top)" },
             { "equip.hat_mid", "Headgear (Mid)" },
@@ -1071,6 +1077,23 @@ namespace _4RTools.Utils
             }
 
             return BuffTranslations.ContainsKey(rawName.Trim());
+        }
+
+        public static string GetBuffShortDisplayName(string rawName)
+        {
+            if (string.IsNullOrWhiteSpace(rawName))
+            {
+                return string.Empty;
+            }
+
+            string trimmed = rawName.Trim();
+            BuffTranslation entry;
+            if (!BuffTranslations.TryGetValue(trimmed, out entry))
+            {
+                return trimmed;
+            }
+
+            return IsPortuguese ? entry.Pt : entry.En;
         }
 
         public static string GetBuffDisplayName(string rawName)
