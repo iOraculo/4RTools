@@ -1893,6 +1893,16 @@ namespace _4RTools.Resources._4RTools {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap pa_gospel {
+            get {
+                object obj = ResourceManager.GetObject("pa_gospel", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap perg_abelha {
             get {
                 object obj = ResourceManager.GetObject("perg_abelha", resourceCulture);

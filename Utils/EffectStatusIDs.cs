@@ -84,6 +84,7 @@ namespace _4RTools.Utils
         LKCONCENTRATION = 105,
         PARRYING = 104,
         BERSERK = 107,
+        EFST_GOSPEL = 109,
         AUTOBERSERK = 132,
         AURA_NINJA = 208,
         PEEL_CHANGE = 206,

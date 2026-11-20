@@ -711,6 +711,7 @@
     <None Include="assets\images\PROPERTY_WIND.png" />
     <None Include="assets\images\foods\banquete.png" />
     <None Include="assets\images\one_hand_quicken.png" />
+    <None Include="assets\images\pa_gospel.png" />
     <None Include="assets\images\skills_tk\SG_MOON_COMFORT.png" />
     <None Include="assets\images\skills_tk\SG_MOON_WARM.png" />
     <None Include="assets\images\skills_tk\SG_STAR_COMFORT.png" />

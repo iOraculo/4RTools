@@ -40,6 +40,7 @@ namespace _4RTools.Model
             EffectStatusIDs.PARRYING,
             EffectStatusIDs.AURABLADE,
             EffectStatusIDs.CR_SHRINK,
+            EffectStatusIDs.EFST_GOSPEL,
             EffectStatusIDs.EFST_ONEHANDQUICKEN,
 
             // Mage / Wizard / Sage / High Wizard / Professor
@@ -151,6 +152,7 @@ namespace _4RTools.Model
                 new Buff("Aura Blade", EffectStatusIDs.AURABLADE, Resources._4RTools.Icons.lk_aurablade),
                 new Buff("Enchant Blade", EffectStatusIDs.ENCHANT_BLADE, Resources._4RTools.Icons.enchant_blade),
                 new Buff("Shrink", EffectStatusIDs.CR_SHRINK, Resources._4RTools.Icons.cr_shrink),
+                new Buff("Battle Chant", EffectStatusIDs.EFST_GOSPEL, Resources._4RTools.Icons.pa_gospel),
                 new Buff("Inspiration", EffectStatusIDs.INSPIRATION, Resources._4RTools.Icons.lg_inspiration),
                 new Buff("Prestige", EffectStatusIDs.PRESTIGE, Resources._4RTools.Icons.lg_prestige),
                 new Buff("Shield Spell", EffectStatusIDs.SHIELDSPELL, Resources._4RTools.Icons.lg_shieldspell),

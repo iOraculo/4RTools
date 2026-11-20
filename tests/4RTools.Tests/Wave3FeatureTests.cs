@@ -568,7 +568,19 @@ namespace _4RTools.Tests
             Assert.True(Buff.IsPreRenewalSkill(EffectStatusIDs.CONCENTRATION));
             Assert.True(Buff.IsPreRenewalSkill(EffectStatusIDs.EDP));
             Assert.True(Buff.IsPreRenewalSkill(EffectStatusIDs.AURABLADE));
+            Assert.True(Buff.IsPreRenewalSkill(EffectStatusIDs.EFST_GOSPEL));
             Assert.True(Buff.IsPreRenewalSkill(EffectStatusIDs.CARTBOOST));
+            Assert.Equal(109u, (uint)EffectStatusIDs.EFST_GOSPEL);
+
+            Buff gospel = Buff.GetSwordmanSkill().FirstOrDefault(b => b.effectStatusID == EffectStatusIDs.EFST_GOSPEL);
+            Assert.NotNull(gospel);
+            Assert.NotNull(gospel.icon);
+            LocalizationManager.SetLanguage(LocalizationManager.LANG_PT_BR);
+            Assert.Equal("Canto de Batalha (Battle Chant / Gospel)", LocalizationManager.GetBuffDisplayName(gospel.name));
+            Assert.True(LocalizationManager.MatchesBuffSearch(gospel.name, "canto"));
+            Assert.True(LocalizationManager.MatchesBuffSearch(gospel.name, "batalha"));
+            Assert.True(LocalizationManager.MatchesBuffSearch(gospel.name, "gospel"));
+            Assert.True(LocalizationManager.MatchesBuffSearch(gospel.name, "battle chant"));
             Assert.False(Buff.IsPreRenewalSkill(EffectStatusIDs.UNLIMIT));
             Assert.False(Buff.IsPreRenewalSkill(EffectStatusIDs.ENCHANT_BLADE));
             Assert.False(Buff.IsPreRenewalSkill(EffectStatusIDs.EFST_HIDDEN_CARD));

@@ -1,5 +1,9 @@
 # Changelogs
 
+## [v2.14.1] - 2026-11-20 — Battle Chant (Canto de Batalha)
+### Added
+- **Battle Chant (`EFST_GOSPEL` / `109`) in Swordsman Skills (`Model/Buff.cs`, `Utils/EffectStatusIDs.cs`, `Utils/LocalizationManager.cs`, `assets/images/pa_gospel.png`)**: added Paladin's **Canto de Batalha (Battle Chant / Gospel)** with its official 24×24 RO skill icon, Pre-Renewal Mode visibility, and bilingual PT-BR/EN search support (`canto`, `batalha`, `battle chant`, `gospel`).
+
 ## [v2.14.0] - 2026-11-20 — Pre-Renewal Mode & Sit-Safe AutoBuff
 ### Added
 - **Pre-Renewal Mode Filter (`Model/Buff.cs`, `Model/BuffRenderer.cs`, `Forms/SkillAutoBuffForm.cs`, `Model/AppSettings.cs`)**: new **Modo Pré-Renewal (ocultar 3rd/4th)** toggle on the *Autobuff - Skills* tab (enabled by default and saved in `settings.json`) that filters the skill grid to the 61 authentic Pre-Renewal / Transcendent / Expanded skills and hides 3rd/4th job skills and Renewal-only classes (Doram, Soul Ascetic, Night Watch, Hyper Novice, Homunculus S) without losing saved bindings.

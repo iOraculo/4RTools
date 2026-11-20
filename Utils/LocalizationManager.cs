@@ -672,6 +672,7 @@ namespace _4RTools.Utils
             { "Aura Blade", new BuffTranslation("Lâmina de Aura", "Aura Blade") },
             { "Enchant Blade", new BuffTranslation("Encantar Lâmina", "Enchant Blade") },
             { "Shrink", new BuffTranslation("Submissão", "Shrink") },
+            { "Battle Chant", new BuffTranslation("Canto de Batalha", "Battle Chant / Gospel") },
             { "Inspiration", new BuffTranslation("Consagração", "Inspiration") },
             { "Prestige", new BuffTranslation("Prestígio Divino", "Prestige") },
             { "Shield Spell", new BuffTranslation("Aegis Domini", "Shield Spell") },
