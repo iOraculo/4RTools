@@ -267,6 +267,11 @@ namespace _4RTools.Forms
             }
         }
 
+        public bool IsGroupVisible(string groupName)
+        {
+            return this.renderer != null && this.renderer.IsContainerVisible(groupName);
+        }
+
         private void RefreshLocalizedTooltips()
         {
             if (this.numMinSp != null)

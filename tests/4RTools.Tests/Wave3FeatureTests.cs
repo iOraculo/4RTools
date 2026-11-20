@@ -795,31 +795,31 @@ namespace _4RTools.Tests
                 // Default Pre-Renewal Mode ON + All Origins: Common & ROPs visible, Renewal/Other hidden.
                 form.SetPreRenewalFilter(true);
                 form.ApplyOriginFilterIndex(0);
-                Assert.True(form.Controls.Find("CommonPotionsGP", true)[0].Visible);
-                Assert.True(form.Controls.Find("CommonElementalsGP", true)[0].Visible);
-                Assert.True(form.Controls.Find("CommonFoodsBoxesGP", true)[0].Visible);
-                Assert.True(form.Controls.Find("RopsCombatGP", true)[0].Visible);
-                Assert.True(form.Controls.Find("RopsFoodsExpGP", true)[0].Visible);
-                Assert.True(form.Controls.Find("RopsScrollsGP", true)[0].Visible);
-                Assert.False(form.Controls.Find("RenewalOtherGP", true)[0].Visible);
+                Assert.True(form.IsGroupVisible("CommonPotionsGP"));
+                Assert.True(form.IsGroupVisible("CommonElementalsGP"));
+                Assert.True(form.IsGroupVisible("CommonFoodsBoxesGP"));
+                Assert.True(form.IsGroupVisible("RopsCombatGP"));
+                Assert.True(form.IsGroupVisible("RopsFoodsExpGP"));
+                Assert.True(form.IsGroupVisible("RopsScrollsGP"));
+                Assert.False(form.IsGroupVisible("RenewalOtherGP"));
 
                 // Filter: Common Items Only (index 1).
                 form.ApplyOriginFilterIndex(1);
-                Assert.True(form.Controls.Find("CommonPotionsGP", true)[0].Visible);
-                Assert.False(form.Controls.Find("RopsCombatGP", true)[0].Visible);
-                Assert.False(form.Controls.Find("RopsScrollsGP", true)[0].Visible);
+                Assert.True(form.IsGroupVisible("CommonPotionsGP"));
+                Assert.False(form.IsGroupVisible("RopsCombatGP"));
+                Assert.False(form.IsGroupVisible("RopsScrollsGP"));
 
                 // Filter: ROPs Items Only (index 2).
                 form.ApplyOriginFilterIndex(2);
-                Assert.False(form.Controls.Find("CommonPotionsGP", true)[0].Visible);
-                Assert.True(form.Controls.Find("RopsCombatGP", true)[0].Visible);
-                Assert.True(form.Controls.Find("RopsFoodsExpGP", true)[0].Visible);
-                Assert.True(form.Controls.Find("RopsScrollsGP", true)[0].Visible);
+                Assert.False(form.IsGroupVisible("CommonPotionsGP"));
+                Assert.True(form.IsGroupVisible("RopsCombatGP"));
+                Assert.True(form.IsGroupVisible("RopsFoodsExpGP"));
+                Assert.True(form.IsGroupVisible("RopsScrollsGP"));
 
                 // Disabling Pre-Renewal Mode with All Origins reveals Renewal / Other items.
                 form.ApplyOriginFilterIndex(0);
                 form.SetPreRenewalFilter(false);
-                Assert.True(form.Controls.Find("RenewalOtherGP", true)[0].Visible);
+                Assert.True(form.IsGroupVisible("RenewalOtherGP"));
             }
         }
 

@@ -27,6 +27,7 @@ namespace _4RTools.Model
         private readonly List<BuffContainer> _containers;
         private readonly ToolTip _toolTip;
         private readonly Dictionary<BuffContainer, List<RenderedBuffItem>> _renderedItems = new Dictionary<BuffContainer, List<RenderedBuffItem>>();
+        private readonly Dictionary<string, bool> _containerVisible = new Dictionary<string, bool>(StringComparer.Ordinal);
         private int _initialTopY;
         private bool _preRenewalOnly;
         private BuffOrigin? _originFilter;
@@ -134,6 +135,14 @@ namespace _4RTools.Model
             ApplyFilter(this._lastSearchQuery);
         }
 
+        public bool IsContainerVisible(string containerName)
+        {
+            bool visible;
+            return !string.IsNullOrEmpty(containerName)
+                && this._containerVisible.TryGetValue(containerName, out visible)
+                && visible;
+        }
+
         public void ApplyFilter(string searchQuery)
         {
             if (this._containers == null || this._containers.Count == 0)
@@ -198,6 +207,10 @@ namespace _4RTools.Model
                 }
 
                 bk.container.Visible = visibleCount > 0;
+                if (!string.IsNullOrEmpty(bk.container.Name))
+                {
+                    this._containerVisible[bk.container.Name] = visibleCount > 0;
+                }
                 if (visibleCount > 0)
                 {
                     int rows = (visibleCount + BUFFS_PER_ROW - 1) / BUFFS_PER_ROW;
