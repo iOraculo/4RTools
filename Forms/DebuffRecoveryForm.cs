@@ -10,6 +10,7 @@ namespace _4RTools.Forms
     public partial class DebuffRecoveryForm : Form, IObserver
     {
         private readonly List<BuffContainer> skillContainers = new List<BuffContainer>();
+        private readonly BuffRenderer renderer;
         private bool isUpdatingUi;
 
         public DebuffRecoveryForm(Subject subject)
@@ -30,7 +31,8 @@ namespace _4RTools.Forms
             this.newStatusDelay.ValueChanged += new EventHandler(onNewStatusDelayChanged);
 
             this.skillContainers.Add(new BuffContainer(this.DebuffRecoveryGP, Buff.GetDebuffs()));
-            new BuffRenderer("DebuffsRecovery", this.skillContainers, this.toolTip1).doRender();
+            this.renderer = new BuffRenderer("DebuffsRecovery", this.skillContainers, this.toolTip1);
+            this.renderer.doRender();
 
             subject.Attach(this);
         }
@@ -68,6 +70,12 @@ namespace _4RTools.Forms
                     finally
                     {
                         this.isUpdatingUi = false;
+                    }
+                    break;
+                case MessageCode.LANGUAGE_CHANGED:
+                    if (this.renderer != null)
+                    {
+                        this.renderer.RefreshLocalizedTooltips();
                     }
                     break;
                 case MessageCode.TURN_OFF:

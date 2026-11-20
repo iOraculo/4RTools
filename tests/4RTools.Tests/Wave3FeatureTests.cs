@@ -393,5 +393,91 @@ namespace _4RTools.Tests
                 Assert.NotEqual("sidebar.status_off", LocalizationManager.T("sidebar.status_off"));
             }
         }
+
+        [Fact]
+        public void LocalizationManager_TranslatesAllBuffSkillsItemsAndDebuffsWithBilingualSearch()
+        {
+            List<Buff> allBuffs = new List<Buff>();
+            allBuffs.AddRange(Buff.GetArcherSkills());
+            allBuffs.AddRange(Buff.GetSwordmanSkill());
+            allBuffs.AddRange(Buff.GetMageSkills());
+            allBuffs.AddRange(Buff.GetMerchantSkills());
+            allBuffs.AddRange(Buff.GetThiefSkills());
+            allBuffs.AddRange(Buff.GetAcolyteSkills());
+            allBuffs.AddRange(Buff.GetNinjaSkills());
+            allBuffs.AddRange(Buff.GetTaekwonSkills());
+            allBuffs.AddRange(Buff.GetGunsSkills());
+            allBuffs.AddRange(Buff.GetSummonerSkills());
+            allBuffs.AddRange(Buff.GetSoulAsceticSkills());
+            allBuffs.AddRange(Buff.GetNightWatchSkills());
+            allBuffs.AddRange(Buff.GetHyperNoviceSkills());
+            allBuffs.AddRange(Buff.GetPotionsBuffs());
+            allBuffs.AddRange(Buff.GetElementalsBuffs());
+            allBuffs.AddRange(Buff.GetFoodBuffs());
+            allBuffs.AddRange(Buff.GetBoxesBuffs());
+            allBuffs.AddRange(Buff.GetScrollBuffs());
+            allBuffs.AddRange(Buff.GetETCBuffs());
+            allBuffs.AddRange(Buff.GetCandiesBuffs());
+            allBuffs.AddRange(Buff.GetEXPBuffs());
+            allBuffs.AddRange(Buff.GetHomunculusBuffs());
+            allBuffs.AddRange(Buff.GetDebuffs());
+
+            Assert.True(allBuffs.Count >= 260);
+            foreach (Buff buff in allBuffs)
+            {
+                Assert.True(LocalizationManager.HasBuffTranslation(buff.name), "Missing translation for buff: " + buff.name);
+            }
+
+            // PT-BR mode shows "Portuguese (English)" and avoids duplicating identical names.
+            LocalizationManager.SetLanguage(LocalizationManager.LANG_PT_BR);
+            Assert.Equal("Poção da Fúria Selvagem (Berserk Potion)", LocalizationManager.GetBuffDisplayName("Berserk Potion"));
+            Assert.Equal("Concentração (Concentration)", LocalizationManager.GetBuffDisplayName("Concentration"));
+            Assert.Equal("Atordoamento (Stun)", LocalizationManager.GetBuffDisplayName("STUN"));
+            Assert.Equal("Ilimitar (Unlimit)", LocalizationManager.GetBuffDisplayName("Ilimitar"));
+            Assert.Equal("Fúria Interior (Fury)", LocalizationManager.GetBuffDisplayName("Fury "));
+            Assert.Equal("Magnificat", LocalizationManager.GetBuffDisplayName("Magnificat"));
+            Assert.Equal("Glória", LocalizationManager.GetBuffDisplayName("Gloria"));
+
+            // EN-US mode shows clean English names (including entries originally written in Portuguese).
+            LocalizationManager.SetLanguage(LocalizationManager.LANG_EN_US);
+            Assert.Equal("Berserk Potion", LocalizationManager.GetBuffDisplayName("Berserk Potion"));
+            Assert.Equal("Unlimit", LocalizationManager.GetBuffDisplayName("Ilimitar"));
+            Assert.Equal("Bubble Gum", LocalizationManager.GetBuffDisplayName("Goma de Mascar"));
+            Assert.Equal("Stun", LocalizationManager.GetBuffDisplayName("STUN"));
+
+            // Bilingual, accent-insensitive search matches both PT-BR and EN-US terms.
+            Assert.True(LocalizationManager.MatchesBuffSearch("Berserk Potion", "pocao"));
+            Assert.True(LocalizationManager.MatchesBuffSearch("Berserk Potion", "furia"));
+            Assert.True(LocalizationManager.MatchesBuffSearch("Berserk Potion", "berserk"));
+            Assert.True(LocalizationManager.MatchesBuffSearch("Concentration", "concentracao"));
+            Assert.True(LocalizationManager.MatchesBuffSearch("STUN", "atordoamento"));
+            Assert.True(LocalizationManager.MatchesBuffSearch("STUN", "stun"));
+            Assert.False(LocalizationManager.MatchesBuffSearch("Berserk Potion", "Magnificat"));
+
+            // BuffRenderer updates tooltips live when switching languages.
+            using (System.Windows.Forms.GroupBox gp = new System.Windows.Forms.GroupBox())
+            using (System.Windows.Forms.ToolTip tip = new System.Windows.Forms.ToolTip())
+            {
+                List<BuffContainer> containers = new List<BuffContainer>
+                {
+                    new BuffContainer(gp, new List<Buff>
+                    {
+                        new Buff("Berserk Potion", EffectStatusIDs.BERSERK_POTION, null)
+                    })
+                };
+
+                LocalizationManager.SetLanguage(LocalizationManager.LANG_PT_BR);
+                BuffRenderer renderer = new BuffRenderer("Autobuff", containers, tip);
+                renderer.doRender(0);
+
+                System.Windows.Forms.Control icon = gp.Controls["pbox" + (int)EffectStatusIDs.BERSERK_POTION];
+                Assert.NotNull(icon);
+                Assert.Equal("Poção da Fúria Selvagem (Berserk Potion)", tip.GetToolTip(icon));
+
+                LocalizationManager.SetLanguage(LocalizationManager.LANG_EN_US);
+                renderer.RefreshLocalizedTooltips();
+                Assert.Equal("Berserk Potion", tip.GetToolTip(icon));
+            }
+        }
     }
 }

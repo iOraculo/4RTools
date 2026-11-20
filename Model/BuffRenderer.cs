@@ -57,12 +57,13 @@ namespace _4RTools.Model
                     PictureBox pb = new PictureBox();
                     TextBox textBox = new TextBox();
 
+                    string displayName = LocalizationManager.GetBuffDisplayName(skill.name);
                     pb.Image = skill.icon;
                     pb.SizeMode = PictureBoxSizeMode.CenterImage;
                     pb.BackgroundImageLayout = ImageLayout.Center;
                     pb.Name = "pbox" + (int)skill.effectStatusID;
                     pb.Size = new Size(26, 26);
-                    this._toolTip.SetToolTip(pb, skill.name);
+                    this._toolTip.SetToolTip(pb, displayName);
 
                     textBox.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
                     textBox.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
@@ -70,7 +71,7 @@ namespace _4RTools.Model
                     textBox.Size = new Size(55, 20);
                     textBox.Tag = (int)skill.effectStatusID;
                     textBox.Name = "in" + (int)skill.effectStatusID;
-                    this._toolTip.SetToolTip(textBox, skill.name);
+                    this._toolTip.SetToolTip(textBox, displayName);
 
                     bk.container.Controls.Add(textBox);
                     bk.container.Controls.Add(pb);
@@ -86,6 +87,35 @@ namespace _4RTools.Model
             }
 
             ApplyFilter(string.Empty);
+        }
+
+        public void RefreshLocalizedTooltips()
+        {
+            if (this._toolTip == null)
+            {
+                return;
+            }
+
+            foreach (List<RenderedBuffItem> items in this._renderedItems.Values)
+            {
+                foreach (RenderedBuffItem item in items)
+                {
+                    if (item == null || item.Skill == null)
+                    {
+                        continue;
+                    }
+
+                    string displayName = LocalizationManager.GetBuffDisplayName(item.Skill.name);
+                    if (item.IconBox != null && !item.IconBox.IsDisposed)
+                    {
+                        this._toolTip.SetToolTip(item.IconBox, displayName);
+                    }
+                    if (item.KeyBox != null && !item.KeyBox.IsDisposed)
+                    {
+                        this._toolTip.SetToolTip(item.KeyBox, displayName);
+                    }
+                }
+            }
         }
 
         public void ApplyFilter(string searchQuery)
@@ -115,7 +145,7 @@ namespace _4RTools.Model
                 }
 
                 bool groupMatches = query.Length > 0
-                    && bk.container.Text.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
+                    && LocalizationManager.MatchesSearchText(bk.container.Text, query);
 
                 bk.container.SuspendLayout();
 
@@ -127,7 +157,7 @@ namespace _4RTools.Model
                 {
                     bool visible = query.Length == 0
                         || groupMatches
-                        || item.Skill.name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
+                        || LocalizationManager.MatchesBuffSearch(item.Skill.name, query);
 
                     item.IconBox.Visible = visible;
                     item.KeyBox.Visible = visible;
