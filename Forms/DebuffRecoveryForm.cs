@@ -33,42 +33,25 @@ namespace _4RTools.Forms
             this.txtStatusKey.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
             this.txtStatusKey.TextChanged += new EventHandler(onStatusKeyChange);
 
-            // Wire Auto Stand control (Elvira Candy is not present on AureumRO and is omitted from the UI).
-            this.autoStandCB.CheckedChanged += new EventHandler(autoStandCB_CheckedChanged);
-
             BuildCategorizedDebuffLayout();
             subject.Attach(this);
         }
 
         private void BuildCategorizedDebuffLayout()
         {
-            // Remove Elvira Candy card (does not exist on AureumRO).
+            // Remove Elvira Candy and Auto Stand cards (neither applies to AureumRO).
             if (this.groupBox1 != null)
             {
                 this.Controls.Remove(this.groupBox1);
                 this.groupBox1.Visible = false;
             }
+            if (this.StatusRecoveryGP != null)
+            {
+                this.Controls.Remove(this.StatusRecoveryGP);
+                this.StatusRecoveryGP.Visible = false;
+            }
 
-            // 1. Compact top bar: Posture & Utility (Auto Stand only).
-            this.StatusRecoveryGP.Controls.Clear();
-            this.StatusRecoveryGP.AutoSize = false;
-            this.StatusRecoveryGP.Location = new Point(10, 6);
-            this.StatusRecoveryGP.Size = new Size(548, 44);
-            this.StatusRecoveryGP.Text = "Posture & Utility";
-
-            this.sitPB.Location = new Point(14, 15);
-            this.sitPB.Size = new Size(22, 22);
-            this.sitPB.SizeMode = PictureBoxSizeMode.Zoom;
-
-            this.autoStandCB.AutoSize = true;
-            this.autoStandCB.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
-            this.autoStandCB.Location = new Point(42, 17);
-            this.autoStandCB.Text = "Enable Auto Stand (when forced to sit)";
-
-            this.StatusRecoveryGP.Controls.Add(this.sitPB);
-            this.StatusRecoveryGP.Controls.Add(this.autoStandCB);
-
-            // 2. Card 1: Panacea / Royal Jelly curable statuses (with 1-key shortcut + individual slots).
+            // 1. Card 1: Panacea / Royal Jelly curable statuses (with 1-key shortcut + individual slots).
             List<Buff> panaceaDebuffs = Buff.GetPanaceaCurableDebuffs();
             int rowStep = 28;
             int panaceaRows = (panaceaDebuffs.Count + 1) / 2;
@@ -77,7 +60,7 @@ namespace _4RTools.Forms
 
             this.DebuffRecoveryGP.Controls.Clear();
             this.DebuffRecoveryGP.AutoSize = false;
-            this.DebuffRecoveryGP.Location = new Point(10, 56);
+            this.DebuffRecoveryGP.Location = new Point(10, 8);
             this.DebuffRecoveryGP.Size = new Size(548, panaceaHeight);
             this.DebuffRecoveryGP.Text = "Panacea / Royal Jelly (Consumable Cure)";
 
@@ -122,7 +105,7 @@ namespace _4RTools.Forms
 
             PopulateDebuffGrid(this.DebuffRecoveryGP, panaceaDebuffs, 54, rowStep);
 
-            // 3. Card 2: Special Effects & AureumRO Souls (not cured by Panacea/Royal Jelly).
+            // 2. Card 2: Special Effects and AureumRO Souls (not cured by Panacea/Royal Jelly).
             List<Buff> specialDebuffs = Buff.GetSpecialAndSoulDebuffs();
             int specialRows = (specialDebuffs.Count + 1) / 2;
             int specialHeight = 28 + (specialRows * rowStep);
@@ -134,12 +117,12 @@ namespace _4RTools.Forms
                 Name = "gbSpecialDebuffs",
                 Size = new Size(548, specialHeight),
                 TabStop = false,
-                Text = "Special Effects & Souls (Not cured by Panacea)"
+                Text = "Special Effects and Souls (Not cured by Panacea)"
             };
             PopulateDebuffGrid(this.gbSpecialDebuffs, specialDebuffs, 20, rowStep);
             this.Controls.Add(this.gbSpecialDebuffs);
 
-            // 4. Card 3: Crowd Control & Immobilization (Gear Swap / Emergency).
+            // 3. Card 3: Crowd Control and Immobilization (Gear Swap / Emergency).
             List<Buff> controlDebuffs = Buff.GetCrowdControlDebuffs();
             int controlRows = (controlDebuffs.Count + 1) / 2;
             int controlHeight = 28 + (controlRows * rowStep);
@@ -151,7 +134,7 @@ namespace _4RTools.Forms
                 Name = "gbControlDebuffs",
                 Size = new Size(548, controlHeight),
                 TabStop = false,
-                Text = "Crowd Control & Immobilization (Gear Swap / Emergency)"
+                Text = "Crowd Control and Immobilization (Gear Swap / Emergency)"
             };
             PopulateDebuffGrid(this.gbControlDebuffs, controlDebuffs, 20, rowStep);
             this.Controls.Add(this.gbControlDebuffs);
@@ -260,8 +243,6 @@ namespace _4RTools.Forms
                     return pt ? "Alma de Nightmare — use para troca rápida de DEF/imunidade ou emergência." : "Nightmare Soul — use for quick DEF/immunity swap or emergency key.";
                 case EffectStatusIDs.EFST_SPIDERWEB:
                     return pt ? "Alma de Giant Spider — quebre com ataque/skill de Fogo ou troca rápida." : "Giant Spider Soul — break with Fire attack/skill or quick swap.";
-                case EffectStatusIDs.EFST_CURSEDCIRCLE_TARGET:
-                    return pt ? "Alma de Chen Verdadeiro — use para troca rápida de DEF ou emergência." : "True Chen Soul — use for quick DEF swap or emergency action.";
                 default:
                     return pt ? "Use para troca rápida de DEF/imunidade ou ação de emergência." : "Use for quick DEF/immunity swap or emergency action.";
             }
@@ -349,8 +330,6 @@ namespace _4RTools.Forms
                         this.txtStatusKey.Text = statusMap.ContainsKey(EffectStatusIDs.SILENCE)
                             ? statusMap[EffectStatusIDs.SILENCE].ToString()
                             : Key.None.ToString();
-
-                        this.autoStandCB.Checked = statusRec.autoStand;
                     }
                     finally
                     {
@@ -394,21 +373,6 @@ namespace _4RTools.Forms
             statusRec.AddKeyToBuff(EffectStatusIDs.CURSE, k);
 
             ProfileSingleton.SetConfiguration(statusRec);
-        }
-
-        private void autoStandCB_CheckedChanged(object sender, EventArgs e)
-        {
-            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed)
-            {
-                return;
-            }
-
-            CheckBox chk = sender as CheckBox;
-            if (chk != null)
-            {
-                ProfileSingleton.GetCurrent().StatusRecovery.autoStand = chk.Checked;
-                ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().StatusRecovery);
-            }
         }
     }
 }

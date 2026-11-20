@@ -789,7 +789,6 @@ namespace _4RTools.Model
                 new Buff("Stone Curse", EffectStatusIDs.EFST_STONE, Resources._4RTools.Icons.stone_curse),
                 new Buff("Sleep", EffectStatusIDs.EFST_SLEEP, Resources._4RTools.Icons.sleep),
                 new Buff("Spider Web", EffectStatusIDs.EFST_SPIDERWEB, Resources._4RTools.Icons.spider_web),
-                new Buff("Cursed Circle", EffectStatusIDs.EFST_CURSEDCIRCLE_TARGET, Resources._4RTools.Icons.cursed_circle),
             };
         }
 

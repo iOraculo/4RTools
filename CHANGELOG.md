@@ -1,5 +1,11 @@
 # Changelogs
 
+## [v2.24.1] - 2026-11-20 — Remove Cursed Circle & Auto Stand Card + Fix GroupBox Titles
+### Removed & Fixed
+- **Removed `Campo Amaldiçoado` (`Cursed Circle`)** from `Model/Buff.cs` (`16` total AureumRO debuffs across the 3 cure categories: `6` Panaceia / Geleia Real, `5` Efeitos Especiais e Almas, `5` Controle e Imobilização).
+- **Removed `Postura & Utilidade` / `Levantar automaticamente`** card from `Forms/DebuffRecoveryForm.cs` (and updated the section subtitle in `Utils/LocalizationManager.cs`), bringing **Panaceia / Geleia Real** straight to the top of the tab.
+- **Fixed WinForms `&` mnemonic swallowing** in GroupBox titles (`Efeitos Especiais e Almas`, `Controle e Imobilização`).
+
 ## [v2.24.0] - 2026-11-20 — Debuffs Categorized by Cure Method & Elvira Candy Removed
 ### Changed & Removed
 - **Removed `Doce de Elvira` (`Elvira Candy`) (`Forms/DebuffRecoveryForm.cs`)**: completely removed the Elvira Candy card from the Debuff Recovery tab since the item does not exist on AureumRO (while keeping JSON schema compatibility with older profiles).

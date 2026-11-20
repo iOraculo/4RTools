@@ -885,14 +885,15 @@ namespace _4RTools.Tests
         {
             Assert.Equal(6, Buff.GetPanaceaCurableDebuffs().Count);
             Assert.Equal(5, Buff.GetSpecialAndSoulDebuffs().Count);
-            Assert.Equal(6, Buff.GetCrowdControlDebuffs().Count);
+            Assert.Equal(5, Buff.GetCrowdControlDebuffs().Count);
 
             List<Buff> debuffs = Buff.GetDebuffs();
-            Assert.Equal(17, debuffs.Count);
+            Assert.Equal(16, debuffs.Count);
 
-            // Renewal-only debuffs that do not exist in AureumRO remain excluded.
+            // Debuffs that do not exist in AureumRO remain excluded.
             Assert.DoesNotContain(debuffs, b => b.effectStatusID == EffectStatusIDs.EFST_DEEP_SLEEP);
             Assert.DoesNotContain(debuffs, b => b.effectStatusID == EffectStatusIDs.EFST_HANDICAPSTATE_MISFORTUNE);
+            Assert.DoesNotContain(debuffs, b => b.effectStatusID == EffectStatusIDs.EFST_CURSEDCIRCLE_TARGET);
 
             // AureumRO Almas status effects must all be present with non-null icons.
             EffectStatusIDs[] expectedAlmasDebuffs = new EffectStatusIDs[]
@@ -904,8 +905,7 @@ namespace _4RTools.Tests
                 EffectStatusIDs.EFST_FREEZE,              // Congelamento (Alma de Ktullanux / Violy / Swordfish)
                 EffectStatusIDs.EFST_SLEEP,               // Sono (Alma de Nightmare)
                 EffectStatusIDs.EFST_STONE,               // Petrificação (Alma de Medusa / Phreeoni)
-                EffectStatusIDs.EFST_SPIDERWEB,           // Prisão da Teia (Alma de Giant Spider)
-                EffectStatusIDs.EFST_CURSEDCIRCLE_TARGET  // Campo Amaldiçoado (Alma de Chen Verdadeiro)
+                EffectStatusIDs.EFST_SPIDERWEB            // Prisão da Teia (Alma de Giant Spider)
             };
             foreach (EffectStatusIDs statusId in expectedAlmasDebuffs)
             {
@@ -924,9 +924,11 @@ namespace _4RTools.Tests
             Subject subject = new Subject();
             using (DebuffRecoveryForm form = new DebuffRecoveryForm(subject))
             {
-                // Elvira Candy group must be removed from the form.
+                // Elvira Candy and Auto Stand cards must be removed from the form.
                 Assert.Empty(form.Controls.Find("groupBox1", true));
                 Assert.Empty(form.Controls.Find("txtNewStatusKey", true));
+                Assert.Empty(form.Controls.Find("StatusRecoveryGP", true));
+                Assert.Empty(form.Controls.Find("autoStandCB", true));
 
                 // Categorized cards must exist and single-key Panacea shortcut must be inside DebuffRecoveryGP.
                 Assert.Single(form.Controls.Find("DebuffRecoveryGP", true));
@@ -946,7 +948,6 @@ namespace _4RTools.Tests
                 Assert.Equal("Hipotermia", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.EFST_FREEZING, true)[0].Text);
                 Assert.Equal("Queimadura", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.EFST_BURNING, true)[0].Text);
                 Assert.Equal("Petrificação", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.EFST_STONE, true)[0].Text);
-                Assert.Equal("Campo Amaldiçoado", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.EFST_CURSEDCIRCLE_TARGET, true)[0].Text);
             }
         }
     }
