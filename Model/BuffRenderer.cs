@@ -154,8 +154,11 @@ namespace _4RTools.Model
                     continue;
                 }
 
+                string groupText = bk.container.Text ?? string.Empty;
+                string altGroupText = LocalizationManager.GetAlternateLanguageText(groupText);
                 bool groupMatches = query.Length > 0
-                    && LocalizationManager.MatchesSearchText(bk.container.Text, query);
+                    && (LocalizationManager.MatchesSearchText(groupText, query)
+                        || LocalizationManager.MatchesSearchText(altGroupText, query));
 
                 bk.container.SuspendLayout();
 

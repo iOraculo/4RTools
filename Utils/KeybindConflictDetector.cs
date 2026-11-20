@@ -71,7 +71,7 @@ namespace _4RTools.Utils
             {
                 foreach (KeyValuePair<EffectStatusIDs, Key> entry in profile.Autobuff.GetBuffMappingSnapshot())
                 {
-                    AddUsage(usagesByKey, entry.Value, LocalizationManager.T("usage.autobuff", entry.Key));
+                    AddUsage(usagesByKey, entry.Value, LocalizationManager.T("usage.autobuff", Buff.GetDisplayName(entry.Key)));
                 }
             }
 

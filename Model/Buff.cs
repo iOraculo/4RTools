@@ -120,9 +120,67 @@ namespace _4RTools.Model
             EffectStatusIDs.ACCURACY
         };
 
+        private static readonly Lazy<Dictionary<EffectStatusIDs, string>> StatusToRawName =
+            new Lazy<Dictionary<EffectStatusIDs, string>>(BuildStatusToRawNameLookup);
+
         public static bool IsPreRenewalSkill(EffectStatusIDs statusId)
         {
             return PreRenewalSkillIds.Contains(statusId);
+        }
+
+        public static string GetDisplayName(EffectStatusIDs statusId)
+        {
+            string rawName;
+            if (StatusToRawName.Value.TryGetValue(statusId, out rawName))
+            {
+                return LocalizationManager.GetBuffDisplayName(rawName);
+            }
+
+            return statusId.ToString();
+        }
+
+        private static Dictionary<EffectStatusIDs, string> BuildStatusToRawNameLookup()
+        {
+            Dictionary<EffectStatusIDs, string> map = new Dictionary<EffectStatusIDs, string>();
+
+            // Register primary class skills and consumables before overlapping aliases
+            // (e.g., Concentration/Endure skills before boxes; Elemental Converters before Taekwon Mild Wind).
+            RegisterRawNames(map, GetArcherSkills());
+            RegisterRawNames(map, GetSwordmanSkill());
+            RegisterRawNames(map, GetMageSkills());
+            RegisterRawNames(map, GetMerchantSkills());
+            RegisterRawNames(map, GetThiefSkills());
+            RegisterRawNames(map, GetAcolyteSkills());
+            RegisterRawNames(map, GetNinjaSkills());
+            RegisterRawNames(map, GetGunsSkills());
+            RegisterRawNames(map, GetSummonerSkills());
+            RegisterRawNames(map, GetSoulAsceticSkills());
+            RegisterRawNames(map, GetNightWatchSkills());
+            RegisterRawNames(map, GetHyperNoviceSkills());
+            RegisterRawNames(map, GetHomunculusBuffs());
+            RegisterRawNames(map, GetPotionsBuffs());
+            RegisterRawNames(map, GetElementalsBuffs());
+            RegisterRawNames(map, GetFoodBuffs());
+            RegisterRawNames(map, GetBoxesBuffs());
+            RegisterRawNames(map, GetScrollBuffs());
+            RegisterRawNames(map, GetETCBuffs());
+            RegisterRawNames(map, GetCandiesBuffs());
+            RegisterRawNames(map, GetEXPBuffs());
+            RegisterRawNames(map, GetTaekwonSkills());
+            RegisterRawNames(map, GetDebuffs());
+
+            return map;
+        }
+
+        private static void RegisterRawNames(Dictionary<EffectStatusIDs, string> map, List<Buff> buffs)
+        {
+            foreach (Buff buff in buffs)
+            {
+                if (buff != null && !map.ContainsKey(buff.effectStatusID))
+                {
+                    map[buff.effectStatusID] = buff.name;
+                }
+            }
         }
 
         //--------------------- SKILLS ------------------------------
@@ -242,7 +300,7 @@ namespace _4RTools.Model
                 new Buff("Cart Boost", EffectStatusIDs.CARTBOOST, Resources._4RTools.Icons.ws_cartboost),
                 new Buff("Meltdown", EffectStatusIDs.MELTDOWN, Resources._4RTools.Icons.ws_meltdown),
                 new Buff("Acceleration", EffectStatusIDs.ACCELERATION, Resources._4RTools.Icons.mec_acceleration),
-                new Buff("Cart Boost", EffectStatusIDs.GN_CARTBOOST, Resources._4RTools.Icons.cart_boost),
+                new Buff("Cart Boost (Genetic)", EffectStatusIDs.GN_CARTBOOST, Resources._4RTools.Icons.cart_boost),
                 new Buff("Research Report", EffectStatusIDs.EFST_RESEARCHREPORT, Resources._4RTools.Icons.researchreport),
                 new Buff("Create Hell Tree", EffectStatusIDs.EFST_BO_HELL_DUSTY, Resources._4RTools.Icons.create_hell_tree),
             };
