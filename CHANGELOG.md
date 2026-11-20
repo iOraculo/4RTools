@@ -1,5 +1,13 @@
 # Changelogs
 
+## [v2.25.0] - 2026-11-20 — Clean Debuff Recovery (Item & Skill Curable Only)
+### Changed & Removed
+- **Kept strictly the 7 self-curable Pre-Renewal debuffs in `Recuperação de Debuffs` (`Model/Buff.cs`, `Forms/DebuffRecoveryForm.cs`, `Utils/LocalizationManager.cs`)**:
+  - Removed all Soul-inflicted, crowd-control, and non-curable statuses (*Hipotermia*, *Queimadura*, *Sangramento*, *Ferimento Crítico*, *Atordoamento*, *Congelamento*, *Petrificação*, *Sono*, *Prisão da Teia*) that cannot be cured via consumable or self-cast skill on AureumRO.
+  - Fits cleanly on a single screen with zero scrolling in 2 clear cards:
+    1. **Panaceia / Geleia Real (Cura por Consumível)** (`6`): *Envenenamento*, *Silêncio*, *Cegueira*, *Maldição*, *Confusão / Caos*, *Alucinação* + **`Tecla única (todos os 6)`** shortcut.
+    2. **Aumentar Agilidade / Velocidade** (`1`): *Diminuir Agilidade* (*Aumentar AGI / Pergaminho / Guyak / Guaraná*).
+
 ## [v2.24.1] - 2026-11-20 — Remove Cursed Circle & Auto Stand Card + Fix GroupBox Titles
 ### Removed & Fixed
 - **Removed `Campo Amaldiçoado` (`Cursed Circle`)** from `Model/Buff.cs` (`16` total AureumRO debuffs across the 3 cure categories: `6` Panaceia / Geleia Real, `5` Efeitos Especiais e Almas, `5` Controle e Imobilização).

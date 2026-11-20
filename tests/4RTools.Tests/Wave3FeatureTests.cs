@@ -881,44 +881,40 @@ namespace _4RTools.Tests
         }
 
         [Fact]
-        public void DebuffRecoveryForm_CategorizesDebuffsByCureAndRemovesElviraCandy()
+        public void DebuffRecoveryForm_ShowsOnlyItemAndSkillCurableDebuffs()
         {
             Assert.Equal(6, Buff.GetPanaceaCurableDebuffs().Count);
-            Assert.Equal(5, Buff.GetSpecialAndSoulDebuffs().Count);
-            Assert.Equal(5, Buff.GetCrowdControlDebuffs().Count);
+            Assert.Single(Buff.GetAgilityDebuffs());
 
             List<Buff> debuffs = Buff.GetDebuffs();
-            Assert.Equal(16, debuffs.Count);
+            Assert.Equal(7, debuffs.Count);
 
-            // Debuffs that do not exist in AureumRO remain excluded.
-            Assert.DoesNotContain(debuffs, b => b.effectStatusID == EffectStatusIDs.EFST_DEEP_SLEEP);
-            Assert.DoesNotContain(debuffs, b => b.effectStatusID == EffectStatusIDs.EFST_HANDICAPSTATE_MISFORTUNE);
-            Assert.DoesNotContain(debuffs, b => b.effectStatusID == EffectStatusIDs.EFST_CURSEDCIRCLE_TARGET);
-
-            // AureumRO Almas status effects must all be present with non-null icons.
-            EffectStatusIDs[] expectedAlmasDebuffs = new EffectStatusIDs[]
+            // Non-curable, Soul-only, crowd-control, and Renewal-only debuffs must be excluded.
+            EffectStatusIDs[] excludedDebuffs = new EffectStatusIDs[]
             {
-                EffectStatusIDs.EFST_FREEZING,            // Hipotermia (Alma de Iceicle)
-                EffectStatusIDs.EFST_BURNING,             // Queimadura (Alma de Imp / Salamander)
-                EffectStatusIDs.BLIND,                    // Cegueira (Alma de Waste Stove / Grizzly)
-                EffectStatusIDs.HALLUCINATION,            // Alucinação (Alma de Crab / Tengu)
-                EffectStatusIDs.EFST_FREEZE,              // Congelamento (Alma de Ktullanux / Violy / Swordfish)
-                EffectStatusIDs.EFST_SLEEP,               // Sono (Alma de Nightmare)
-                EffectStatusIDs.EFST_STONE,               // Petrificação (Alma de Medusa / Phreeoni)
-                EffectStatusIDs.EFST_SPIDERWEB            // Prisão da Teia (Alma de Giant Spider)
+                EffectStatusIDs.EFST_FREEZING,
+                EffectStatusIDs.EFST_BURNING,
+                EffectStatusIDs.EFST_BLEEDING,
+                EffectStatusIDs.CRITICALWOUND,
+                EffectStatusIDs.EFST_STUN,
+                EffectStatusIDs.EFST_FREEZE,
+                EffectStatusIDs.EFST_STONE,
+                EffectStatusIDs.EFST_SLEEP,
+                EffectStatusIDs.EFST_SPIDERWEB,
+                EffectStatusIDs.EFST_CURSEDCIRCLE_TARGET,
+                EffectStatusIDs.EFST_DEEP_SLEEP,
+                EffectStatusIDs.EFST_HANDICAPSTATE_MISFORTUNE
             };
-            foreach (EffectStatusIDs statusId in expectedAlmasDebuffs)
+            foreach (EffectStatusIDs excluded in excludedDebuffs)
             {
-                Buff found = debuffs.FirstOrDefault(b => b.effectStatusID == statusId);
-                Assert.NotNull(found);
-                Assert.NotNull(found.icon);
+                Assert.DoesNotContain(debuffs, b => b.effectStatusID == excluded);
             }
 
-            // Canonical alias resolution for rAthena client status IDs.
-            Assert.Equal(EffectStatusIDs.EFST_BURNING, DebuffsRecovery.ResolveCanonicalStatus(EffectStatusIDs.EFST_BURNT));
-            Assert.Equal(EffectStatusIDs.EFST_FREEZING, DebuffsRecovery.ResolveCanonicalStatus(EffectStatusIDs.MISTY_FROST));
-            Assert.Equal(EffectStatusIDs.EFST_BLEEDING, DebuffsRecovery.ResolveCanonicalStatus(EffectStatusIDs.EFST_HEALTHSTATE_BLOODING));
-            Assert.Equal(EffectStatusIDs.EFST_STONE, DebuffsRecovery.ResolveCanonicalStatus(EffectStatusIDs.EFST_STONE_ING));
+            // All 7 curable debuffs must have non-null icons.
+            foreach (Buff debuff in debuffs)
+            {
+                Assert.NotNull(debuff.icon);
+            }
 
             LocalizationManager.SetLanguage(LocalizationManager.LANG_PT_BR);
             Subject subject = new Subject();
@@ -932,8 +928,7 @@ namespace _4RTools.Tests
 
                 // Categorized cards must exist and single-key Panacea shortcut must be inside DebuffRecoveryGP.
                 Assert.Single(form.Controls.Find("DebuffRecoveryGP", true));
-                Assert.Single(form.Controls.Find("gbSpecialDebuffs", true));
-                Assert.Single(form.Controls.Find("gbControlDebuffs", true));
+                Assert.Single(form.Controls.Find("gbAgilityDebuffs", true));
                 Assert.Equal("DebuffRecoveryGP", form.Controls.Find("txtStatusKey", true)[0].Parent.Name);
 
                 foreach (Buff debuff in debuffs)
@@ -945,9 +940,10 @@ namespace _4RTools.Tests
                     Assert.False(string.IsNullOrWhiteSpace(labelMatches[0].Text));
                 }
 
-                Assert.Equal("Hipotermia", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.EFST_FREEZING, true)[0].Text);
-                Assert.Equal("Queimadura", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.EFST_BURNING, true)[0].Text);
-                Assert.Equal("Petrificação", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.EFST_STONE, true)[0].Text);
+                Assert.Equal("Envenenamento", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.POISON, true)[0].Text);
+                Assert.Equal("Cegueira", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.BLIND, true)[0].Text);
+                Assert.Equal("Alucinação", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.HALLUCINATION, true)[0].Text);
+                Assert.Equal("Diminuir Agilidade", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.EFST_DECREASE_AGI, true)[0].Text);
             }
         }
     }

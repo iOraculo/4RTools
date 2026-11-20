@@ -754,7 +754,7 @@ namespace _4RTools.Model
             return skills;
         }
 
-        //--------------------- DEBUFFS (Pre-Renewal + AureumRO Almas, categorized by cure) ----------------
+        //--------------------- DEBUFFS (Pre-Renewal AureumRO — only item/skill curable) ----------------
         public static List<Buff> GetPanaceaCurableDebuffs()
         {
             return new List<Buff>
@@ -768,27 +768,11 @@ namespace _4RTools.Model
             };
         }
 
-        public static List<Buff> GetSpecialAndSoulDebuffs()
+        public static List<Buff> GetAgilityDebuffs()
         {
             return new List<Buff>
             {
                 new Buff("Decrease Agi", EffectStatusIDs.EFST_DECREASE_AGI, Resources._4RTools.Icons.decrease_agi),
-                new Buff("FREEZING", EffectStatusIDs.EFST_FREEZING, Resources._4RTools.Icons.freezing),
-                new Buff("Burning", EffectStatusIDs.EFST_BURNING, Resources._4RTools.Icons.burning),
-                new Buff("Bleeding", EffectStatusIDs.EFST_BLEEDING, Resources._4RTools.Icons.bleeding),
-                new Buff("Critical Wounds", EffectStatusIDs.CRITICALWOUND, Resources._4RTools.Icons.critical_wound),
-            };
-        }
-
-        public static List<Buff> GetCrowdControlDebuffs()
-        {
-            return new List<Buff>
-            {
-                new Buff("STUN", EffectStatusIDs.EFST_STUN, Resources._4RTools.Icons.stun),
-                new Buff("Frozen", EffectStatusIDs.EFST_FREEZE, Resources._4RTools.Icons.frozen),
-                new Buff("Stone Curse", EffectStatusIDs.EFST_STONE, Resources._4RTools.Icons.stone_curse),
-                new Buff("Sleep", EffectStatusIDs.EFST_SLEEP, Resources._4RTools.Icons.sleep),
-                new Buff("Spider Web", EffectStatusIDs.EFST_SPIDERWEB, Resources._4RTools.Icons.spider_web),
             };
         }
 
@@ -796,8 +780,7 @@ namespace _4RTools.Model
         {
             List<Buff> all = new List<Buff>();
             all.AddRange(GetPanaceaCurableDebuffs());
-            all.AddRange(GetSpecialAndSoulDebuffs());
-            all.AddRange(GetCrowdControlDebuffs());
+            all.AddRange(GetAgilityDebuffs());
             return all;
         }
     }
