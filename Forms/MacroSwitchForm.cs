@@ -75,7 +75,7 @@ namespace _4RTools.Forms
 
                 this.btnAddSwitch = new Button
                 {
-                    Cursor = Cursors.Hand,
+                    Cursor = System.Windows.Forms.Cursors.Hand,
                     Name = "btnAddSwitchLane",
                     Size = new Size(166, 25),
                     Text = "+ Add Switch",
@@ -158,7 +158,7 @@ namespace _4RTools.Forms
                 CheckBox clickCheck = new CheckBox
                 {
                     AutoSize = true,
-                    Cursor = Cursors.Hand,
+                    Cursor = System.Windows.Forms.Cursors.Hand,
                     Location = new Point(x, 71),
                     Name = keyName + "click",
                     Text = "Click",
@@ -194,7 +194,7 @@ namespace _4RTools.Forms
             lane.LoopCheck = new CheckBox
             {
                 AutoSize = true,
-                Cursor = Cursors.Hand,
+                Cursor = System.Windows.Forms.Cursors.Hand,
                 Location = new Point(8, 71),
                 Name = "loopMac" + id,
                 Text = "Loop",
@@ -206,7 +206,7 @@ namespace _4RTools.Forms
 
             lane.BtnAddSlot = new Button
             {
-                Cursor = Cursors.Hand,
+                Cursor = System.Windows.Forms.Cursors.Hand,
                 Location = new Point(66, 93),
                 Name = "btnAddSlotMac" + id,
                 Size = new Size(122, 22),
@@ -219,7 +219,7 @@ namespace _4RTools.Forms
 
             lane.BtnRemoveSlot = new Button
             {
-                Cursor = Cursors.Hand,
+                Cursor = System.Windows.Forms.Cursors.Hand,
                 Location = new Point(194, 93),
                 Name = "btnRemoveSlotMac" + id,
                 Size = new Size(118, 22),
@@ -232,7 +232,7 @@ namespace _4RTools.Forms
 
             lane.BtnClearLane = new Button
             {
-                Cursor = Cursors.Hand,
+                Cursor = System.Windows.Forms.Cursors.Hand,
                 Location = new Point(id == 1 ? 472 : 374, 93),
                 Name = "btnClearMac" + id,
                 Size = new Size(id == 1 ? 66 : 62, 22),
@@ -247,7 +247,7 @@ namespace _4RTools.Forms
             {
                 lane.BtnRemoveLane = new Button
                 {
-                    Cursor = Cursors.Hand,
+                    Cursor = System.Windows.Forms.Cursors.Hand,
                     Location = new Point(442, 93),
                     Name = "btnRemoveLaneMac" + id,
                     Size = new Size(96, 22),
