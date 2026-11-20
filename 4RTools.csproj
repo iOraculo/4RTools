@@ -266,6 +266,9 @@
     <Compile Include="Forms\MiniHudForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Forms\MacrosHubForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\ServersForm.cs">
       <SubType>Form</SubType>
     </Compile>

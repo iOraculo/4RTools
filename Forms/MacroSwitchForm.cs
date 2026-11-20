@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Windows.Input;
 using _4RTools.Model;
@@ -15,7 +14,7 @@ namespace _4RTools.Forms
         public const int MAX_SLOTS_PER_LANE = 7;
 
         private const int LANE_WIDTH = 548;
-        private const int LANE_HEIGHT = 122;
+        private const int LANE_HEIGHT = 158;
         private const int LANE_LEFT = 10;
         private const int LANE_TOP_START = 8;
         private const int LANE_SPACING = 10;
@@ -26,6 +25,7 @@ namespace _4RTools.Forms
         {
             public int Id;
             public GroupBox Group;
+            public TextBox TriggerBox;
             public TextBox[] KeyBoxes = new TextBox[MAX_SLOTS_PER_LANE];
             public NumericUpDown[] DelayInputs = new NumericUpDown[MAX_SLOTS_PER_LANE];
             public CheckBox[] ClickChecks = new CheckBox[MAX_SLOTS_PER_LANE];
@@ -106,10 +106,94 @@ namespace _4RTools.Forms
             };
             lane.Group = group;
 
-            Label lblKeys = new Label
+            // Row 0: Dedicated Trigger key + Loop + Clear / Remove Switch
+            Label lblTrigger = new Label
             {
                 AutoSize = false,
                 Location = new Point(4, 21),
+                Size = new Size(58, 18),
+                Text = "Trigger:",
+                TextAlign = ContentAlignment.MiddleRight
+            };
+
+            lane.TriggerBox = new TextBox
+            {
+                Location = new Point(66, 20),
+                Name = "inTriggerSwitch" + id,
+                Size = new Size(52, 20),
+                Tag = id + ":Trigger",
+                Text = Key.None.ToString()
+            };
+            lane.TriggerBox.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
+            lane.TriggerBox.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
+            lane.TriggerBox.TextChanged += new EventHandler(this.onTriggerTextChange);
+
+            lane.LoopCheck = new CheckBox
+            {
+                AutoSize = true,
+                Cursor = System.Windows.Forms.Cursors.Hand,
+                Location = new Point(128, 21),
+                Name = "loopMac" + id,
+                Text = "Loop",
+                Tag = id,
+                UseVisualStyleBackColor = true
+            };
+            lane.LoopCheck.CheckedChanged += new EventHandler(this.onLoopCheckedChanged);
+
+            Label lblTriggerHint = new Label
+            {
+                AutoSize = true,
+                Location = new Point(184, 23),
+                Tag = ThemeManager.TAG_MUTED_TEXT,
+                Text = "(Key that triggers this switch)"
+            };
+
+            lane.BtnClearLane = new Button
+            {
+                Cursor = System.Windows.Forms.Cursors.Hand,
+                Location = new Point(id == 1 ? 472 : 374, 19),
+                Name = "btnClearMac" + id,
+                Size = new Size(id == 1 ? 66 : 62, 22),
+                Text = "Clear",
+                Tag = id,
+                UseVisualStyleBackColor = true
+            };
+            lane.BtnClearLane.Click += OnClearLaneClick;
+
+            Panel headerDivider = new Panel
+            {
+                Location = new Point(10, 47),
+                Size = new Size(LANE_WIDTH - 20, 1)
+            };
+
+            group.Controls.Add(lblTrigger);
+            group.Controls.Add(lane.TriggerBox);
+            group.Controls.Add(lane.LoopCheck);
+            group.Controls.Add(lblTriggerHint);
+            group.Controls.Add(lane.BtnClearLane);
+            group.Controls.Add(headerDivider);
+
+            if (id > 1)
+            {
+                lane.BtnRemoveLane = new Button
+                {
+                    Cursor = System.Windows.Forms.Cursors.Hand,
+                    Location = new Point(442, 19),
+                    Name = "btnRemoveLaneMac" + id,
+                    Size = new Size(96, 22),
+                    Text = "Remove Switch",
+                    Tag = id,
+                    UseVisualStyleBackColor = true
+                };
+                lane.BtnRemoveLane.Click += OnRemoveLaneClick;
+                group.Controls.Add(lane.BtnRemoveLane);
+            }
+
+            // Sequence area below the divider
+            Label lblKeys = new Label
+            {
+                AutoSize = false,
+                Location = new Point(4, 57),
                 Size = new Size(58, 18),
                 Text = "Keys:",
                 TextAlign = ContentAlignment.MiddleRight
@@ -118,7 +202,7 @@ namespace _4RTools.Forms
             Label lblDelay = new Label
             {
                 AutoSize = false,
-                Location = new Point(2, 46),
+                Location = new Point(2, 82),
                 Size = new Size(60, 18),
                 Text = "Delays(ms):",
                 TextAlign = ContentAlignment.MiddleRight
@@ -135,7 +219,7 @@ namespace _4RTools.Forms
 
                 TextBox tb = new TextBox
                 {
-                    Location = new Point(x, 20),
+                    Location = new Point(x, 56),
                     Name = keyName,
                     Size = new Size(50, 20),
                     Text = Key.None.ToString()
@@ -146,7 +230,7 @@ namespace _4RTools.Forms
 
                 NumericUpDown delay = new NumericUpDown
                 {
-                    Location = new Point(x, 45),
+                    Location = new Point(x, 81),
                     Maximum = 99999,
                     Minimum = 0,
                     Name = keyName + "delay",
@@ -159,7 +243,7 @@ namespace _4RTools.Forms
                 {
                     AutoSize = true,
                     Cursor = System.Windows.Forms.Cursors.Hand,
-                    Location = new Point(x, 71),
+                    Location = new Point(x, 106),
                     Name = keyName + "click",
                     Text = "Click",
                     UseVisualStyleBackColor = true
@@ -179,7 +263,7 @@ namespace _4RTools.Forms
                     Label arrow = new Label
                     {
                         AutoSize = false,
-                        Location = new Point(x + 51, 21),
+                        Location = new Point(x + 51, 57),
                         Name = "arrow" + slotNum + "mac" + id,
                         Size = new Size(16, 18),
                         Tag = ThemeManager.TAG_ACCENT_TEXT,
@@ -191,23 +275,10 @@ namespace _4RTools.Forms
                 }
             }
 
-            lane.LoopCheck = new CheckBox
-            {
-                AutoSize = true,
-                Cursor = System.Windows.Forms.Cursors.Hand,
-                Location = new Point(8, 71),
-                Name = "loopMac" + id,
-                Text = "Loop",
-                Tag = id,
-                UseVisualStyleBackColor = true
-            };
-            lane.LoopCheck.CheckedChanged += new EventHandler(this.onLoopCheckedChanged);
-            group.Controls.Add(lane.LoopCheck);
-
             lane.BtnAddSlot = new Button
             {
                 Cursor = System.Windows.Forms.Cursors.Hand,
-                Location = new Point(66, 93),
+                Location = new Point(66, 128),
                 Name = "btnAddSlotMac" + id,
                 Size = new Size(122, 22),
                 Text = "+ Add Slot",
@@ -220,7 +291,7 @@ namespace _4RTools.Forms
             lane.BtnRemoveSlot = new Button
             {
                 Cursor = System.Windows.Forms.Cursors.Hand,
-                Location = new Point(194, 93),
+                Location = new Point(194, 128),
                 Name = "btnRemoveSlotMac" + id,
                 Size = new Size(118, 22),
                 Text = "- Remove Slot",
@@ -229,35 +300,6 @@ namespace _4RTools.Forms
             };
             lane.BtnRemoveSlot.Click += OnRemoveSlotClick;
             group.Controls.Add(lane.BtnRemoveSlot);
-
-            lane.BtnClearLane = new Button
-            {
-                Cursor = System.Windows.Forms.Cursors.Hand,
-                Location = new Point(id == 1 ? 472 : 374, 93),
-                Name = "btnClearMac" + id,
-                Size = new Size(id == 1 ? 66 : 62, 22),
-                Text = "Clear",
-                Tag = id,
-                UseVisualStyleBackColor = true
-            };
-            lane.BtnClearLane.Click += OnClearLaneClick;
-            group.Controls.Add(lane.BtnClearLane);
-
-            if (id > 1)
-            {
-                lane.BtnRemoveLane = new Button
-                {
-                    Cursor = System.Windows.Forms.Cursors.Hand,
-                    Location = new Point(442, 93),
-                    Name = "btnRemoveLaneMac" + id,
-                    Size = new Size(96, 22),
-                    Text = "Remove Switch",
-                    Tag = id,
-                    UseVisualStyleBackColor = true
-                };
-                lane.BtnRemoveLane.Click += OnRemoveLaneClick;
-                group.Controls.Add(lane.BtnRemoveLane);
-            }
 
             return lane;
         }
@@ -269,7 +311,7 @@ namespace _4RTools.Forms
                 return;
             }
 
-            string triggerTip = LocalizationManager.T("tooltip.switch_trigger_key");
+            string triggerTip = LocalizationManager.T("tooltip.switch_trigger_dedicated");
             string stepTip = LocalizationManager.T("tooltip.switch_step_key");
             string delayTip = LocalizationManager.T("tooltip.switch_delay");
             string loopTip = LocalizationManager.T("tooltip.switch_loop");
@@ -282,10 +324,11 @@ namespace _4RTools.Forms
                     continue;
                 }
 
+                this.switchToolTip.SetToolTip(lane.TriggerBox, triggerTip);
                 this.switchToolTip.SetToolTip(lane.LoopCheck, loopTip);
                 for (int s = 0; s < MAX_SLOTS_PER_LANE; s++)
                 {
-                    this.switchToolTip.SetToolTip(lane.KeyBoxes[s], s == 0 ? triggerTip : stepTip);
+                    this.switchToolTip.SetToolTip(lane.KeyBoxes[s], stepTip);
                     this.switchToolTip.SetToolTip(lane.DelayInputs[s], delayTip);
                 }
             }
@@ -317,8 +360,11 @@ namespace _4RTools.Forms
                     }
                 }
 
+                lane.BtnAddSlot.Visible = visible < MAX_SLOTS_PER_LANE;
                 lane.BtnAddSlot.Enabled = visible < MAX_SLOTS_PER_LANE;
+                lane.BtnRemoveSlot.Visible = visible > 1;
                 lane.BtnRemoveSlot.Enabled = visible > 1;
+                lane.BtnRemoveSlot.Location = new Point(visible < MAX_SLOTS_PER_LANE ? 194 : 66, 128);
             }
             finally
             {
@@ -437,6 +483,7 @@ namespace _4RTools.Forms
             this.isUpdatingUi = true;
             try
             {
+                lane.TriggerBox.Text = Key.None.ToString();
                 for (int s = 0; s < MAX_SLOTS_PER_LANE; s++)
                 {
                     lane.KeyBoxes[s].Text = Key.None.ToString();
@@ -579,6 +626,7 @@ namespace _4RTools.Forms
                 ChainConfig existing = macroSwitch.chainConfigs.Find(cfg => cfg.id == id);
                 ChainConfig chainConfig = existing != null ? new ChainConfig(existing) : new ChainConfig(id);
 
+                lane.TriggerBox.Text = chainConfig.trigger.ToString();
                 for (int s = 0; s < MAX_SLOTS_PER_LANE; s++)
                 {
                     lane.KeyBoxes[s].Text = Key.None.ToString();
@@ -606,7 +654,7 @@ namespace _4RTools.Forms
                     }
                 }
 
-                lane.IsLaneVisible = (id == 1) || highestSlot > 0 || chainConfig.infinityLoop;
+                lane.IsLaneVisible = (id == 1) || chainConfig.trigger != Key.None || highestSlot > 0 || chainConfig.infinityLoop;
                 lane.VisibleSlots = Math.Max(1, highestSlot);
             }
             catch (Exception ex)
@@ -630,6 +678,42 @@ namespace _4RTools.Forms
             }
 
             return chainConfig;
+        }
+
+        private void onTriggerTextChange(object sender, EventArgs e)
+        {
+            if (this.isUpdatingUi || ProfileSingleton.IsSaveSuppressed)
+            {
+                return;
+            }
+
+            TextBox textBox = sender as TextBox;
+            if (textBox == null || textBox.Tag == null)
+            {
+                return;
+            }
+
+            string[] parts = textBox.Tag.ToString().Split(new[] { ":" }, StringSplitOptions.None);
+            if (parts.Length < 1)
+            {
+                return;
+            }
+
+            int chainID;
+            if (!int.TryParse(parts[0], out chainID))
+            {
+                return;
+            }
+
+            Key key;
+            if (!KeyHelper.TryParseKey(textBox.Text, out key))
+            {
+                return;
+            }
+
+            ChainConfig chainConfig = GetOrCreateChainConfig(chainID);
+            chainConfig.trigger = key;
+            ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().MacroSwitch);
         }
 
         private void onTextChange(object sender, EventArgs e)
@@ -670,13 +754,6 @@ namespace _4RTools.Forms
             }
 
             chainConfig.macroEntries[textBox.Name] = new MacroKey(key, delayVal, hasClick);
-
-            bool isFirstInput = Regex.IsMatch(textBox.Name, "^in1mac" + chainID + "$");
-            if (isFirstInput)
-            {
-                chainConfig.trigger = key;
-            }
-
             ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().MacroSwitch);
         }
 

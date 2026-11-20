@@ -409,8 +409,11 @@ namespace _4RTools.Forms
                     }
                 }
 
+                lane.BtnAddSlot.Visible = visible < MAX_SONG_SLOTS_PER_LANE;
                 lane.BtnAddSlot.Enabled = visible < MAX_SONG_SLOTS_PER_LANE;
+                lane.BtnRemoveSlot.Visible = visible > 1;
                 lane.BtnRemoveSlot.Enabled = visible > 1;
+                lane.BtnRemoveSlot.Location = new Point(visible < MAX_SONG_SLOTS_PER_LANE ? 144 : 10, 95);
             }
             finally
             {

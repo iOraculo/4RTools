@@ -367,7 +367,7 @@ namespace _4RTools.Tests
             string[] sectionKeys = new string[]
             {
                 "spammer", "debuff", "buff_skills", "buff_stuffs", "timers",
-                "macro_switch", "macro_songs", "atkdef", "profiles", "servers"
+                "macros", "macro_switch", "macro_songs", "atkdef", "profiles", "servers"
             };
 
             string[] langs = new string[] { LocalizationManager.LANG_PT_BR, LocalizationManager.LANG_EN_US };
@@ -850,6 +850,33 @@ namespace _4RTools.Tests
                 Assert.False(form.IsTimerVisible(2));
                 Assert.True(form.IsTimerVisible(4));
                 Assert.Equal("F8", form.Controls.Find("txtSkillTimerKey4", true)[0].Text);
+            }
+        }
+
+        [Fact]
+        public void MacrosHubForm_SwitchesBetweenTabsAndMacroSwitchHasDedicatedTriggerKey()
+        {
+            ProfileSingleton.Create("MacrosHubTest");
+            ProfileSingleton.Load("MacrosHubTest");
+
+            Subject subject = new Subject();
+            using (MacrosHubForm hub = new MacrosHubForm(subject))
+            {
+                Assert.Equal("switch", hub.ActiveTab);
+                hub.SelectTab("songs");
+                Assert.Equal("songs", hub.ActiveTab);
+                hub.SelectTab("atkdef");
+                Assert.Equal("atkdef", hub.ActiveTab);
+                hub.SelectTab("switch");
+                Assert.Equal("switch", hub.ActiveTab);
+
+                // Dedicated Trigger box exists in MacroSwitchForm and updates chainConfig.trigger independently.
+                System.Windows.Forms.Control[] triggerMatches = hub.Controls.Find("inTriggerSwitch1", true);
+                Assert.Single(triggerMatches);
+                triggerMatches[0].Text = "Q";
+
+                ChainConfig lane1 = ProfileSingleton.GetCurrent().MacroSwitch.chainConfigs.First(c => c.id == 1);
+                Assert.Equal(Key.Q, lane1.trigger);
             }
         }
     }

@@ -103,9 +103,7 @@ namespace _4RTools.Forms
             SetAutobuffSkillWindow();
             SetAutobuffStuffWindow();
             SetSkillTimerWindow();
-            SetMacroSwitchWindow();
-            SetSongMacroWindow();
-            SetATKDEFWindow();
+            SetMacrosWindow();
             SetProfileWindow();
 
             SelectSection("spammer");
@@ -315,24 +313,22 @@ namespace _4RTools.Forms
                 AddSidebarButton("buff_skills", "Autobuff - Skills", SidebarIconKind.BuffSkills, ref y);
                 AddSidebarButton("buff_stuffs", "Autobuff - Stuffs", SidebarIconKind.BuffItems, ref y);
                 AddSidebarButton("timers", "Skill timers", SidebarIconKind.Timers, ref y);
-                AddSidebarButton("macro_switch", "Macro Switch", SidebarIconKind.MacroSwitch, ref y);
-                AddSidebarButton("macro_songs", "Macro Songs", SidebarIconKind.MacroSongs, ref y);
-                AddSidebarButton("atkdef", "ATK x DEF Mode", SidebarIconKind.AtkDef, ref y);
+                AddSidebarButton("macros", "Macros", SidebarIconKind.MacroSwitch, ref y);
 
-                this.panelSidebar.Controls.Add(CreateDivider(new Point(14, 326), new Size(176, 1)));
+                this.panelSidebar.Controls.Add(CreateDivider(new Point(14, 256), new Size(176, 1)));
 
                 Label lblGroupManagement = new Label
                 {
                     AutoSize = true,
                     Font = sidebarGroupFont,
-                    Location = new Point(14, 338),
+                    Location = new Point(14, 268),
                     Name = "lblGroupManagement",
                     Text = "MANAGEMENT",
                     Tag = ThemeManager.TAG_MUTED_TEXT
                 };
                 this.panelSidebar.Controls.Add(lblGroupManagement);
 
-                y = 358;
+                y = 288;
                 AddSidebarButton("profiles", "Profiles", SidebarIconKind.Profiles, ref y);
 
                 // Live Session Summary Card anchored at the bottom of the sidebar
@@ -1655,19 +1651,9 @@ namespace _4RTools.Forms
             RegisterSectionForm("debuff", new DebuffRecoveryForm(this.subject));
         }
 
-        public void SetSongMacroWindow()
+        public void SetMacrosWindow()
         {
-            RegisterSectionForm("macro_songs", new MacroSongForm(this.subject));
-        }
-
-        public void SetATKDEFWindow()
-        {
-            RegisterSectionForm("atkdef", new ATKDEFForm(this.subject));
-        }
-
-        public void SetMacroSwitchWindow()
-        {
-            RegisterSectionForm("macro_switch", new MacroSwitchForm(this.subject));
+            RegisterSectionForm("macros", new MacrosHubForm(this.subject));
         }
 
         #endregion

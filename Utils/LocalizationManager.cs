@@ -150,6 +150,11 @@ namespace _4RTools.Utils
             { "- Remove Song", "- Remover música" },
             { "+ Add Song Macro", "+ Adicionar macro musical" },
             { "Remove Macro", "Remover macro" },
+            { "Switch Macro", "Macro Troca" },
+            { "Song Macro", "Macro Músicas" },
+            { "ATK x DEF Macro", "Macro ATK x DEF" },
+            { "Trigger:", "Gatilho:" },
+            { "(Key that triggers this switch)", "(Tecla que aciona esta troca)" },
 
             // ATKDEFForm
             { "ATK Switch", "Troca ATK" },
@@ -248,6 +253,8 @@ namespace _4RTools.Utils
             { "section.macro_songs.subtitle", "Automatize sequências musicais de Bardo/Odalisca com troca de instrumento." },
             { "section.atkdef.title", "Modo ATK x DEF" },
             { "section.atkdef.subtitle", "Alterne automaticamente entre equipamentos de ataque e defesa durante o spam." },
+            { "section.macros.title", "Macros" },
+            { "section.macros.subtitle", "Gerencie Macro Troca, Macro Músicas e Macro ATK x DEF em um só lugar." },
             { "section.profiles.title", "Perfis, Backup e Diagnóstico" },
             { "section.profiles.subtitle", "Gerencie perfis, vínculo automático por personagem, backup .zip e conflitos de tecla." },
             { "section.servers.title", "Servidores Suportados" },
@@ -284,6 +291,7 @@ namespace _4RTools.Utils
 
             // MacroSwitchForm tooltips
             { "tooltip.switch_trigger_key", "Tecla 1 (gatilho): aperte esta tecla no jogo para executar a sequência de troca" },
+            { "tooltip.switch_trigger_dedicated", "Tecla gatilho: aperte esta tecla no jogo para executar a sequência de equipamentos abaixo" },
             { "tooltip.switch_step_key", "Próxima tecla enviada automaticamente na sequência desta troca" },
             { "tooltip.switch_delay", "Atraso em milissegundos (ms) antes de pressionar esta tecla" },
             { "tooltip.switch_loop", "Repete continuamente a sequência ao apertar o gatilho (aperte de novo para parar)" },
@@ -432,6 +440,8 @@ namespace _4RTools.Utils
             { "section.macro_songs.subtitle", "Automate Bard/Dancer song chains with automatic instrument/dagger swaps." },
             { "section.atkdef.title", "ATK x DEF Mode" },
             { "section.atkdef.subtitle", "Automatically swap between offensive and defensive gear while spamming skills." },
+            { "section.macros.title", "Macros" },
+            { "section.macros.subtitle", "Manage Switch Macro, Song Macro, and ATK x DEF Macro in one unified tab." },
             { "section.profiles.title", "Profiles, Backup & Diagnostics" },
             { "section.profiles.subtitle", "Manage profiles, auto-switch by character, full .zip backups, and keybind conflicts." },
             { "section.servers.title", "Supported Servers" },
@@ -464,6 +474,7 @@ namespace _4RTools.Utils
             { "msg.clear_stuffs_confirm", "Clear all consumable autobuff keys on this tab?" },
 
             { "tooltip.switch_trigger_key", "Key 1 (trigger): press this key in-game to run this switch chain" },
+            { "tooltip.switch_trigger_dedicated", "Trigger key: press this key in-game to run the equipment sequence below" },
             { "tooltip.switch_step_key", "Next key pressed automatically in this switch chain" },
             { "tooltip.switch_delay", "Delay in milliseconds (ms) before pressing this key" },
             { "tooltip.switch_loop", "Continuously repeat this chain when pressing the trigger (press again to stop)" },

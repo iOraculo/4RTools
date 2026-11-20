@@ -1,5 +1,11 @@
 # Changelogs
 
+## [v2.21.0] - 2026-11-20 — Unified Macros Tab & Dedicated Switch Trigger Key
+### Added & Changed
+- **Unified `Macros` Tab (`Forms/MacrosHubForm.cs`, `Forms/Container.cs`, `Forms/ATKDEFForm.cs`)**: grouped **Macro Troca**, **Macro Músicas**, and **Macro ATK x DEF** under a single **`Macros`** item in the left sidebar with 3 golden segmented sub-tabs, keeping the sidebar cleaner and more organized.
+- **Dedicated Trigger Key (`Gatilho:`) in `Macro Troca` (`Forms/MacroSwitchForm.cs`)**: added a dedicated trigger hotkey field (`inTriggerSwitch1..5`) in the header row of each switch card alongside **Loop**, **Limpar**, and **Remover troca** (matching *Macro Músicas*), allowing the trigger key to be configured independently from the equipment sequence while remaining 100% compatible with existing saved profiles.
+- **Cleaner Progressive Action Buttons (`Forms/MacroSwitchForm.cs`, `Forms/MacroSongForm.cs`)**: hides `- Remover campo` / `- Remover música` when only 1 slot is visible (and hides `+ Adicionar` when at max slots), eliminating low-contrast disabled buttons.
+
 ## [v2.20.0] - 2026-11-20 — Pre-Renewal Common vs. ROPs Consumables & Progressive Skill Timers
 ### Added & Changed
 - **Pre-Renewal Filter + Common vs. ROPs Split on `Autobuff - Itens` (`Model/Buff.cs`, `Model/BuffRenderer.cs`, `Forms/StuffAutoBuffForm.cs`, `Forms/SkillAutoBuffForm.cs`)**:

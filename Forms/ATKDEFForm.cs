@@ -25,10 +25,10 @@ namespace _4RTools.Forms
 
         private void NormalizeLabelLayout()
         {
-            this.panelSwitch.Location = new Point(4, 4);
-            this.panelSwitch.Size = new Size(576, 268);
+            this.panelSwitch.Location = new Point(4, 2);
+            this.panelSwitch.Size = new Size(576, 240);
 
-            this.groupBoxATKxDEFConfig.Location = new Point(8, 30);
+            this.groupBoxATKxDEFConfig.Location = new Point(8, 24);
             this.groupBoxATKxDEFConfig.Size = new Size(176, 154);
 
             this.inSpammerKey.Location = new Point(104, 24);
@@ -52,10 +52,10 @@ namespace _4RTools.Forms
 
         private void ConfigureAllTenEquipmentSlots()
         {
-            this.lblDef.Location = new Point(196, 12);
-            this.panel1.Location = new Point(376, 14);
-            this.panel1.Size = new Size(1, 198);
-            this.label1.Location = new Point(388, 12);
+            this.lblDef.Location = new Point(196, 8);
+            this.panel1.Location = new Point(376, 10);
+            this.panel1.Size = new Size(1, 186);
+            this.label1.Location = new Point(388, 8);
 
             // Create the 5 newly added equipment slots for DEF (Tag = "1") and ATK (Tag = "0"):
             // Hat Top (6), Hat Mid (7), Hat Low (8), Left Accessory (9), Right Accessory (10).
@@ -83,7 +83,7 @@ namespace _4RTools.Forms
             PictureBox pbAtkAccLeft = CreateEquipIcon("pbAtkAccLeft", Resources._4RTools.Icons.equip_acc_left);
             PictureBox pbAtkAccRight = CreateEquipIcon("pbAtkAccRight", Resources._4RTools.Icons.equip_acc_right);
 
-            int[] rowY = new int[] { 38, 72, 106, 140, 174 };
+            int[] rowY = new int[] { 32, 66, 100, 134, 168 };
 
             // DEF Switch — Column 1 (Top, Mid, Low, Armor, Weapon)
             PlaceEquipSlot(pbDefTop, inDefTop, 196, rowY[0], "equip.hat_top");
