@@ -881,8 +881,12 @@ namespace _4RTools.Tests
         }
 
         [Fact]
-        public void DebuffRecoveryForm_IncludesAureumAlmasDebuffsWithFullLabelsAndAliases()
+        public void DebuffRecoveryForm_CategorizesDebuffsByCureAndRemovesElviraCandy()
         {
+            Assert.Equal(6, Buff.GetPanaceaCurableDebuffs().Count);
+            Assert.Equal(5, Buff.GetSpecialAndSoulDebuffs().Count);
+            Assert.Equal(6, Buff.GetCrowdControlDebuffs().Count);
+
             List<Buff> debuffs = Buff.GetDebuffs();
             Assert.Equal(17, debuffs.Count);
 
@@ -920,6 +924,16 @@ namespace _4RTools.Tests
             Subject subject = new Subject();
             using (DebuffRecoveryForm form = new DebuffRecoveryForm(subject))
             {
+                // Elvira Candy group must be removed from the form.
+                Assert.Empty(form.Controls.Find("groupBox1", true));
+                Assert.Empty(form.Controls.Find("txtNewStatusKey", true));
+
+                // Categorized cards must exist and single-key Panacea shortcut must be inside DebuffRecoveryGP.
+                Assert.Single(form.Controls.Find("DebuffRecoveryGP", true));
+                Assert.Single(form.Controls.Find("gbSpecialDebuffs", true));
+                Assert.Single(form.Controls.Find("gbControlDebuffs", true));
+                Assert.Equal("DebuffRecoveryGP", form.Controls.Find("txtStatusKey", true)[0].Parent.Name);
+
                 foreach (Buff debuff in debuffs)
                 {
                     System.Windows.Forms.Control[] labelMatches = form.Controls.Find("lblDebuff" + (int)debuff.effectStatusID, true);

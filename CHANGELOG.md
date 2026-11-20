@@ -1,5 +1,17 @@
 # Changelogs
 
+## [v2.24.0] - 2026-11-20 — Debuffs Categorized by Cure Method & Elvira Candy Removed
+### Changed & Removed
+- **Removed `Doce de Elvira` (`Elvira Candy`) (`Forms/DebuffRecoveryForm.cs`)**: completely removed the Elvira Candy card from the Debuff Recovery tab since the item does not exist on AureumRO (while keeping JSON schema compatibility with older profiles).
+- **Merged `Recuperação de Status` cleanly into the new layout (`Forms/DebuffRecoveryForm.cs`)**:
+  - Moved **`Levantar automaticamente (quando forçado a sentar)`** into a sleek 44px **`Postura & Utilidade`** bar at the top.
+  - Integrated the 1-key **`Panaceia / Geleia Real`** shortcut (`Tecla única (todos os 6):`) directly into the header of the **Panaceia / Geleia Real** card so players can bind all 6 curable statuses with a single key OR configure per-status keys (e.g., *Poção Verde*, *Água Benta*) right below it.
+- **Categorized all 17 AureumRO Debuffs by Cure / Counter Method (`Model/Buff.cs`, `Forms/DebuffRecoveryForm.cs`, `Utils/LocalizationManager.cs`)**:
+  1. **Panaceia / Geleia Real (Cura por Consumível)** (6): *Veneno*, *Silêncio*, *Cegueira*, *Maldição*, *Confusão / Caos*, *Alucinação*.
+  2. **Efeitos Especiais & Almas (Sem cura por Panaceia)** (5): *Diminuir Agilidade*, *Hipotermia*, *Queimadura*, *Sangramento*, *Ferimento Crítico*.
+  3. **Controle & Imobilização (Troca de Equip / Emergência)** (6): *Atordoamento*, *Congelamento*, *Petrificação*, *Sono*, *Prisão da Teia*, *Campo Amaldiçoado*.
+  - Added localized tooltips on every status detailing which consumable, skill, or action removes or counters it.
+
 ## [v2.23.0] - 2026-11-20 — AureumRO Almas Status Effects & Debuff Alias Detection
 ### Added
 - **AureumRO Almas Status Effects (`Model/Buff.cs`, `Utils/EffectStatusIDs.cs`, `Forms/DebuffRecoveryForm.cs`, `Utils/LocalizationManager.cs`, `Resources/4RTools/Icons.resx`)**:

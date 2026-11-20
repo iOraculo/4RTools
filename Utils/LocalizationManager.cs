@@ -71,8 +71,14 @@ namespace _4RTools.Utils
 
             // DebuffRecoveryForm
             { "Status Recovery", "Recuperação de Status" },
+            { "Posture & Utility", "Postura & Utilidade" },
             { "Status Effects", "Efeitos / Debuffs" },
-            { "Enable Auto Stand (when forced to sit)", "Levantar automaticamente (quando sentado)" },
+            { "Panacea / Royal Jelly (Consumable Cure)", "Panaceia / Geleia Real (Cura por Consumível)" },
+            { "Special Effects & Souls (Not cured by Panacea)", "Efeitos Especiais & Almas (Sem cura por Panaceia)" },
+            { "Crowd Control & Immobilization (Gear Swap / Emergency)", "Controle & Imobilização (Troca de Equip / Emergência)" },
+            { "Single key (all 6):", "Tecla única (todos os 6):" },
+            { "Or set by status (Green Pot / Holy Water)", "Ou defina por status (Poção Verde / Água Benta)" },
+            { "Enable Auto Stand (when forced to sit)", "Levantar automaticamente (quando forçado a sentar)" },
             { "Elvira Candy", "Doce de Elvira" },
             { "Cooldown", "Recarga" },
 

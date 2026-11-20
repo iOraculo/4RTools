@@ -754,31 +754,52 @@ namespace _4RTools.Model
             return skills;
         }
 
-        //--------------------- DEBUFFS (Pre-Renewal + AureumRO Almas) ----------------
-        public static List<Buff> GetDebuffs()
+        //--------------------- DEBUFFS (Pre-Renewal + AureumRO Almas, categorized by cure) ----------------
+        public static List<Buff> GetPanaceaCurableDebuffs()
         {
-            List<Buff> skills = new List<Buff>
+            return new List<Buff>
             {
-                new Buff("Critical Wounds", EffectStatusIDs.CRITICALWOUND, Resources._4RTools.Icons.critical_wound),
+                new Buff("Poison", EffectStatusIDs.POISON, Resources._4RTools.Icons.poison_status),
+                new Buff("Silence", EffectStatusIDs.SILENCE, Resources._4RTools.Icons.silence),
+                new Buff("Blind", EffectStatusIDs.BLIND, Resources._4RTools.Icons.blind),
+                new Buff("Curse", EffectStatusIDs.CURSE, Resources._4RTools.Icons.curse),
+                new Buff("Confusion / chaos", EffectStatusIDs.CONFUSION, Resources._4RTools.Icons.chaos),
+                new Buff("Hallucination", EffectStatusIDs.HALLUCINATION, Resources._4RTools.Icons.hallucination),
+            };
+        }
+
+        public static List<Buff> GetSpecialAndSoulDebuffs()
+        {
+            return new List<Buff>
+            {
+                new Buff("Decrease Agi", EffectStatusIDs.EFST_DECREASE_AGI, Resources._4RTools.Icons.decrease_agi),
                 new Buff("FREEZING", EffectStatusIDs.EFST_FREEZING, Resources._4RTools.Icons.freezing),
                 new Buff("Burning", EffectStatusIDs.EFST_BURNING, Resources._4RTools.Icons.burning),
-                new Buff("Curse", EffectStatusIDs.CURSE, Resources._4RTools.Icons.curse),
                 new Buff("Bleeding", EffectStatusIDs.EFST_BLEEDING, Resources._4RTools.Icons.bleeding),
-                new Buff("Silence", EffectStatusIDs.SILENCE, Resources._4RTools.Icons.silence),
-                new Buff("Decrease Agi", EffectStatusIDs.EFST_DECREASE_AGI, Resources._4RTools.Icons.decrease_agi),
-                new Buff("Confusion / chaos", EffectStatusIDs.CONFUSION, Resources._4RTools.Icons.chaos),
-                new Buff("Blind", EffectStatusIDs.BLIND, Resources._4RTools.Icons.blind),
-                new Buff("Hallucination", EffectStatusIDs.HALLUCINATION, Resources._4RTools.Icons.hallucination),
+                new Buff("Critical Wounds", EffectStatusIDs.CRITICALWOUND, Resources._4RTools.Icons.critical_wound),
+            };
+        }
+
+        public static List<Buff> GetCrowdControlDebuffs()
+        {
+            return new List<Buff>
+            {
                 new Buff("STUN", EffectStatusIDs.EFST_STUN, Resources._4RTools.Icons.stun),
-                new Buff("Poison", EffectStatusIDs.POISON, Resources._4RTools.Icons.poison_status),
                 new Buff("Frozen", EffectStatusIDs.EFST_FREEZE, Resources._4RTools.Icons.frozen),
-                new Buff("Sleep", EffectStatusIDs.EFST_SLEEP, Resources._4RTools.Icons.sleep),
                 new Buff("Stone Curse", EffectStatusIDs.EFST_STONE, Resources._4RTools.Icons.stone_curse),
+                new Buff("Sleep", EffectStatusIDs.EFST_SLEEP, Resources._4RTools.Icons.sleep),
                 new Buff("Spider Web", EffectStatusIDs.EFST_SPIDERWEB, Resources._4RTools.Icons.spider_web),
                 new Buff("Cursed Circle", EffectStatusIDs.EFST_CURSEDCIRCLE_TARGET, Resources._4RTools.Icons.cursed_circle),
             };
+        }
 
-            return skills;
+        public static List<Buff> GetDebuffs()
+        {
+            List<Buff> all = new List<Buff>();
+            all.AddRange(GetPanaceaCurableDebuffs());
+            all.AddRange(GetSpecialAndSoulDebuffs());
+            all.AddRange(GetCrowdControlDebuffs());
+            return all;
         }
     }
 }
