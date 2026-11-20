@@ -29,6 +29,13 @@ namespace _4RTools.Forms
 
             // Keep green/red/orange ON/OFF/CHAT status button colors untouched by ThemeManager.
             this.btnStatusToggle.Tag = ThemeManager.PRESERVE_COLORS_TAG;
+            this.notifyIconTray.Text = AppConfig.Name;
+
+            // Center status prompt across the groupbox so translated PT-BR strings never clip.
+            this.lblStatusToggle.AutoSize = false;
+            this.lblStatusToggle.Location = new Point(6, 80);
+            this.lblStatusToggle.Size = new Size(210, 17);
+            this.lblStatusToggle.TextAlign = ContentAlignment.MiddleCenter;
 
             this.subject = subject;
             this.subject.Attach(this);

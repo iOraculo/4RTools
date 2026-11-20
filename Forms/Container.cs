@@ -20,7 +20,7 @@ namespace _4RTools.Forms
 
         private AppSettings appSettings;
         private CheckBox cbDarkMode;
-        private CheckBox cbTopMost;
+        private CheckBox cbUseBuffsInTown;
         private CheckBox cbMiniHud;
         private ComboBox cbLanguage;
         private VitalBar hpBar;
@@ -200,26 +200,26 @@ namespace _4RTools.Forms
 
                 // Reparent client selector controls
                 this.lblProcessName.Font = uiBoldFont;
-                this.lblProcessName.Location = new Point(218, 7);
+                this.lblProcessName.Location = new Point(216, 7);
 
                 this.processCB.DropDownStyle = ComboBoxStyle.DropDownList;
                 this.processCB.Font = uiRegularFont;
-                this.processCB.Location = new Point(218, 25);
-                this.processCB.Size = new Size(176, 23);
+                this.processCB.Location = new Point(216, 25);
+                this.processCB.Size = new Size(170, 23);
 
                 this.btnRefresh.Cursor = Cursors.Hand;
                 this.btnRefresh.ImageAlign = ContentAlignment.MiddleCenter;
-                this.btnRefresh.Location = new Point(398, 24);
+                this.btnRefresh.Location = new Point(390, 24);
                 this.btnRefresh.Size = new Size(26, 24);
 
                 // Reparent profile selector controls
                 this.labelProfile.Font = uiBoldFont;
-                this.labelProfile.Location = new Point(436, 7);
+                this.labelProfile.Location = new Point(426, 7);
 
                 this.profileCB.DropDownStyle = ComboBoxStyle.DropDownList;
                 this.profileCB.Font = uiRegularFont;
-                this.profileCB.Location = new Point(436, 25);
-                this.profileCB.Size = new Size(168, 23);
+                this.profileCB.Location = new Point(426, 25);
+                this.profileCB.Size = new Size(156, 23);
 
                 // Preferences block
                 this.cbDarkMode = new CheckBox
@@ -227,7 +227,7 @@ namespace _4RTools.Forms
                     AutoSize = true,
                     Cursor = Cursors.Hand,
                     Font = uiRegularFont,
-                    Location = new Point(616, 9),
+                    Location = new Point(594, 9),
                     Name = "cbDarkMode",
                     Text = "Dark Mode",
                     UseVisualStyleBackColor = true,
@@ -240,7 +240,7 @@ namespace _4RTools.Forms
                     AutoSize = true,
                     Cursor = Cursors.Hand,
                     Font = uiRegularFont,
-                    Location = new Point(724, 9),
+                    Location = new Point(708, 9),
                     Name = "cbMiniHud",
                     Text = "Mini HUD",
                     UseVisualStyleBackColor = true,
@@ -248,27 +248,27 @@ namespace _4RTools.Forms
                 };
                 this.cbMiniHud.CheckedChanged += OnMiniHudCheckedChanged;
 
-                this.cbTopMost = new CheckBox
+                this.cbUseBuffsInTown = new CheckBox
                 {
                     AutoSize = true,
                     Cursor = Cursors.Hand,
                     Font = uiRegularFont,
-                    Location = new Point(616, 32),
-                    Name = "cbTopMost",
-                    Text = "Always on Top",
+                    Location = new Point(594, 32),
+                    Name = "cbUseBuffsInTown",
+                    Text = "Use buffs in town?",
                     UseVisualStyleBackColor = true,
                     Tag = FormUtils.SKIP_RESET_TAG
                 };
-                this.cbTopMost.CheckedChanged += OnTopMostCheckedChanged;
+                this.cbUseBuffsInTown.CheckedChanged += OnUseBuffsInTownCheckedChanged;
 
                 this.cbLanguage = new ComboBox
                 {
                     DropDownStyle = ComboBoxStyle.DropDownList,
                     Font = uiRegularFont,
                     FormattingEnabled = true,
-                    Location = new Point(742, 30),
+                    Location = new Point(750, 30),
                     Name = "cbLanguage",
-                    Size = new Size(68, 22),
+                    Size = new Size(64, 22),
                     Tag = FormUtils.SKIP_RESET_TAG
                 };
                 this.cbLanguage.Items.Add("PT-BR");
@@ -286,7 +286,7 @@ namespace _4RTools.Forms
                 this.panelTopBar.Controls.Add(this.profileCB);
                 this.panelTopBar.Controls.Add(this.cbDarkMode);
                 this.panelTopBar.Controls.Add(this.cbMiniHud);
-                this.panelTopBar.Controls.Add(this.cbTopMost);
+                this.panelTopBar.Controls.Add(this.cbUseBuffsInTown);
                 this.panelTopBar.Controls.Add(this.cbLanguage);
                 this.panelTopBar.Controls.Add(CreateDivider(new Point(0, 59), new Size(824, 1)));
 
@@ -752,14 +752,19 @@ namespace _4RTools.Forms
                     this.sessionStatusDot.CustomColor = Color.FromArgb(245, 158, 11);
                     this.lblSessionStatus.Text = LocalizationManager.T("sidebar.status_chat");
                 }
+                else if (this.isAutomationOn && hasClient && activeClient.ShouldPauseForTown())
+                {
+                    this.sessionStatusDot.CustomColor = Color.FromArgb(244, 217, 122);
+                    this.lblSessionStatus.Text = LocalizationManager.T("sidebar.status_town");
+                }
                 else if (this.isAutomationOn)
                 {
-                    this.sessionStatusDot.CustomColor = Color.FromArgb(34, 197, 94);
+                    this.sessionStatusDot.CustomColor = Color.FromArgb(46, 204, 113);
                     this.lblSessionStatus.Text = LocalizationManager.T("sidebar.status_on");
                 }
                 else
                 {
-                    this.sessionStatusDot.CustomColor = Color.FromArgb(148, 163, 184);
+                    this.sessionStatusDot.CustomColor = Color.FromArgb(158, 140, 102);
                     this.lblSessionStatus.Text = LocalizationManager.T("sidebar.status_off");
                 }
             }
@@ -793,9 +798,9 @@ namespace _4RTools.Forms
                 LocalizationManager.SetLanguage(this.appSettings.Language);
                 this.cbLanguage.SelectedItem = LocalizationManager.IsPortuguese ? "PT-BR" : "EN";
                 this.cbDarkMode.Checked = this.appSettings.DarkMode;
-                this.cbTopMost.Checked = this.appSettings.AlwaysOnTop;
+                this.cbUseBuffsInTown.Checked = this.appSettings.UseBuffsInTown;
                 this.cbMiniHud.Checked = this.appSettings.ShowMiniHud;
-                this.TopMost = this.appSettings.AlwaysOnTop;
+                Client.AllowBuffsInTown = this.appSettings.UseBuffsInTown;
                 ApplyLanguageToUi();
                 ThemeManager.ApplyTheme(this, this.appSettings.DarkMode);
                 SetMiniHudVisible(this.appSettings.ShowMiniHud);
@@ -841,7 +846,7 @@ namespace _4RTools.Forms
 
             this.headerToolTip.SetToolTip(this.cbDarkMode, LocalizationManager.T("tooltip.dark_mode"));
             this.headerToolTip.SetToolTip(this.cbMiniHud, LocalizationManager.T("tooltip.mini_hud"));
-            this.headerToolTip.SetToolTip(this.cbTopMost, LocalizationManager.T("tooltip.top_most"));
+            this.headerToolTip.SetToolTip(this.cbUseBuffsInTown, LocalizationManager.T("tooltip.use_buffs_in_town"));
             this.headerToolTip.SetToolTip(this.cbLanguage, LocalizationManager.T("tooltip.language"));
             this.headerToolTip.SetToolTip(this.btnRefresh, LocalizationManager.T("tooltip.refresh_clients"));
             if (this.lblLinkWebsite != null)
@@ -907,15 +912,16 @@ namespace _4RTools.Forms
             AppSettings.Save(this.appSettings);
         }
 
-        private void OnTopMostCheckedChanged(object sender, EventArgs e)
+        private void OnUseBuffsInTownCheckedChanged(object sender, EventArgs e)
         {
             if (this.isApplyingSettings)
             {
                 return;
             }
 
-            this.appSettings.AlwaysOnTop = this.cbTopMost.Checked;
-            this.TopMost = this.appSettings.AlwaysOnTop;
+            this.appSettings.UseBuffsInTown = this.cbUseBuffsInTown.Checked;
+            Client.AllowBuffsInTown = this.appSettings.UseBuffsInTown;
+            UpdateSessionSummaryUi();
             AppSettings.Save(this.appSettings);
         }
 

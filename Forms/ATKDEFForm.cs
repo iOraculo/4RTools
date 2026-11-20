@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Windows.Forms;
 using System.Windows.Input;
 using _4RTools.Model;
@@ -15,7 +16,21 @@ namespace _4RTools.Forms
         {
             subject.Attach(this);
             InitializeComponent();
+            NormalizeLabelLayout();
             SetupInputs();
+        }
+
+        private void NormalizeLabelLayout()
+        {
+            Label[] leftLabels = new Label[] { this.label2, this.label3, this.lblSwitchDelay };
+            int[] yPositions = new int[] { 26, 58, 90 };
+            for (int i = 0; i < leftLabels.Length; i++)
+            {
+                leftLabels[i].AutoSize = false;
+                leftLabels[i].Location = new Point(4, yPositions[i]);
+                leftLabels[i].Size = new Size(93, 17);
+                leftLabels[i].TextAlign = ContentAlignment.MiddleRight;
+            }
         }
 
         public void Update(ISubject subject)

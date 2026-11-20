@@ -493,5 +493,58 @@ namespace _4RTools.Tests
             Assert.Equal("0x01602568", aureum.nameAddress);
             Assert.Contains("iOraculo/4RTools", AppConfig._4RClientsURL);
         }
+
+        [Fact]
+        public void ThemeManager_StripLightBackground_RemovesWhiteBackdropAndPreservesSubjectPixels()
+        {
+            using (System.Drawing.Bitmap bmp = new System.Drawing.Bitmap(16, 16, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
+            {
+                for (int y = 0; y < 16; y++)
+                {
+                    for (int x = 0; x < 16; x++)
+                    {
+                        bmp.SetPixel(x, y, System.Drawing.Color.White);
+                    }
+                }
+
+                // Draw a solid gold/green subject in the center with a white inner highlight pixel.
+                for (int y = 4; y <= 11; y++)
+                {
+                    for (int x = 4; x <= 11; x++)
+                    {
+                        bmp.SetPixel(x, y, System.Drawing.Color.FromArgb(255, 212, 175, 55));
+                    }
+                }
+                bmp.SetPixel(7, 7, System.Drawing.Color.White);
+
+                System.Drawing.Bitmap cleaned = ThemeManager.StripLightBackground(bmp) as System.Drawing.Bitmap;
+                Assert.NotNull(cleaned);
+                Assert.Equal(0, cleaned.GetPixel(0, 0).A);
+                Assert.Equal(0, cleaned.GetPixel(15, 15).A);
+                Assert.Equal(255, cleaned.GetPixel(5, 5).A);
+                // Inner white highlight enclosed by subject must NOT be removed.
+                Assert.Equal(255, cleaned.GetPixel(7, 7).A);
+            }
+        }
+
+        [Fact]
+        public void Client_IsTownMapAndUseBuffsInTownSetting_WorkCorrectly()
+        {
+            Assert.True(Client.IsTownMap("prontera.rsw"));
+            Assert.True(Client.IsTownMap("Geffen"));
+            Assert.True(Client.IsTownMap("moc_para01.rsw"));
+            Assert.True(Client.IsTownMap("payon_in01.rsw"));
+            Assert.False(Client.IsTownMap("prt_fild08.rsw"));
+            Assert.False(Client.IsTownMap("gl_knt02.rsw"));
+            Assert.False(Client.IsTownMap("abyss_03.rsw"));
+            Assert.False(Client.IsTownMap(""));
+
+            AppSettings defaults = AppSettings.Load();
+            Assert.False(defaults.UseBuffsInTown);
+
+            defaults.UseBuffsInTown = true;
+            AppSettings.Save(defaults);
+            Assert.True(AppSettings.Load().UseBuffsInTown);
+        }
     }
 }

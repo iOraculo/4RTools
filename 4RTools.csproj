@@ -562,7 +562,7 @@
     <None Include="assets\etc\Speech_Off.wav" />
     <None Include="assets\etc\Speech_On.wav" />
     <None Include="assets\etc\supported_servers.txt" />
-    <None Include="assets\etc\Yggdrasil.bmp" />
+    <None Include="assets\etc\Yggdrasil.png" />
     <None Include="assets\images\logo-4rtools-small.png" />
     <None Include="assets\images\tk_earth.jpg" />
     <None Include="assets\images\tk_mild_earth.jpg" />

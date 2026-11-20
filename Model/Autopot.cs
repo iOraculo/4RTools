@@ -56,7 +56,7 @@ namespace _4RTools.Model
 
         private void AutopotThreadExecution(Client roClient, byte[] vitalsBuffer, ref int hpPotCount, CancellationToken token)
         {
-            if (roClient.HasMemorySupport && roClient.IsProcessAlive() && !roClient.ShouldPauseForFocus())
+            if (roClient.HasMemorySupport && roClient.IsProcessAlive() && !roClient.ShouldPauseForFocus() && !roClient.ShouldPauseForTown())
             {
                 uint currentHp;
                 uint maxHp;

@@ -21,6 +21,7 @@ namespace _4RTools.Forms
         public AddServerForm(ClientDTO dto, Subject subject)
         {
             InitializeComponent();
+            NormalizeLabelLayout();
             SetupInputs();
             InitializeTestControls();
 
@@ -39,6 +40,29 @@ namespace _4RTools.Forms
 
             this.subject = subject;
             LocalizationManager.ApplyToControlTree(this);
+        }
+
+        private void NormalizeLabelLayout()
+        {
+            this.label1.AutoSize = false;
+            this.label1.Location = new Point(4, 32);
+            this.label1.Size = new Size(84, 17);
+            this.label1.TextAlign = ContentAlignment.MiddleRight;
+
+            this.label4.AutoSize = false;
+            this.label4.Location = new Point(4, 60);
+            this.label4.Size = new Size(84, 17);
+            this.label4.TextAlign = ContentAlignment.MiddleRight;
+
+            this.label5.AutoSize = false;
+            this.label5.Location = new Point(4, 93);
+            this.label5.Size = new Size(84, 17);
+            this.label5.TextAlign = ContentAlignment.MiddleRight;
+
+            this.label2.Location = new Point(91, 33);
+            this.label3.Location = new Point(91, 61);
+            this.processCB.Location = new Point(92, 91);
+            this.processCB.Size = new Size(239, 21);
         }
 
         private void InitializeTestControls()

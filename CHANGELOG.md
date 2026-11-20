@@ -1,5 +1,11 @@
 # Changelogs
 
+## [v2.13.3] - 2026-11-20 — UI Polish & Town Pause
+### Fixed & Added
+- **Transparent Icons Everywhere (`Utils/ThemeManager.cs`, `Model/BuffRenderer.cs`, `Forms/AutopotForm.cs`, `assets/etc/Yggdrasil.png`)**: converted `Yggdrasil.bmp` and opaque white-background PNG assets to transparent PNGs and added automatic border flood-fill transparency in `ThemeManager.StripLightBackground` for all `PictureBox` thumbnails (removing white squares in Dark & Light modes while preserving interior highlights).
+- **Fixed Label/Input Overlaps Across Forms (`SkillAutoBuffForm`, `StuffAutoBuffForm`, `AutopotForm`, `SkillTimerForm`, `ATKDEFForm`, `MacroSwitchForm`, `MacroSongForm`, `AddServerForm`, `ToggleApplicationStateForm`)**: right-aligned labels and adjusted horizontal spacing so PT-BR and EN text never overlaps input boxes.
+- **Replaced "Always on Top" with "Use buffs in town?" (`Usar buffs na cidade?`) (`Forms/Container.cs`, `Model/Client.cs`, `Model/Autopot.cs`, `Model/AppSettings.cs`)**: when unchecked (default), pauses Autopot (HP/SP & Yggdrasil), Autobuff (Skills & Items), Status/Debuff Recovery, and Skill Timers while the character is in any town/city map (using optional `mapAddress` in `supported_servers.json`).
+
 ## [v2.13.2] - 2026-11-20 — AureumRO 4Tools
 ### Changed
 - **Rebranding to `AureumRO 4Tools`**: renamed project display name, executable output (`AureumRO 4Tools.exe`), window/Mini HUD titles, dialogs, release packages (`AureumRO-4Tools-<tag>.zip`), and documentation to **AureumRO 4Tools**.

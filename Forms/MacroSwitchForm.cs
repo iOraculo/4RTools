@@ -18,7 +18,30 @@ namespace _4RTools.Forms
         {
             subject.Attach(this);
             InitializeComponent();
+            NormalizeLabelLayout();
             configureMacroLanes();
+        }
+
+        private void NormalizeLabelLayout()
+        {
+            Label[] keyLabels = new Label[] { this.label5, this.label2, this.label6, this.label9, this.label11 };
+            Label[] delayLabels = new Label[] { this.label4, this.label1, this.label3, this.label8, this.label10 };
+
+            foreach (Label lbl in keyLabels)
+            {
+                lbl.AutoSize = false;
+                lbl.Location = new Point(2, lbl.Location.Y - 1);
+                lbl.Size = new Size(59, 16);
+                lbl.TextAlign = ContentAlignment.MiddleRight;
+            }
+
+            foreach (Label lbl in delayLabels)
+            {
+                lbl.AutoSize = false;
+                lbl.Location = new Point(2, lbl.Location.Y - 1);
+                lbl.Size = new Size(61, 16);
+                lbl.TextAlign = ContentAlignment.MiddleRight;
+            }
         }
 
         public void Update(ISubject subject)

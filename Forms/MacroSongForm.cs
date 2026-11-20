@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Windows.Forms;
 using System.Windows.Input;
 using _4RTools.Model;
@@ -16,7 +17,34 @@ namespace _4RTools.Forms
         {
             subject.Attach(this);
             InitializeComponent();
+            NormalizeLabelLayout();
             configureMacroLanes();
+        }
+
+        private void NormalizeLabelLayout()
+        {
+            Label[] keyLabels = new Label[] { this.label6, this.label3, this.label9, this.label12 };
+            Label[] delayLabels = new Label[] { this.label5, this.label2, this.label8, this.label11 };
+            Label[] msLabels = new Label[] { this.label4, this.label1, this.label7, this.label10 };
+            TextBox[] triggerBoxes = new TextBox[] { this.inTriggerMacro1, this.inTriggerMacro2, this.inTriggerMacro3, this.inTriggerMacro4 };
+            NumericUpDown[] delayBoxes = new NumericUpDown[] { this.delayMac1, this.delayMac2, this.delayMac3, this.delayMac4 };
+
+            for (int i = 0; i < 4; i++)
+            {
+                keyLabels[i].AutoSize = false;
+                keyLabels[i].Location = new Point(2, keyLabels[i].Location.Y - 1);
+                keyLabels[i].Size = new Size(44, 16);
+                keyLabels[i].TextAlign = ContentAlignment.MiddleRight;
+
+                delayLabels[i].AutoSize = false;
+                delayLabels[i].Location = new Point(2, delayLabels[i].Location.Y - 1);
+                delayLabels[i].Size = new Size(44, 16);
+                delayLabels[i].TextAlign = ContentAlignment.MiddleRight;
+
+                triggerBoxes[i].Location = new Point(49, triggerBoxes[i].Location.Y);
+                delayBoxes[i].Location = new Point(49, delayBoxes[i].Location.Y);
+                msLabels[i].Location = new Point(98, msLabels[i].Location.Y);
+            }
         }
 
         public void Update(ISubject subject)

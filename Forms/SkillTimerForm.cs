@@ -23,10 +23,10 @@ namespace _4RTools.Forms
         {
             InitializeComponent();
 
-            // Give extra horizontal room for translated labels ("Tecla") on the first row too.
-            this.lblAutoRefreshKey.Left = 20;
-            this.label3.Left = 20;
-            this.label6.Left = 20;
+            // Normalize row 1 label/input alignment so translated PT-BR labels ("Atraso"/"Tecla"/"seg") never overlap inputs.
+            AlignTimerSlotControls(this.lblAutoRefreshDelay, this.txtAutoRefreshDelay, this.label2, this.lblAutoRefreshKey, this.txtSkillTimerKey);
+            AlignTimerSlotControls(this.label1, this.txtAutoRefreshDelay2, this.label4, this.label3, this.txtSkillTimerKey2);
+            AlignTimerSlotControls(this.label5, this.txtAutoRefreshDelay3, this.label7, this.label6, this.txtSkillTimerKey3);
 
             InitializeExtraTimerSlots();
             subject.Attach(this);
@@ -49,6 +49,27 @@ namespace _4RTools.Forms
             CreateSkillTimerGroup(6, new Point(373, 124), out this.txtSkillTimerKey6, out this.txtAutoRefreshDelay6);
         }
 
+        private static void AlignTimerSlotControls(Label lblDelay, NumericUpDown delayBox, Label lblSec, Label lblKey, TextBox keyBox)
+        {
+            lblDelay.AutoSize = false;
+            lblDelay.Location = new Point(4, 27);
+            lblDelay.Size = new Size(54, 19);
+            lblDelay.TextAlign = ContentAlignment.MiddleRight;
+
+            delayBox.Location = new Point(62, 25);
+            delayBox.Size = new Size(58, 23);
+
+            lblSec.Location = new Point(124, 29);
+
+            lblKey.AutoSize = false;
+            lblKey.Location = new Point(4, 55);
+            lblKey.Size = new Size(54, 19);
+            lblKey.TextAlign = ContentAlignment.MiddleRight;
+
+            keyBox.Location = new Point(62, 53);
+            keyBox.Size = new Size(58, 23);
+        }
+
         private void CreateSkillTimerGroup(int slotNumber, Point location, out TextBox keyBox, out NumericUpDown delayBox)
         {
             GroupBox group = new GroupBox
@@ -62,47 +83,50 @@ namespace _4RTools.Forms
 
             Label lblDelay = new Label
             {
-                AutoSize = true,
+                AutoSize = false,
                 Font = this.labelFont,
-                Location = new Point(16, 29),
+                Location = new Point(4, 27),
                 Name = "lblAutoRefreshDelay" + slotNumber,
+                Size = new Size(54, 19),
                 Text = "Delay",
-                TextAlign = ContentAlignment.MiddleCenter
+                TextAlign = ContentAlignment.MiddleRight
             };
 
             delayBox = new NumericUpDown
             {
                 Font = this.inputFont,
-                Location = new Point(60, 25),
+                Location = new Point(62, 25),
                 Maximum = new decimal(new int[] { 10000, 0, 0, 0 }),
                 Name = "txtAutoRefreshDelay" + slotNumber,
-                Size = new Size(61, 23)
+                Size = new Size(58, 23)
             };
 
             Label lblSec = new Label
             {
                 AutoSize = true,
                 Font = this.labelFont,
-                Location = new Point(121, 29),
+                Location = new Point(124, 29),
                 Name = "lblAutoRefreshSec" + slotNumber,
                 Text = "sec"
             };
 
             Label lblKey = new Label
             {
-                AutoSize = true,
+                AutoSize = false,
                 Font = this.labelFont,
-                Location = new Point(20, 57),
+                Location = new Point(4, 55),
                 Name = "lblAutoRefreshKey" + slotNumber,
-                Text = "Key"
+                Size = new Size(54, 19),
+                Text = "Key",
+                TextAlign = ContentAlignment.MiddleRight
             };
 
             keyBox = new TextBox
             {
                 Font = this.inputFont,
-                Location = new Point(60, 53),
+                Location = new Point(62, 53),
                 Name = "txtSkillTimerKey" + slotNumber,
-                Size = new Size(61, 23)
+                Size = new Size(58, 23)
             };
 
             group.Controls.Add(lblDelay);

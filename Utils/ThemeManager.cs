@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Windows.Forms;
 
 namespace _4RTools.Utils
@@ -46,6 +48,218 @@ namespace _4RTools.Utils
         private static readonly Color DarkLink = Color.FromArgb(244, 217, 122);          // #F4D97A
 
         public static bool IsDarkMode { get; private set; }
+
+        private static readonly object IconCacheLock = new object();
+        private static readonly Dictionary<Image, Image> TransparentIconCache = new Dictionary<Image, Image>();
+
+        /// <summary>
+        /// Flood-fills opaque white/near-white (or classic RO magenta) outer backgrounds on small icons
+        /// to transparent so legacy .bmp/.jpg/.gif thumbnails blend seamlessly into Dark &amp; Light themes.
+        /// </summary>
+        public static Image StripLightBackground(Image source)
+        {
+            if (source == null || source.Width <= 0 || source.Height <= 0 || source.Width > 128 || source.Height > 128)
+            {
+                return source;
+            }
+
+            lock (IconCacheLock)
+            {
+                Image cached;
+                if (TransparentIconCache.TryGetValue(source, out cached))
+                {
+                    return cached;
+                }
+            }
+
+            Bitmap work = null;
+            try
+            {
+                int w = source.Width;
+                int h = source.Height;
+                work = new Bitmap(w, h, PixelFormat.Format32bppArgb);
+                using (Graphics g = Graphics.FromImage(work))
+                {
+                    g.DrawImage(source, 0, 0, w, h);
+                }
+
+                Color[] corners = new Color[]
+                {
+                    work.GetPixel(0, 0),
+                    work.GetPixel(w - 1, 0),
+                    work.GetPixel(0, h - 1),
+                    work.GetPixel(w - 1, h - 1)
+                };
+
+                int transparentCorners = 0;
+                int whiteCorners = 0;
+                int magentaCorners = 0;
+                for (int i = 0; i < corners.Length; i++)
+                {
+                    Color c = corners[i];
+                    if (c.A < 20)
+                    {
+                        transparentCorners++;
+                    }
+                    else if (IsNearWhiteBackground(c))
+                    {
+                        whiteCorners++;
+                    }
+                    else if (IsMagentaBackground(c))
+                    {
+                        magentaCorners++;
+                    }
+                }
+
+                // Skip icons that are already properly transparent or do not have a white/magenta backdrop.
+                if (transparentCorners >= 2 && whiteCorners == 0 && magentaCorners == 0)
+                {
+                    work.Dispose();
+                    work = null;
+                    CacheTransparentIcon(source, source);
+                    return source;
+                }
+
+                if (whiteCorners < 2 && magentaCorners < 2)
+                {
+                    work.Dispose();
+                    work = null;
+                    CacheTransparentIcon(source, source);
+                    return source;
+                }
+
+                bool stripWhite = whiteCorners >= magentaCorners;
+                bool[,] visited = new bool[w, h];
+                Queue<Point> queue = new Queue<Point>();
+
+                for (int x = 0; x < w; x++)
+                {
+                    TrySeedBackgroundPixel(work, x, 0, stripWhite, visited, queue);
+                    TrySeedBackgroundPixel(work, x, h - 1, stripWhite, visited, queue);
+                }
+                for (int y = 1; y < h - 1; y++)
+                {
+                    TrySeedBackgroundPixel(work, 0, y, stripWhite, visited, queue);
+                    TrySeedBackgroundPixel(work, w - 1, y, stripWhite, visited, queue);
+                }
+
+                int[] dx = new int[] { 1, -1, 0, 0 };
+                int[] dy = new int[] { 0, 0, 1, -1 };
+
+                while (queue.Count > 0)
+                {
+                    Point pt = queue.Dequeue();
+                    work.SetPixel(pt.X, pt.Y, Color.FromArgb(0, 0, 0, 0));
+
+                    for (int d = 0; d < 4; d++)
+                    {
+                        int nx = pt.X + dx[d];
+                        int ny = pt.Y + dy[d];
+                        if (nx >= 0 && nx < w && ny >= 0 && ny < h && !visited[nx, ny])
+                        {
+                            Color neighbor = work.GetPixel(nx, ny);
+                            if (MatchesRemovableBackground(neighbor, stripWhite))
+                            {
+                                visited[nx, ny] = true;
+                                queue.Enqueue(new Point(nx, ny));
+                            }
+                        }
+                    }
+                }
+
+                // Softly trim 1px near-white JPEG compression halos adjacent to removed background pixels.
+                if (stripWhite)
+                {
+                    for (int y = 0; y < h; y++)
+                    {
+                        for (int x = 0; x < w; x++)
+                        {
+                            if (visited[x, y])
+                            {
+                                continue;
+                            }
+
+                            Color px = work.GetPixel(x, y);
+                            if (px.A >= 200 && px.R >= 205 && px.G >= 205 && px.B >= 205
+                                && Math.Abs(px.R - px.G) <= 28 && Math.Abs(px.R - px.B) <= 28
+                                && HasTransparentNeighbor(visited, x, y, w, h))
+                            {
+                                work.SetPixel(x, y, Color.FromArgb(0, 0, 0, 0));
+                            }
+                        }
+                    }
+                }
+
+                CacheTransparentIcon(source, work);
+                CacheTransparentIcon(work, work);
+                return work;
+            }
+            catch
+            {
+                if (work != null)
+                {
+                    work.Dispose();
+                }
+                return source;
+            }
+        }
+
+        private static void CacheTransparentIcon(Image key, Image value)
+        {
+            lock (IconCacheLock)
+            {
+                if (TransparentIconCache.Count > 600)
+                {
+                    return;
+                }
+
+                TransparentIconCache[key] = value;
+            }
+        }
+
+        private static bool IsNearWhiteBackground(Color c)
+        {
+            return c.A >= 230
+                && c.R >= 220 && c.G >= 220 && c.B >= 220
+                && Math.Abs(c.R - c.G) <= 24 && Math.Abs(c.R - c.B) <= 24;
+        }
+
+        private static bool IsMagentaBackground(Color c)
+        {
+            return c.A >= 230 && c.R >= 225 && c.G <= 35 && c.B >= 225;
+        }
+
+        private static bool MatchesRemovableBackground(Color c, bool stripWhite)
+        {
+            if (c.A < 20)
+            {
+                return true;
+            }
+
+            return stripWhite ? IsNearWhiteBackground(c) : IsMagentaBackground(c);
+        }
+
+        private static void TrySeedBackgroundPixel(Bitmap bmp, int x, int y, bool stripWhite, bool[,] visited, Queue<Point> queue)
+        {
+            if (visited[x, y])
+            {
+                return;
+            }
+
+            if (MatchesRemovableBackground(bmp.GetPixel(x, y), stripWhite))
+            {
+                visited[x, y] = true;
+                queue.Enqueue(new Point(x, y));
+            }
+        }
+
+        private static bool HasTransparentNeighbor(bool[,] visited, int x, int y, int w, int h)
+        {
+            return (x > 0 && visited[x - 1, y])
+                || (x + 1 < w && visited[x + 1, y])
+                || (y > 0 && visited[x, y - 1])
+                || (y + 1 < h && visited[x, y + 1]);
+        }
 
         public static Color GetDefaultTextColor()
         {
@@ -225,6 +439,19 @@ namespace _4RTools.Utils
                     else
                     {
                         control.ForeColor = darkMode ? DarkText : LightText;
+                    }
+                }
+                else if (control is PictureBox)
+                {
+                    PictureBox pb = (PictureBox)control;
+                    pb.BackColor = Color.Transparent;
+                    if (pb.Image != null && !string.Equals(pb.Name, "pbBrandLogo", StringComparison.Ordinal))
+                    {
+                        Image cleaned = StripLightBackground(pb.Image);
+                        if (!ReferenceEquals(cleaned, pb.Image))
+                        {
+                            pb.Image = cleaned;
+                        }
                     }
                 }
                 else if (control is CheckBox || control is RadioButton)

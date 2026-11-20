@@ -14,21 +14,42 @@ namespace _4RTools.Model
         public string description { get; set; }
         public string hpAddress { get; set; }
         public string nameAddress { get; set; }
+        public string mapAddress { get; set; }
 
         public int hpAddressPointer { get; set; }
         public int nameAddressPointer { get; set; }
+        public int mapAddressPointer { get; set; }
 
         public ClientDTO() { }
 
-        public ClientDTO(string name, string description, string hpAddress, string nameAddress)
+        public ClientDTO(string name, string description, string hpAddress, string nameAddress, string mapAddress = null)
         {
             this.name = name;
             this.description = description;
             this.hpAddress = hpAddress;
             this.nameAddress = nameAddress;
+            this.mapAddress = mapAddress;
 
             this.hpAddressPointer = Convert.ToInt32(hpAddress, 16);
             this.nameAddressPointer = Convert.ToInt32(nameAddress, 16);
+            this.mapAddressPointer = TryParseOptionalHex(mapAddress);
+        }
+
+        internal static int TryParseOptionalHex(string hex)
+        {
+            if (string.IsNullOrWhiteSpace(hex))
+            {
+                return 0;
+            }
+
+            try
+            {
+                return Convert.ToInt32(hex.Trim(), 16);
+            }
+            catch
+            {
+                return 0;
+            }
         }
     }
 
@@ -134,12 +155,37 @@ namespace _4RTools.Model
 
     public class Client : IDisposable
     {
+        public static volatile bool AllowBuffsInTown = false;
+
+        private static readonly HashSet<string> TownMaps = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "prontera", "morocc", "geffen", "payon", "alberta", "izlude", "aldebaran",
+            "xmas", "comodo", "yuno", "amatsu", "gonryun", "umbala", "niflheim",
+            "louyang", "ayothaya", "einbroch", "einbech", "lighthalzen", "hugel",
+            "rachel", "veins", "moscovia", "mid_camp", "manuk", "splendide", "brasilis",
+            "dicastes01", "mora", "dewata", "malangdo", "malaya", "eclage", "lasagna",
+            "moc_para01", "paramk", "jawaii", "iz_int", "new_1-1",
+            "prt_in", "prontera_in", "prt_church", "prt_castle", "alberta_in", "alb2trea",
+            "aldeba_in", "ama_in01", "ama_in02", "ayo_in01", "ayo_in02", "cmd_in01",
+            "cmd_in02", "ein_in01", "gef_tower", "geffen_in", "gon_in", "hu_in01",
+            "izlude_in", "lhz_in01", "lhz_in02", "lhz_in03", "lou_in01", "lou_in02",
+            "morocc_in", "mosk_in", "nif_in", "payon_in01", "payon_in02", "payon_in03",
+            "ra_in01", "ra_temple", "um_in", "ve_in", "ve_in02", "xmas_in",
+            "yuno_in01", "yuno_in02", "yuno_in03", "yuno_in04", "yuno_in05",
+            "bra_in01", "dic_in01", "dew_in01", "mal_in01", "mal_in02", "ma_in01",
+            "ecl_in01", "lasagna_in"
+        };
+
         public Process process { get; private set; }
         public string processName { get; private set; }
         private ProcessMemoryReader PMR { get; set; }
         public int currentNameAddress { get; set; }
         public int currentHPBaseAddress { get; set; }
+        public int currentMapAddress { get; set; }
         private int statusBufferAddress { get; set; }
+        private readonly Stopwatch mapCacheClock = Stopwatch.StartNew();
+        private long lastMapReadMs = -10000;
+        private string cachedMapName = string.Empty;
         public bool IsSupported { get; private set; }
         private bool disposed = false;
 
@@ -168,6 +214,7 @@ namespace _4RTools.Model
             this.processName = dto.name;
             this.currentHPBaseAddress = Convert.ToInt32(dto.hpAddress, 16);
             this.currentNameAddress = Convert.ToInt32(dto.nameAddress, 16);
+            this.currentMapAddress = ClientDTO.TryParseOptionalHex(dto.mapAddress);
             this.statusBufferAddress = this.currentHPBaseAddress + 0x474;
             this.IsSupported = this.currentHPBaseAddress != 0;
         }
@@ -215,6 +262,7 @@ namespace _4RTools.Model
                     {
                         this.currentHPBaseAddress = matchedTemplate.currentHPBaseAddress;
                         this.currentNameAddress = matchedTemplate.currentNameAddress;
+                        this.currentMapAddress = matchedTemplate.currentMapAddress;
                         this.statusBufferAddress = matchedTemplate.statusBufferAddress;
                         this.IsSupported = true;
                     }
@@ -290,14 +338,73 @@ namespace _4RTools.Model
             return false;
         }
 
+        public static string NormalizeMapName(string rawMap)
+        {
+            if (string.IsNullOrWhiteSpace(rawMap))
+            {
+                return string.Empty;
+            }
+
+            string normalized = rawMap.Trim().ToLowerInvariant();
+            if (normalized.EndsWith(".rsw", StringComparison.Ordinal))
+            {
+                normalized = normalized.Substring(0, normalized.Length - 4);
+            }
+            else if (normalized.EndsWith(".gat", StringComparison.Ordinal))
+            {
+                normalized = normalized.Substring(0, normalized.Length - 4);
+            }
+
+            return normalized;
+        }
+
+        public static bool IsTownMap(string mapName)
+        {
+            string normalized = NormalizeMapName(mapName);
+            if (string.IsNullOrEmpty(normalized))
+            {
+                return false;
+            }
+
+            return TownMaps.Contains(normalized);
+        }
+
+        public string ReadCurrentMap()
+        {
+            if (this.currentMapAddress == 0 || !HasMemorySupport)
+            {
+                return string.Empty;
+            }
+
+            long now = this.mapCacheClock.ElapsedMilliseconds;
+            if (now - this.lastMapReadMs < 500)
+            {
+                return this.cachedMapName;
+            }
+
+            this.cachedMapName = NormalizeMapName(ReadMemoryAsString(this.currentMapAddress));
+            this.lastMapReadMs = now;
+            return this.cachedMapName;
+        }
+
+        public bool IsInTown()
+        {
+            return this.currentMapAddress != 0 && IsTownMap(ReadCurrentMap());
+        }
+
+        public bool ShouldPauseForTown()
+        {
+            return !AllowBuffsInTown && IsInTown();
+        }
+
         public bool ShouldPauseAutomation()
         {
-            return ShouldPauseForFocus() || ChatPauseState.IsChatting;
+            return ShouldPauseForFocus() || ChatPauseState.IsChatting || ShouldPauseForTown();
         }
 
         public bool ShouldPauseAutopotKey(System.Windows.Input.Key key)
         {
-            if (ShouldPauseForFocus())
+            if (ShouldPauseForFocus() || ShouldPauseForTown())
             {
                 return true;
             }

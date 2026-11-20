@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 using System.Windows.Input;
 using _4RTools.Model;
@@ -20,6 +21,17 @@ namespace _4RTools.Forms
                 this.picBoxHP.Image = Resources._4RTools.ETCResource.Yggdrasil;
                 this.picBoxSP.Image = Resources._4RTools.ETCResource.Yggdrasil;
             }
+
+            this.picBoxHP.BackColor = Color.Transparent;
+            this.picBoxSP.BackColor = Color.Transparent;
+            this.picBoxHP.Image = ThemeManager.StripLightBackground(this.picBoxHP.Image);
+            this.picBoxSP.Image = ThemeManager.StripLightBackground(this.picBoxSP.Image);
+
+            // Prevent translated "Atraso" label from overlapping the Delay NumericUpDown box.
+            this.label2.AutoSize = false;
+            this.label2.Location = new Point(98, 86);
+            this.label2.Size = new Size(64, 19);
+            this.label2.TextAlign = ContentAlignment.MiddleRight;
 
             this.isYgg = isYgg;
 

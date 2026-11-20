@@ -58,7 +58,8 @@ namespace _4RTools.Model
                     TextBox textBox = new TextBox();
 
                     string displayName = LocalizationManager.GetBuffDisplayName(skill.name);
-                    pb.Image = skill.icon;
+                    pb.BackColor = Color.Transparent;
+                    pb.Image = ThemeManager.StripLightBackground(skill.icon);
                     pb.SizeMode = PictureBoxSizeMode.CenterImage;
                     pb.BackgroundImageLayout = ImageLayout.Center;
                     pb.Name = "pbox" + (int)skill.effectStatusID;

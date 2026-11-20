@@ -47,8 +47,8 @@ namespace _4RTools.Forms
 
             this.txtSearch = new TextBox
             {
-                Location = new Point(46, 10),
-                Size = new Size(162, 20),
+                Location = new Point(54, 10),
+                Size = new Size(142, 20),
                 Name = "txtStuffSearch",
                 Tag = FormUtils.SKIP_RESET_TAG
             };
@@ -57,13 +57,13 @@ namespace _4RTools.Forms
             Label lblMinSp = new Label
             {
                 AutoSize = true,
-                Location = new Point(214, 14),
+                Location = new Point(204, 14),
                 Text = "Min SP%:"
             };
 
             this.numMinSp = new NumericUpDown
             {
-                Location = new Point(268, 10),
+                Location = new Point(264, 10),
                 Size = new Size(44, 20),
                 Minimum = 0,
                 Maximum = 99,
@@ -75,14 +75,14 @@ namespace _4RTools.Forms
             Label lblCooldown = new Label
             {
                 AutoSize = true,
-                Location = new Point(318, 14),
+                Location = new Point(316, 14),
                 Text = "CD(ms):"
             };
 
             this.numCooldown = new NumericUpDown
             {
-                Location = new Point(365, 10),
-                Size = new Size(64, 20),
+                Location = new Point(368, 10),
+                Size = new Size(62, 20),
                 Minimum = 0,
                 Maximum = 30000,
                 Increment = 250,
@@ -93,8 +93,8 @@ namespace _4RTools.Forms
 
             Button btnClear = new Button
             {
-                Location = new Point(436, 9),
-                Size = new Size(94, 22),
+                Location = new Point(438, 9),
+                Size = new Size(104, 22),
                 Text = "Clear Stuffs",
                 UseVisualStyleBackColor = true
             };
