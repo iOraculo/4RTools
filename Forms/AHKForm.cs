@@ -16,6 +16,8 @@ namespace _4RTools.Forms
         public AHKForm(Subject subject)
         {
             InitializeComponent();
+            this.pictureBox1.Left = 266;
+            this.pbUpAndDownArrow.Left = 282;
             InitializeClearAllButton();
             InitializeCheckAsThreeState();
             subject.Attach(this);
@@ -38,8 +40,8 @@ namespace _4RTools.Forms
         private void btnClearAllKeys_Click(object sender, EventArgs e)
         {
             if (MessageBox.Show(
-                    "Clear all configured Skill Spammer keys in this profile?",
-                    "Clear All Keys",
+                    LocalizationManager.T("msg.ahk_clear_confirm"),
+                    LocalizationManager.T("title.ahk_clear"),
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question) != DialogResult.Yes)
             {

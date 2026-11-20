@@ -91,6 +91,9 @@ namespace _4RTools.Model
                 loaded.AutoRefreshSpammer1 = DeserializeAction(rawObject, loaded.AutoRefreshSpammer1);
                 loaded.AutoRefreshSpammer2 = DeserializeAction(rawObject, loaded.AutoRefreshSpammer2);
                 loaded.AutoRefreshSpammer3 = DeserializeAction(rawObject, loaded.AutoRefreshSpammer3);
+                loaded.AutoRefreshSpammer4 = DeserializeAction(rawObject, loaded.AutoRefreshSpammer4);
+                loaded.AutoRefreshSpammer5 = DeserializeAction(rawObject, loaded.AutoRefreshSpammer5);
+                loaded.AutoRefreshSpammer6 = DeserializeAction(rawObject, loaded.AutoRefreshSpammer6);
                 loaded.Autobuff = DeserializeAction(rawObject, loaded.Autobuff);
                 loaded.SongMacro = DeserializeAction(rawObject, loaded.SongMacro);
                 loaded.AtkDefMode = DeserializeAction(rawObject, loaded.AtkDefMode);
@@ -442,6 +445,9 @@ namespace _4RTools.Model
         public AutoRefreshSpammer AutoRefreshSpammer1 { get; set; }
         public AutoRefreshSpammer AutoRefreshSpammer2 { get; set; }
         public AutoRefreshSpammer AutoRefreshSpammer3 { get; set; }
+        public AutoRefreshSpammer AutoRefreshSpammer4 { get; set; }
+        public AutoRefreshSpammer AutoRefreshSpammer5 { get; set; }
+        public AutoRefreshSpammer AutoRefreshSpammer6 { get; set; }
         public AutoBuff Autobuff { get; set; }
         public StatusRecovery StatusRecovery { get; set; }
         public Macro SongMacro { get; set; }
@@ -460,6 +466,9 @@ namespace _4RTools.Model
             this.AutoRefreshSpammer1 = new AutoRefreshSpammer(actionName: "AutoRefreshSpammer01");
             this.AutoRefreshSpammer2 = new AutoRefreshSpammer(actionName: "AutoRefreshSpammer02");
             this.AutoRefreshSpammer3 = new AutoRefreshSpammer(actionName: "AutoRefreshSpammer03");
+            this.AutoRefreshSpammer4 = new AutoRefreshSpammer(actionName: "AutoRefreshSpammer04");
+            this.AutoRefreshSpammer5 = new AutoRefreshSpammer(actionName: "AutoRefreshSpammer05");
+            this.AutoRefreshSpammer6 = new AutoRefreshSpammer(actionName: "AutoRefreshSpammer06");
             this.Autobuff = new AutoBuff();
             this.StatusRecovery = new StatusRecovery();
             this.SongMacro = new Macro(Macro.ACTION_NAME_SONG_MACRO, MacroSongForm.TOTAL_MACRO_LANES_FOR_SONGS);

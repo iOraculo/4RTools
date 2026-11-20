@@ -1,6 +1,7 @@
 using System;
 using System.Windows.Forms;
 using _4RTools.Model;
+using _4RTools.Utils;
 
 namespace _4RTools.Forms
 {
@@ -12,6 +13,7 @@ namespace _4RTools.Forms
         public EditProfileName()
         {
             InitializeComponent();
+            LocalizationManager.ApplyToControlTree(this);
         }
 
         public void SetProfileName(string name)
@@ -41,7 +43,7 @@ namespace _4RTools.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show("[Edit Profile Name] " + ex.Message, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(ex.Message, LocalizationManager.T("title.warning"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
     }

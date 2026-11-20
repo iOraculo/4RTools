@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 using System.Windows.Input;
 using _4RTools.Model;
@@ -9,15 +10,108 @@ namespace _4RTools.Forms
     public partial class SkillTimerForm : Form, IObserver
     {
         private bool isUpdatingUi;
+        private TextBox txtSkillTimerKey4;
+        private NumericUpDown txtAutoRefreshDelay4;
+        private TextBox txtSkillTimerKey5;
+        private NumericUpDown txtAutoRefreshDelay5;
+        private TextBox txtSkillTimerKey6;
+        private NumericUpDown txtAutoRefreshDelay6;
+        private Font labelFont;
+        private Font inputFont;
 
         public SkillTimerForm(Subject subject)
         {
             InitializeComponent();
+
+            // Give extra horizontal room for translated labels ("Tecla") on the first row too.
+            this.lblAutoRefreshKey.Left = 20;
+            this.label3.Left = 20;
+            this.label6.Left = 20;
+
+            InitializeExtraTimerSlots();
             subject.Attach(this);
 
             SetupTimerInputs(this.txtSkillTimerKey, this.txtAutoRefreshDelay, () => ProfileSingleton.GetCurrent().AutoRefreshSpammer1);
             SetupTimerInputs(this.txtSkillTimerKey2, this.txtAutoRefreshDelay2, () => ProfileSingleton.GetCurrent().AutoRefreshSpammer2);
             SetupTimerInputs(this.txtSkillTimerKey3, this.txtAutoRefreshDelay3, () => ProfileSingleton.GetCurrent().AutoRefreshSpammer3);
+            SetupTimerInputs(this.txtSkillTimerKey4, this.txtAutoRefreshDelay4, () => ProfileSingleton.GetCurrent().AutoRefreshSpammer4);
+            SetupTimerInputs(this.txtSkillTimerKey5, this.txtAutoRefreshDelay5, () => ProfileSingleton.GetCurrent().AutoRefreshSpammer5);
+            SetupTimerInputs(this.txtSkillTimerKey6, this.txtAutoRefreshDelay6, () => ProfileSingleton.GetCurrent().AutoRefreshSpammer6);
+        }
+
+        private void InitializeExtraTimerSlots()
+        {
+            this.labelFont = new Font("Microsoft Sans Serif", 8.5F);
+            this.inputFont = new Font("Microsoft Sans Serif", 10F);
+
+            CreateSkillTimerGroup(4, new Point(15, 124), out this.txtSkillTimerKey4, out this.txtAutoRefreshDelay4);
+            CreateSkillTimerGroup(5, new Point(194, 124), out this.txtSkillTimerKey5, out this.txtAutoRefreshDelay5);
+            CreateSkillTimerGroup(6, new Point(373, 124), out this.txtSkillTimerKey6, out this.txtAutoRefreshDelay6);
+        }
+
+        private void CreateSkillTimerGroup(int slotNumber, Point location, out TextBox keyBox, out NumericUpDown delayBox)
+        {
+            GroupBox group = new GroupBox
+            {
+                Location = location,
+                Name = "groupBox" + slotNumber,
+                Size = new Size(173, 100),
+                TabStop = false,
+                Text = "Skill timer " + slotNumber
+            };
+
+            Label lblDelay = new Label
+            {
+                AutoSize = true,
+                Font = this.labelFont,
+                Location = new Point(16, 29),
+                Name = "lblAutoRefreshDelay" + slotNumber,
+                Text = "Delay",
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            delayBox = new NumericUpDown
+            {
+                Font = this.inputFont,
+                Location = new Point(60, 25),
+                Maximum = new decimal(new int[] { 10000, 0, 0, 0 }),
+                Name = "txtAutoRefreshDelay" + slotNumber,
+                Size = new Size(61, 23)
+            };
+
+            Label lblSec = new Label
+            {
+                AutoSize = true,
+                Font = this.labelFont,
+                Location = new Point(121, 29),
+                Name = "lblAutoRefreshSec" + slotNumber,
+                Text = "sec"
+            };
+
+            Label lblKey = new Label
+            {
+                AutoSize = true,
+                Font = this.labelFont,
+                Location = new Point(20, 57),
+                Name = "lblAutoRefreshKey" + slotNumber,
+                Text = "Key"
+            };
+
+            keyBox = new TextBox
+            {
+                Font = this.inputFont,
+                Location = new Point(60, 53),
+                Name = "txtSkillTimerKey" + slotNumber,
+                Size = new Size(61, 23)
+            };
+
+            group.Controls.Add(lblDelay);
+            group.Controls.Add(delayBox);
+            group.Controls.Add(lblKey);
+            group.Controls.Add(lblSec);
+            group.Controls.Add(keyBox);
+
+            this.Controls.Add(group);
         }
 
         private void SetupTimerInputs(TextBox keyBox, NumericUpDown delayBox, Func<AutoRefreshSpammer> getSpammer)
@@ -45,14 +139,12 @@ namespace _4RTools.Forms
                         Profile profile = ProfileSingleton.GetCurrent();
                         FormUtils.ResetForm(this);
 
-                        this.txtSkillTimerKey.Text = profile.AutoRefreshSpammer1.RefreshKey.ToString();
-                        FormUtils.SetNumericValue(this.txtAutoRefreshDelay, profile.AutoRefreshSpammer1.RefreshDelay);
-
-                        this.txtSkillTimerKey2.Text = profile.AutoRefreshSpammer2.RefreshKey.ToString();
-                        FormUtils.SetNumericValue(this.txtAutoRefreshDelay2, profile.AutoRefreshSpammer2.RefreshDelay);
-
-                        this.txtSkillTimerKey3.Text = profile.AutoRefreshSpammer3.RefreshKey.ToString();
-                        FormUtils.SetNumericValue(this.txtAutoRefreshDelay3, profile.AutoRefreshSpammer3.RefreshDelay);
+                        ApplySpammerToInputs(profile.AutoRefreshSpammer1, this.txtSkillTimerKey, this.txtAutoRefreshDelay);
+                        ApplySpammerToInputs(profile.AutoRefreshSpammer2, this.txtSkillTimerKey2, this.txtAutoRefreshDelay2);
+                        ApplySpammerToInputs(profile.AutoRefreshSpammer3, this.txtSkillTimerKey3, this.txtAutoRefreshDelay3);
+                        ApplySpammerToInputs(profile.AutoRefreshSpammer4, this.txtSkillTimerKey4, this.txtAutoRefreshDelay4);
+                        ApplySpammerToInputs(profile.AutoRefreshSpammer5, this.txtSkillTimerKey5, this.txtAutoRefreshDelay5);
+                        ApplySpammerToInputs(profile.AutoRefreshSpammer6, this.txtSkillTimerKey6, this.txtAutoRefreshDelay6);
                     }
                     finally
                     {
@@ -60,16 +152,35 @@ namespace _4RTools.Forms
                     }
                     break;
                 case MessageCode.TURN_ON:
-                    ProfileSingleton.GetCurrent().AutoRefreshSpammer1.Start();
-                    ProfileSingleton.GetCurrent().AutoRefreshSpammer2.Start();
-                    ProfileSingleton.GetCurrent().AutoRefreshSpammer3.Start();
+                    Profile currentOn = ProfileSingleton.GetCurrent();
+                    currentOn.AutoRefreshSpammer1.Start();
+                    currentOn.AutoRefreshSpammer2.Start();
+                    currentOn.AutoRefreshSpammer3.Start();
+                    currentOn.AutoRefreshSpammer4.Start();
+                    currentOn.AutoRefreshSpammer5.Start();
+                    currentOn.AutoRefreshSpammer6.Start();
                     break;
                 case MessageCode.TURN_OFF:
-                    ProfileSingleton.GetCurrent().AutoRefreshSpammer1.Stop();
-                    ProfileSingleton.GetCurrent().AutoRefreshSpammer2.Stop();
-                    ProfileSingleton.GetCurrent().AutoRefreshSpammer3.Stop();
+                    Profile currentOff = ProfileSingleton.GetCurrent();
+                    currentOff.AutoRefreshSpammer1.Stop();
+                    currentOff.AutoRefreshSpammer2.Stop();
+                    currentOff.AutoRefreshSpammer3.Stop();
+                    currentOff.AutoRefreshSpammer4.Stop();
+                    currentOff.AutoRefreshSpammer5.Stop();
+                    currentOff.AutoRefreshSpammer6.Stop();
                     break;
             }
+        }
+
+        private static void ApplySpammerToInputs(AutoRefreshSpammer spammer, TextBox keyBox, NumericUpDown delayBox)
+        {
+            if (spammer == null || keyBox == null || delayBox == null)
+            {
+                return;
+            }
+
+            keyBox.Text = spammer.RefreshKey.ToString();
+            FormUtils.SetNumericValue(delayBox, spammer.RefreshDelay);
         }
 
         private void OnTimerKeyChanged(TextBox keyBox, AutoRefreshSpammer spammer)
@@ -96,6 +207,21 @@ namespace _4RTools.Forms
 
             spammer.RefreshDelay = decimal.ToInt32(delayBox.Value);
             ProfileSingleton.SetConfiguration(spammer);
+        }
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            if (this.labelFont != null)
+            {
+                this.labelFont.Dispose();
+                this.labelFont = null;
+            }
+            if (this.inputFont != null)
+            {
+                this.inputFont.Dispose();
+                this.inputFont = null;
+            }
+            base.OnFormClosed(e);
         }
     }
 }

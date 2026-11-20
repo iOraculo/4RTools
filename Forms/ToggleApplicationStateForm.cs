@@ -75,7 +75,6 @@ namespace _4RTools.Forms
                 UseVisualStyleBackColor = true,
                 Tag = FormUtils.SKIP_RESET_TAG
             };
-            this.optionsToolTip.SetToolTip(this.cbFocusOnly, "Pause automations when the Ragnarok window is not focused");
             this.cbFocusOnly.CheckedChanged += OnFocusOnlyCheckedChanged;
             this.groupBox1.Controls.Add(this.cbFocusOnly);
 
@@ -88,11 +87,30 @@ namespace _4RTools.Forms
                 UseVisualStyleBackColor = true,
                 Tag = FormUtils.SKIP_RESET_TAG
             };
-            this.optionsToolTip.SetToolTip(
-                this.cbChatPause,
-                "Chat-Safe Pause: press Enter in Ragnarok to pause automations while typing (Esc or Enter resumes; F-key Autopot stays active)");
             this.cbChatPause.CheckedChanged += OnChatPauseCheckedChanged;
             this.groupBox1.Controls.Add(this.cbChatPause);
+
+            RefreshLocalizedTooltipsAndMenu();
+        }
+
+        private void RefreshLocalizedTooltipsAndMenu()
+        {
+            if (this.optionsToolTip != null)
+            {
+                if (this.cbFocusOnly != null)
+                {
+                    this.optionsToolTip.SetToolTip(this.cbFocusOnly, LocalizationManager.T("tooltip.focus_only"));
+                }
+                if (this.cbChatPause != null)
+                {
+                    this.optionsToolTip.SetToolTip(this.cbChatPause, LocalizationManager.T("tooltip.chat_pause"));
+                }
+            }
+
+            if (this.menuItem != null)
+            {
+                this.menuItem.Text = LocalizationManager.T("tray.close");
+            }
         }
 
         private void RegisterChatPauseHooks()
@@ -173,7 +191,7 @@ namespace _4RTools.Forms
             this.contextMenu.MenuItems.AddRange(new MenuItem[] { this.menuItem });
 
             this.menuItem.Index = 0;
-            this.menuItem.Text = "Close";
+            this.menuItem.Text = LocalizationManager.T("tray.close");
             this.menuItem.Click += new EventHandler(this.notifyShutdownApplication);
 
             this.notifyIconTray.ContextMenu = this.contextMenu;
@@ -224,12 +242,20 @@ namespace _4RTools.Forms
                     ChatPauseState.Resume();
                     if (this.isApplicationOn)
                     {
-                        ApplyOffVisualState("Press the key to start!", Color.Empty, false);
+                        ApplyOffVisualState(LocalizationManager.T("status.press_to_start"), Color.Empty, false);
                     }
                     break;
 
                 case MessageCode.CLIENT_DISCONNECTED:
-                    ApplyOffVisualState("Client closed!", ThemeManager.IsDarkMode ? Color.Salmon : Color.DarkRed, true);
+                    ApplyOffVisualState(LocalizationManager.T("status.client_closed"), ThemeManager.IsDarkMode ? Color.Salmon : Color.DarkRed, true);
+                    break;
+
+                case MessageCode.LANGUAGE_CHANGED:
+                    RefreshLocalizedTooltipsAndMenu();
+                    if (this.isApplicationOn)
+                    {
+                        ApplyOnVisualState();
+                    }
                     break;
             }
         }
@@ -318,7 +344,7 @@ namespace _4RTools.Forms
         {
             if (this.isApplicationOn)
             {
-                ApplyOffVisualState("Press the key to start!", Color.Empty, true);
+                ApplyOffVisualState(LocalizationManager.T("status.press_to_start"), Color.Empty, true);
                 this.subject.Notify(new Utils.Message(MessageCode.TURN_OFF, null));
             }
             else
@@ -336,7 +362,7 @@ namespace _4RTools.Forms
                 }
                 else
                 {
-                    this.lblStatusToggle.Text = "Please select the Ragnarok Client!!";
+                    this.lblStatusToggle.Text = LocalizationManager.T("status.select_client");
                     this.lblStatusToggle.ForeColor = ThemeManager.IsDarkMode ? Color.Salmon : Color.Red;
                 }
             }
@@ -350,14 +376,14 @@ namespace _4RTools.Forms
             {
                 this.btnStatusToggle.BackColor = Color.DarkOrange;
                 this.btnStatusToggle.Text = "CHAT";
-                this.lblStatusToggle.Text = "Chat paused (Esc/Enter)";
+                this.lblStatusToggle.Text = LocalizationManager.T("status.chat_paused");
                 this.lblStatusToggle.ForeColor = Color.DarkOrange;
             }
             else
             {
                 this.btnStatusToggle.BackColor = Color.Green;
                 this.btnStatusToggle.Text = "ON";
-                this.lblStatusToggle.Text = "Press the key to stop!";
+                this.lblStatusToggle.Text = LocalizationManager.T("status.press_to_stop");
                 this.lblStatusToggle.ForeColor = ThemeManager.GetDefaultTextColor();
             }
         }

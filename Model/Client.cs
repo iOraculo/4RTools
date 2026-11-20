@@ -490,6 +490,150 @@ namespace _4RTools.Model
                 .FirstOrDefault();
         }
 
+        public static ServerAddressTestResult TestMemoryAddresses(string processName, string rawHpAddress, string rawNameAddress)
+        {
+            ServerAddressTestResult result = new ServerAddressTestResult();
+
+            if (string.IsNullOrWhiteSpace(processName))
+            {
+                result.Message = LocalizationManager.T("test.empty_process");
+                return result;
+            }
+
+            string normalizedHp = LocalServerManager.NormalizeHexAddress(rawHpAddress);
+            if (normalizedHp == null)
+            {
+                result.Message = LocalizationManager.T("test.invalid_hp");
+                return result;
+            }
+
+            string normalizedName = LocalServerManager.NormalizeHexAddress(rawNameAddress);
+            if (normalizedName == null)
+            {
+                result.Message = LocalizationManager.T("test.invalid_name");
+                return result;
+            }
+
+            string cleanProcessName = processName.Trim();
+            if (cleanProcessName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+            {
+                cleanProcessName = cleanProcessName.Substring(0, cleanProcessName.Length - 4);
+            }
+
+            int hpAddress = Convert.ToInt32(normalizedHp, 16);
+            int nameAddress = Convert.ToInt32(normalizedName, 16);
+
+            Process[] matching = Process.GetProcessesByName(cleanProcessName);
+            if (matching.Length == 0)
+            {
+                result.Message = LocalizationManager.T("test.process_not_running", cleanProcessName);
+                return result;
+            }
+
+            Process target = null;
+            try
+            {
+                for (int i = 0; i < matching.Length; i++)
+                {
+                    if (matching[i].MainWindowHandle != IntPtr.Zero)
+                    {
+                        target = matching[i];
+                        break;
+                    }
+                }
+
+                if (target == null)
+                {
+                    target = matching[0];
+                }
+
+                using (ProcessMemoryReader reader = new ProcessMemoryReader())
+                {
+                    reader.ReadProcess = target;
+                    if (!reader.OpenProcess())
+                    {
+                        result.Message = LocalizationManager.T("test.open_failed", cleanProcessName);
+                        return result;
+                    }
+
+                    byte[] vitalsBytes = new byte[Constants.HP_SP_BLOCK_BYTE_SIZE];
+                    int bytesRead;
+                    if (reader.ReadProcessMemory((IntPtr)hpAddress, vitalsBytes, vitalsBytes.Length, out bytesRead)
+                        && bytesRead >= Constants.HP_SP_BLOCK_BYTE_SIZE)
+                    {
+                        result.CurrentHp = BitConverter.ToUInt32(vitalsBytes, 0);
+                        result.MaxHp = BitConverter.ToUInt32(vitalsBytes, 4);
+                        result.CurrentSp = BitConverter.ToUInt32(vitalsBytes, 8);
+                        result.MaxSp = BitConverter.ToUInt32(vitalsBytes, 12);
+                    }
+
+                    byte[] nameBytes = new byte[40];
+                    if (reader.ReadProcessMemory((IntPtr)nameAddress, nameBytes, nameBytes.Length, out bytesRead) && bytesRead > 0)
+                    {
+                        int length = 0;
+                        while (length < bytesRead && nameBytes[length] != 0)
+                        {
+                            length++;
+                        }
+
+                        result.CharacterName = length > 0 ? Encoding.Default.GetString(nameBytes, 0, length).Trim() : string.Empty;
+                    }
+
+                    byte[] statusRaw = new byte[Constants.STATUS_BUFFER_BYTE_SIZE];
+                    if (reader.ReadProcessMemory((IntPtr)(hpAddress + 0x474), statusRaw, statusRaw.Length, out bytesRead)
+                        && bytesRead >= sizeof(uint))
+                    {
+                        int entries = bytesRead / sizeof(uint);
+                        int activeCount = 0;
+                        for (int i = 0; i < entries; i++)
+                        {
+                            uint code = BitConverter.ToUInt32(statusRaw, i * sizeof(uint));
+                            if (code != 0 && code != (uint)EffectStatusIDs.IGNORE && code != (uint)EffectStatusIDs.IGNORE_2)
+                            {
+                                activeCount++;
+                            }
+                        }
+                        result.ActiveBuffCount = activeCount;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn("Client", "Failed testing memory addresses for '" + cleanProcessName + "'", ex);
+                result.Message = LocalizationManager.T("test.read_error", ex.Message);
+                return result;
+            }
+            finally
+            {
+                for (int i = 0; i < matching.Length; i++)
+                {
+                    matching[i].Dispose();
+                }
+            }
+
+            bool hpLooksValid = result.MaxHp > 0 && result.MaxHp < 100000000u && result.CurrentHp <= result.MaxHp;
+            bool nameLooksValid = !string.IsNullOrWhiteSpace(result.CharacterName);
+
+            result.Success = hpLooksValid || nameLooksValid;
+            if (result.Success)
+            {
+                result.Message = LocalizationManager.T(
+                    "test.ok_report",
+                    nameLooksValid ? result.CharacterName : LocalizationManager.T("test.not_detected"),
+                    result.CurrentHp,
+                    result.MaxHp,
+                    result.CurrentSp,
+                    result.MaxSp,
+                    result.ActiveBuffCount);
+            }
+            else
+            {
+                result.Message = LocalizationManager.T("test.empty_values", result.CurrentHp, result.MaxHp);
+            }
+
+            return result;
+        }
+
         public void Dispose()
         {
             Dispose(true);
@@ -520,5 +664,17 @@ namespace _4RTools.Model
                 }
             }
         }
+    }
+
+    public class ServerAddressTestResult
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public uint CurrentHp { get; set; }
+        public uint MaxHp { get; set; }
+        public uint CurrentSp { get; set; }
+        public uint MaxSp { get; set; }
+        public string CharacterName { get; set; } = string.Empty;
+        public int ActiveBuffCount { get; set; }
     }
 }

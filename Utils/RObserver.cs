@@ -25,7 +25,8 @@ namespace _4RTools.Utils
         SHUTDOWN_APPLICATION,
         CLICK_ICON_TRAY,
         SERVER_LIST_CHANGED,
-        CLIENT_DISCONNECTED
+        CLIENT_DISCONNECTED,
+        LANGUAGE_CHANGED
     }
 
     public class Message

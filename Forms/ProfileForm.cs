@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using _4RTools.Model;
@@ -20,6 +21,7 @@ namespace _4RTools.Forms
             this.container = container;
             InitializeImportExportButtons();
             InitializeCharacterBindingPanel();
+            InitializeBackupAndDiagnosticsBar();
             this.lbProfilesList.SelectedIndexChanged += lbProfilesList_SelectedIndexChanged;
             RefreshProfileList();
             RefreshCharacterBindingUi();
@@ -49,6 +51,43 @@ namespace _4RTools.Forms
 
             this.Controls.Add(btnExport);
             this.Controls.Add(btnImport);
+        }
+
+        private void InitializeBackupAndDiagnosticsBar()
+        {
+            Button btnBackupZip = new Button
+            {
+                Location = new Point(23, 224),
+                Name = "btnBackupZip",
+                Size = new Size(115, 25),
+                Text = "Backup All (.zip)",
+                UseVisualStyleBackColor = true
+            };
+            btnBackupZip.Click += btnBackupZip_Click;
+
+            Button btnRestoreZip = new Button
+            {
+                Location = new Point(146, 224),
+                Name = "btnRestoreZip",
+                Size = new Size(115, 25),
+                Text = "Restore (.zip)",
+                UseVisualStyleBackColor = true
+            };
+            btnRestoreZip.Click += btnRestoreZip_Click;
+
+            Button btnCheckConflicts = new Button
+            {
+                Location = new Point(267, 224),
+                Name = "btnCheckConflicts",
+                Size = new Size(140, 25),
+                Text = "Check Key Conflicts",
+                UseVisualStyleBackColor = true
+            };
+            btnCheckConflicts.Click += btnCheckConflicts_Click;
+
+            this.Controls.Add(btnBackupZip);
+            this.Controls.Add(btnRestoreZip);
+            this.Controls.Add(btnCheckConflicts);
         }
 
         private void InitializeCharacterBindingPanel()
@@ -171,7 +210,7 @@ namespace _4RTools.Forms
             {
                 string targetProfile = GetTargetProfileForBinding();
                 this.cbAutoSwitch.Checked = this.container != null && this.container.GetAutoSwitchByCharacter();
-                this.lblTargetProfile.Text = "Profile: " + targetProfile;
+                this.lblTargetProfile.Text = LocalizationManager.T("label.profile_prefix", targetProfile);
                 this.txtBoundCharacter.Text = ProfileSingleton.GetBoundCharacter(targetProfile);
             }
             finally
@@ -201,8 +240,8 @@ namespace _4RTools.Forms
             if (client == null || !client.IsProcessAlive() || !client.HasMemorySupport)
             {
                 MessageBox.Show(
-                    "Select a supported Ragnarok client first to read the active character name.",
-                    "Active Character",
+                    LocalizationManager.T("msg.select_client_first"),
+                    LocalizationManager.T("title.active_char"),
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
                 return;
@@ -212,8 +251,8 @@ namespace _4RTools.Forms
             if (string.IsNullOrWhiteSpace(name))
             {
                 MessageBox.Show(
-                    "Could not detect an active character name from the Ragnarok client.",
-                    "Active Character",
+                    LocalizationManager.T("msg.char_not_detected"),
+                    LocalizationManager.T("title.active_char"),
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
                 return;
@@ -245,14 +284,18 @@ namespace _4RTools.Forms
                 }
 
                 string msg = string.IsNullOrEmpty(charName)
-                    ? "Character binding cleared for profile '" + targetProfile + "'."
-                    : "Profile '" + targetProfile + "' bound to character '" + charName + "'.";
-                MessageBox.Show(msg, "Character Binding", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ? LocalizationManager.T("msg.binding_cleared", targetProfile)
+                    : LocalizationManager.T("msg.binding_saved", targetProfile, charName);
+                MessageBox.Show(msg, LocalizationManager.T("title.char_binding"), MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
                 Logger.Warn("ProfileForm", "Failed to save character binding", ex);
-                MessageBox.Show("Failed to save character binding: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    LocalizationManager.T("msg.binding_save_error", ex.Message),
+                    LocalizationManager.T("title.error"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 
@@ -302,7 +345,7 @@ namespace _4RTools.Forms
             catch (Exception ex)
             {
                 Logger.Warn("ProfileForm", "Failed to create profile", ex);
-                MessageBox.Show(ex.Message, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(ex.Message, LocalizationManager.T("title.warning"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -310,14 +353,14 @@ namespace _4RTools.Forms
         {
             if (this.lbProfilesList.SelectedItem == null)
             {
-                MessageBox.Show("No profile selected! To delete a profile, first select an option from the Profile list.");
+                MessageBox.Show(LocalizationManager.T("msg.profile_select_delete"), LocalizationManager.T("title.warning"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             string selectedProfile = this.lbProfilesList.SelectedItem.ToString();
             if (string.Equals(selectedProfile, "Default", StringComparison.OrdinalIgnoreCase))
             {
-                MessageBox.Show("Cannot delete the Default profile!");
+                MessageBox.Show(LocalizationManager.T("msg.profile_cannot_delete_default"), LocalizationManager.T("title.warning"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -330,20 +373,21 @@ namespace _4RTools.Forms
         {
             if (this.lbProfilesList.SelectedItem == null)
             {
-                MessageBox.Show("To rename a profile, first select one from the Profile list.");
+                MessageBox.Show(LocalizationManager.T("msg.profile_select_rename"), LocalizationManager.T("title.warning"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             string selectedProfile = this.lbProfilesList.SelectedItem.ToString();
             if (string.Equals(selectedProfile, "Default", StringComparison.OrdinalIgnoreCase))
             {
-                MessageBox.Show("Cannot rename the Default profile!");
+                MessageBox.Show(LocalizationManager.T("msg.profile_cannot_rename_default"), LocalizationManager.T("title.warning"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             using (EditProfileName editProfileName = new EditProfileName())
             {
                 editProfileName.SetProfileName(selectedProfile);
+                LocalizationManager.ApplyToControlTree(editProfileName);
                 ThemeManager.ApplyCurrentTheme(editProfileName);
                 if (editProfileName.ShowDialog() == DialogResult.OK)
                 {
@@ -357,14 +401,14 @@ namespace _4RTools.Forms
         {
             if (this.lbProfilesList.SelectedItem == null)
             {
-                MessageBox.Show("To copy a profile, first select one from the Profile list.");
+                MessageBox.Show(LocalizationManager.T("msg.profile_select_copy"), LocalizationManager.T("title.warning"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             string selectedProfile = this.lbProfilesList.SelectedItem.ToString();
             if (string.Equals(selectedProfile, "Default", StringComparison.OrdinalIgnoreCase))
             {
-                MessageBox.Show("Cannot copy the Default profile!");
+                MessageBox.Show(LocalizationManager.T("msg.profile_cannot_copy_default"), LocalizationManager.T("title.warning"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -377,7 +421,7 @@ namespace _4RTools.Forms
             catch (Exception ex)
             {
                 Logger.Warn("ProfileForm", "Failed to copy profile", ex);
-                MessageBox.Show(ex.Message, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(ex.Message, LocalizationManager.T("title.warning"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -389,19 +433,27 @@ namespace _4RTools.Forms
 
             using (SaveFileDialog dialog = new SaveFileDialog())
             {
-                dialog.Filter = "4RTools Profile (*.json)|*.json";
+                dialog.Filter = LocalizationManager.T("filter.profile_json");
                 dialog.FileName = targetProfile + ".json";
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     try
                     {
                         ProfileSingleton.Export(targetProfile, dialog.FileName);
-                        MessageBox.Show("Profile exported successfully!", "Export Profile", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show(
+                            LocalizationManager.T("msg.export_success"),
+                            LocalizationManager.T("title.export_profile"),
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
                     }
                     catch (Exception ex)
                     {
                         Logger.Warn("ProfileForm", "Failed to export profile", ex);
-                        MessageBox.Show("Failed to export profile: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(
+                            LocalizationManager.T("msg.export_error", ex.Message),
+                            LocalizationManager.T("title.error"),
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
                     }
                 }
             }
@@ -411,7 +463,7 @@ namespace _4RTools.Forms
         {
             using (OpenFileDialog dialog = new OpenFileDialog())
             {
-                dialog.Filter = "4RTools Profile (*.json)|*.json";
+                dialog.Filter = LocalizationManager.T("filter.profile_json");
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     try
@@ -419,15 +471,116 @@ namespace _4RTools.Forms
                         string importedName = ProfileSingleton.Import(dialog.FileName);
                         RefreshProfileList();
                         this.container.refreshProfileList();
-                        MessageBox.Show("Profile '" + importedName + "' imported successfully!", "Import Profile", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show(
+                            LocalizationManager.T("msg.import_success", importedName),
+                            LocalizationManager.T("title.import_profile"),
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
                     }
                     catch (Exception ex)
                     {
                         Logger.Warn("ProfileForm", "Failed to import profile", ex);
-                        MessageBox.Show("Failed to import profile: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(
+                            LocalizationManager.T("msg.import_error", ex.Message),
+                            LocalizationManager.T("title.error"),
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
                     }
                 }
             }
+        }
+
+        private void btnBackupZip_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog dialog = new SaveFileDialog())
+            {
+                dialog.Filter = LocalizationManager.T("filter.backup_zip");
+                dialog.FileName = "4RTools-Backup-" + DateTime.Now.ToString("yyyyMMdd-HHmm") + ".zip";
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        int count = ProfileBackupManager.ExportBackupZip(dialog.FileName);
+                        MessageBox.Show(
+                            LocalizationManager.T("msg.backup_success", count),
+                            LocalizationManager.T("title.backup_all"),
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn("ProfileForm", "Failed to export full backup", ex);
+                        MessageBox.Show(
+                            LocalizationManager.T("msg.backup_error", ex.Message),
+                            LocalizationManager.T("title.error"),
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private void btnRestoreZip_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog dialog = new OpenFileDialog())
+            {
+                dialog.Filter = LocalizationManager.T("filter.backup_zip");
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    if (MessageBox.Show(
+                            LocalizationManager.T("msg.restore_confirm"),
+                            LocalizationManager.T("title.restore_backup"),
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question) != DialogResult.Yes)
+                    {
+                        return;
+                    }
+
+                    try
+                    {
+                        BackupRestoreResult result = ProfileBackupManager.ImportBackupZip(dialog.FileName);
+                        RefreshProfileList();
+                        this.container.refreshProfileList();
+                        this.container.ReloadCurrentProfile();
+
+                        if (result.ServersRestored)
+                        {
+                            this.container.NotifyServersRestored();
+                        }
+                        if (result.SettingsRestored)
+                        {
+                            this.container.ReloadAppSettings();
+                        }
+
+                        string yesLabel = LocalizationManager.T("title.yes");
+                        string noLabel = LocalizationManager.T("title.no");
+                        string summary = LocalizationManager.T(
+                            "msg.restore_summary",
+                            result.ProfilesRestored,
+                            result.ServersRestored ? yesLabel : noLabel,
+                            result.SettingsRestored ? yesLabel : noLabel);
+                        MessageBox.Show(summary, LocalizationManager.T("title.restore_backup"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn("ProfileForm", "Failed to restore backup", ex);
+                        MessageBox.Show(
+                            LocalizationManager.T("msg.restore_error", ex.Message),
+                            LocalizationManager.T("title.error"),
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private void btnCheckConflicts_Click(object sender, EventArgs e)
+        {
+            Profile current = ProfileSingleton.GetCurrent();
+            List<KeybindConflict> conflicts = KeybindConflictDetector.DetectConflicts(current);
+            string report = KeybindConflictDetector.FormatReport(current != null ? current.Name : "Default", conflicts);
+            MessageBoxIcon icon = conflicts.Count > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Information;
+            MessageBox.Show(report, LocalizationManager.T("title.key_conflicts"), MessageBoxButtons.OK, icon);
         }
     }
 }

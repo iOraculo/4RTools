@@ -18,6 +18,7 @@ namespace _4RTools.Forms
         public AutoPatcher()
         {
             InitializeComponent();
+            LocalizationManager.ApplyToControlTree(this);
             this.Shown += AutoPatcher_Shown;
         }
 

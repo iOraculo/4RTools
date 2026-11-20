@@ -1,5 +1,17 @@
 # Changelogs
 
+## [v2.12.0] - 2026-11-19
+### Added
+- **Modern Redesigned Interface** (`Forms/Container.cs`, `Utils/ModernControls.cs`, `Utils/ThemeManager.cs`): replaced legacy multi-row tabs and MDI chrome with a structured desktop layout featuring a clean top bar (live ON/OFF emblem, client/profile selectors, Dark Mode / Mini HUD / Always on Top / PT-BR-EN controls), grouped left sidebar with custom GDI+ vector icons and a live session summary card, always-visible Combat Dashboard (Autopot/Yggdrasil segmented pills + ON/OFF + live HP/SP bars), active section cards with descriptive titles/subtitles, and a visible footer with GitHub & Discord links.
+- **Portuguese (PT-BR) interface by default + live `PT-BR / EN` switcher** (`LocalizationManager`): translates all tabs, forms, buttons, tooltips, tray menu, dialogs, server tester messages, and conflict reports live without restarting.
+- **Floating Mini HUD** (`MiniHudForm`): compact, draggable, translucent always-on-top overlay displaying live `ON`/`OFF`/`CHAT` status, active profile/character, and real-time HP/SP bars; toggleable from the main header with persisted visibility and screen coordinates in `settings.json`.
+- **Keybind Conflict Inspector** (`KeybindConflictDetector`): inspects the active profile across all modules (Toggle, Autopot, AHK, Autobuff, Recovery, Skill Timers, ATK/DEF, Song Macro, Macro Switch) and reports duplicate key assignments while allowing intentional shared cure keys.
+- **Full `.zip` Backup & Restore** (`ProfileBackupManager`): export and restore all profiles, custom servers (`supported_servers.json`), and app settings (`settings.json`) in a single archive with Zip Slip and JSON validation.
+- **Live Server Address Tester**: new **Test** button in `AddServerForm` (`Client.TestMemoryAddresses`) verifies HP/SP, character name, and active buff count directly against the running Ragnarok process before saving.
+- **Smart AutoBuff controls**: configurable **Min SP%** threshold, per-buff recast **Cooldown (`CD(ms)`)**, and automatic pause during incapacitating debuffs (Silence, Freezing, Stun, Deep Sleep) on both Autobuff Skills and Stuffs tabs.
+- **6 Skill Timer slots** (`SkillTimerForm` + `Profile`): added a second row with 3 additional independent Skill Timers (`4`, `5`, `6`), persisted per profile and included in keybind conflict inspection.
+- **Automated Release workflow** (`.github/workflows/release.yml`): builds, tests, packages `4RTools-<tag>.zip` + `4RTools.exe` + `SHA256SUMS.txt`, and publishes GitHub Releases automatically on `v*` tags.
+
 ## [v2.11.0] - 2026-11-19
 ### Added
 - **Dark Mode** and **Always on Top** toggles in the main header, persisted globally in `settings.json` (`AppSettings` + `ThemeManager`).
