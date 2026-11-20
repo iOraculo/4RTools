@@ -1,5 +1,12 @@
 # Changelogs
 
+## [v2.16.0] - 2026-11-20 — Complete Pre-Renewal Bard / Clown & Dancer / Gypsy Skills
+### Added
+- **18 Pre-Renewal Bard/Clown & Dancer/Gypsy Skills (`Model/Buff.cs`, `Utils/EffectStatusIDs.cs`, `Utils/LocalizationManager.cs`)**: added all classic songs, dances, ensembles, and transcendent buffs with official 24×24 RO icons, Pre-Renewal Mode visibility, and bilingual PT-BR/EN search:
+  - **Bardo / Menestrel:** *Assovio* (`EFST_WHISTLE = 70`), *Crepúsculo Sangrento* (`EFST_ASSASSINCROSS = 71`), *Maçãs de Idun* (`EFST_APPLEIDUN = 73`).
+  - **Odalisca / Cigana:** *Sibilo* (`EFST_HUMMING = 74`), *Não Me Abandones* (`EFST_DONTFORGETME = 75`), *Beijo da Sorte* (`EFST_FORTUNEKISS = 76`), *Dança Cigana* (`EFST_SERVICEFORYOU = 77`).
+  - **Duetos & Transclasse (Menestrel / Cigana):** *Banquete de Njord* (`78`), *Ritmo Caótico* (`79`), *Rufar dos Tambores* (`80`), *Anel dos Nibelungos* (`81`), *Lamento de Loki* (`82`), *Canção Preciosa* (`83`), *Ode a Siegfried* (`84`), *Controle de Marionete* (`121`), *Bênção Protetora* (`123`), *Grito de Liberdade* (`189`) e *Bastão de Hermod* (`190`).
+
 ## [v2.15.1] - 2026-11-20 — Button Text Alignment Fix
 ### Fixed
 - **Profile "Create / Criar" Button Text Alignment (`Forms/ProfileForm.Designer.cs`, `Utils/ThemeManager.cs`)**: increased `btnSave` height from `20px` to `24px` (vertically centered with `txtProfileName`) and enforced `Padding.Empty` + `ContentAlignment.MiddleCenter` on flat text buttons so labels never clip or shift downward.

@@ -583,6 +583,43 @@ namespace _4RTools.Tests
             Assert.True(LocalizationManager.MatchesBuffSearch(gospel.name, "batalha"));
             Assert.True(LocalizationManager.MatchesBuffSearch(gospel.name, "gospel"));
             Assert.True(LocalizationManager.MatchesBuffSearch(gospel.name, "battle chant"));
+
+            // Verify all Pre-Renewal Bard / Clown & Dancer / Gypsy songs, dances, and ensembles.
+            EffectStatusIDs[] bardDancerIds = new EffectStatusIDs[]
+            {
+                EffectStatusIDs.EFST_WHISTLE,
+                EffectStatusIDs.EFST_ASSASSINCROSS,
+                EffectStatusIDs.EFST_APPLEIDUN,
+                EffectStatusIDs.EFST_HUMMING,
+                EffectStatusIDs.EFST_DONTFORGETME,
+                EffectStatusIDs.EFST_FORTUNEKISS,
+                EffectStatusIDs.EFST_SERVICEFORYOU,
+                EffectStatusIDs.EFST_RICHMANKIM,
+                EffectStatusIDs.EFST_ETERNALCHAOS,
+                EffectStatusIDs.EFST_DRUMBATTLEFIELD,
+                EffectStatusIDs.EFST_RINGNIBELUNGEN,
+                EffectStatusIDs.EFST_ROKISWEIL,
+                EffectStatusIDs.EFST_INTOABYSS,
+                EffectStatusIDs.EFST_SIEGFRIED,
+                EffectStatusIDs.EFST_MARIONETTE_MASTER,
+                EffectStatusIDs.EFST_MOON,
+                EffectStatusIDs.EFST_LONGING,
+                EffectStatusIDs.EFST_HERMODE
+            };
+            List<Buff> archerSkills = Buff.GetArcherSkills();
+            foreach (EffectStatusIDs id in bardDancerIds)
+            {
+                Assert.True(Buff.IsPreRenewalSkill(id), "Missing Pre-Renewal flag for: " + id);
+                Buff found = archerSkills.FirstOrDefault(b => b.effectStatusID == id);
+                Assert.NotNull(found);
+                Assert.NotNull(found.icon);
+                Assert.True(LocalizationManager.HasBuffTranslation(found.name), "Missing translation for: " + found.name);
+            }
+            Assert.Equal("Dança Cigana (Service for You)", LocalizationManager.GetBuffDisplayName("Service for You"));
+            Assert.Equal("Maçãs de Idun (The Apple of Idun)", LocalizationManager.GetBuffDisplayName("The Apple of Idun"));
+            Assert.True(LocalizationManager.MatchesBuffSearch("Service for You", "danca cigana"));
+            Assert.True(LocalizationManager.MatchesBuffSearch("The Apple of Idun", "macas de idun"));
+            Assert.True(LocalizationManager.MatchesBuffSearch("Invulnerable Siegfried", "siegfried"));
             Assert.False(Buff.IsPreRenewalSkill(EffectStatusIDs.UNLIMIT));
             Assert.False(Buff.IsPreRenewalSkill(EffectStatusIDs.ENCHANT_BLADE));
             Assert.False(Buff.IsPreRenewalSkill(EffectStatusIDs.EFST_HIDDEN_CARD));

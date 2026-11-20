@@ -2989,5 +2989,131 @@ namespace _4RTools.Resources._4RTools {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        internal static System.Drawing.Bitmap ba_whistle {
+            get {
+                object obj = ResourceManager.GetObject("ba_whistle", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap ba_assassincross {
+            get {
+                object obj = ResourceManager.GetObject("ba_assassincross", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap ba_appleidun {
+            get {
+                object obj = ResourceManager.GetObject("ba_appleidun", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap dc_humming {
+            get {
+                object obj = ResourceManager.GetObject("dc_humming", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap dc_dontforgetme {
+            get {
+                object obj = ResourceManager.GetObject("dc_dontforgetme", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap dc_fortunekiss {
+            get {
+                object obj = ResourceManager.GetObject("dc_fortunekiss", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap dc_serviceforyou {
+            get {
+                object obj = ResourceManager.GetObject("dc_serviceforyou", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap bd_richmankim {
+            get {
+                object obj = ResourceManager.GetObject("bd_richmankim", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap bd_eternalchaos {
+            get {
+                object obj = ResourceManager.GetObject("bd_eternalchaos", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap bd_drumbattlefield {
+            get {
+                object obj = ResourceManager.GetObject("bd_drumbattlefield", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap bd_ringnibelungen {
+            get {
+                object obj = ResourceManager.GetObject("bd_ringnibelungen", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap bd_rokisweil {
+            get {
+                object obj = ResourceManager.GetObject("bd_rokisweil", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap bd_intoabyss {
+            get {
+                object obj = ResourceManager.GetObject("bd_intoabyss", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap bd_siegfried {
+            get {
+                object obj = ResourceManager.GetObject("bd_siegfried", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap cg_marionette {
+            get {
+                object obj = ResourceManager.GetObject("cg_marionette", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap cg_moonlit {
+            get {
+                object obj = ResourceManager.GetObject("cg_moonlit", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap cg_longingfreedom {
+            get {
+                object obj = ResourceManager.GetObject("cg_longingfreedom", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap cg_hermode {
+            get {
+                object obj = ResourceManager.GetObject("cg_hermode", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }

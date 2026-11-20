@@ -997,4 +997,58 @@
   <data name="wz_sightblaster" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\..\assets\images\wz_sightblaster.gif;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="ba_whistle" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\ba_whistle.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="ba_assassincross" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\ba_assassincross.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="ba_appleidun" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\ba_appleidun.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="dc_humming" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\dc_humming.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="dc_dontforgetme" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\dc_dontforgetme.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="dc_fortunekiss" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\dc_fortunekiss.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="dc_serviceforyou" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\dc_serviceforyou.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="bd_richmankim" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\bd_richmankim.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="bd_eternalchaos" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\bd_eternalchaos.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="bd_drumbattlefield" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\bd_drumbattlefield.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="bd_ringnibelungen" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\bd_ringnibelungen.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="bd_rokisweil" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\bd_rokisweil.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="bd_intoabyss" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\bd_intoabyss.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="bd_siegfried" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\bd_siegfried.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="cg_marionette" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\cg_marionette.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="cg_moonlit" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\cg_moonlit.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="cg_longingfreedom" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\cg_longingfreedom.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="cg_hermode" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\cg_hermode.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>
