@@ -38,9 +38,9 @@ namespace _4RTools.Utils
 
         public void ApplyTheme(bool darkMode)
         {
-            this.trackColor = darkMode ? Color.FromArgb(44, 48, 60) : Color.FromArgb(226, 232, 240);
-            this.borderColor = darkMode ? Color.FromArgb(68, 74, 90) : Color.FromArgb(203, 213, 225);
-            this.textColor = darkMode ? Color.White : Color.FromArgb(24, 30, 42);
+            this.trackColor = darkMode ? Color.FromArgb(42, 29, 8) : Color.FromArgb(234, 224, 194);
+            this.borderColor = darkMode ? Color.FromArgb(110, 83, 26) : Color.FromArgb(200, 178, 132);
+            this.textColor = darkMode ? Color.FromArgb(243, 234, 208) : Color.FromArgb(42, 30, 14);
             Invalidate();
         }
 

@@ -55,20 +55,20 @@ namespace _4RTools.Tests
         public void AppSettings_SaveAndLoad_RoundTripsAndProvidesDefaultsWhenMissing()
         {
             AppSettings defaults = AppSettings.Load();
-            Assert.False(defaults.DarkMode);
+            Assert.True(defaults.DarkMode);
             Assert.False(defaults.AlwaysOnTop);
             Assert.True(defaults.AutoSwitchProfileByCharacter);
 
             AppSettings custom = new AppSettings
             {
-                DarkMode = true,
+                DarkMode = false,
                 AlwaysOnTop = true,
                 AutoSwitchProfileByCharacter = false
             };
             AppSettings.Save(custom);
 
             AppSettings reloaded = AppSettings.Load();
-            Assert.True(reloaded.DarkMode);
+            Assert.False(reloaded.DarkMode);
             Assert.True(reloaded.AlwaysOnTop);
             Assert.False(reloaded.AutoSwitchProfileByCharacter);
         }
@@ -187,8 +187,8 @@ namespace _4RTools.Tests
 
                 ThemeManager.ApplyTheme(form, true);
                 Assert.True(ThemeManager.IsDarkMode);
-                Assert.Equal(Color.FromArgb(30, 32, 38), form.BackColor);
-                Assert.Equal(Color.FromArgb(52, 56, 68), input.BackColor);
+                Assert.Equal(Color.FromArgb(30, 21, 6), form.BackColor);
+                Assert.Equal(Color.FromArgb(42, 29, 8), input.BackColor);
                 Assert.Equal(Color.Green, statusButton.BackColor);
                 Assert.Equal(Color.White, statusButton.ForeColor);
 
@@ -197,8 +197,8 @@ namespace _4RTools.Tests
 
                 ThemeManager.ApplyTheme(form, false);
                 Assert.False(ThemeManager.IsDarkMode);
-                Assert.Equal(Color.White, form.BackColor);
-                Assert.Equal(Color.White, input.BackColor);
+                Assert.Equal(Color.FromArgb(253, 248, 232), form.BackColor);
+                Assert.Equal(Color.FromArgb(255, 251, 237), input.BackColor);
                 Assert.Equal(Color.Green, statusButton.BackColor);
             }
         }

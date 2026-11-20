@@ -55,6 +55,8 @@ namespace _4RTools.Forms
         private Label lblSectionSubtitle;
         private Panel sectionHostPanel;
         private Panel panelModernFooter;
+        private LinkLabel lblLinkWebsite;
+        private LinkLabel lblLinkWiki;
         private LinkLabel lblLinkGithub;
 
         private string activeSectionKey = "spammer";
@@ -170,9 +172,9 @@ namespace _4RTools.Forms
                 {
                     BackColor = Color.Transparent,
                     Image = this.brandLogoOffBitmap,
-                    Location = new Point(14, 15),
+                    Location = new Point(12, 11),
                     Name = "pbBrandLogo",
-                    Size = new Size(30, 30),
+                    Size = new Size(38, 38),
                     SizeMode = PictureBoxSizeMode.Zoom
                 };
 
@@ -180,19 +182,20 @@ namespace _4RTools.Forms
                 {
                     AutoSize = true,
                     Font = brandTitleFont,
-                    Location = new Point(50, 9),
+                    Location = new Point(56, 8),
                     Name = "lblBrandTitle",
-                    Text = AppConfig.Name
+                    Text = AppConfig.ServerName,
+                    Tag = ThemeManager.TAG_ACCENT_TEXT
                 };
 
                 this.lblBrandVersion = new Label
                 {
                     AutoSize = true,
                     Font = brandVersionFont,
-                    Location = new Point(51, 34),
+                    Location = new Point(57, 34),
                     Name = "lblBrandVersion",
-                    Text = AppConfig.Version,
-                    Tag = ThemeManager.TAG_ACCENT_TEXT
+                    Text = "4RTools " + AppConfig.Version,
+                    Tag = ThemeManager.TAG_MUTED_TEXT
                 };
 
                 // Reparent client selector controls
@@ -533,27 +536,51 @@ namespace _4RTools.Forms
                 this.lbPowered.Location = new Point(14, 7);
                 this.lbPowered.Tag = ThemeManager.TAG_MUTED_TEXT;
 
+                this.lblLinkWebsite = new LinkLabel
+                {
+                    AutoSize = true,
+                    Font = uiRegularFont,
+                    LinkBehavior = LinkBehavior.HoverUnderline,
+                    Location = new Point(588, 7),
+                    Name = "lblLinkWebsite",
+                    Text = "Site"
+                };
+                this.lblLinkWebsite.LinkClicked += websiteLinkLabel_LinkClicked;
+
+                this.lblLinkWiki = new LinkLabel
+                {
+                    AutoSize = true,
+                    Font = uiRegularFont,
+                    LinkBehavior = LinkBehavior.HoverUnderline,
+                    Location = new Point(648, 7),
+                    Name = "lblLinkWiki",
+                    Text = "Wiki"
+                };
+                this.lblLinkWiki.LinkClicked += lblLinkWiki_LinkClicked;
+
+                this.lblLinkDiscord.AutoSize = true;
+                this.lblLinkDiscord.Font = uiRegularFont;
+                this.lblLinkDiscord.LinkBehavior = LinkBehavior.HoverUnderline;
+                this.lblLinkDiscord.Location = new Point(692, 7);
+                this.lblLinkDiscord.Text = "Discord";
+
                 this.lblLinkGithub = new LinkLabel
                 {
                     AutoSize = true,
                     Font = uiRegularFont,
                     LinkBehavior = LinkBehavior.HoverUnderline,
-                    Location = new Point(706, 7),
+                    Location = new Point(754, 7),
                     Name = "lblLinkGithub",
                     Text = "GitHub"
                 };
                 this.lblLinkGithub.LinkClicked += lblLinkGithub_LinkClicked;
 
-                this.lblLinkDiscord.AutoSize = true;
-                this.lblLinkDiscord.Font = uiRegularFont;
-                this.lblLinkDiscord.LinkBehavior = LinkBehavior.HoverUnderline;
-                this.lblLinkDiscord.Location = new Point(760, 7);
-                this.lblLinkDiscord.Text = "Discord";
-
                 this.panelModernFooter.Controls.Add(CreateDivider(new Point(0, 0), new Size(824, 1)));
                 this.panelModernFooter.Controls.Add(this.lbPowered);
-                this.panelModernFooter.Controls.Add(this.lblLinkGithub);
+                this.panelModernFooter.Controls.Add(this.lblLinkWebsite);
+                this.panelModernFooter.Controls.Add(this.lblLinkWiki);
                 this.panelModernFooter.Controls.Add(this.lblLinkDiscord);
+                this.panelModernFooter.Controls.Add(this.lblLinkGithub);
 
                 this.Controls.Add(this.panelTopBar);
                 this.Controls.Add(this.panelSidebar);
@@ -586,6 +613,7 @@ namespace _4RTools.Forms
         {
             try
             {
+                this.Icon = Resources._4RTools.ETCResource.logo_4rtools_on;
                 using (Icon offIcon = Resources._4RTools.ETCResource.logo_4rtools_off)
                 {
                     this.brandLogoOffBitmap = offIcon.ToBitmap();
@@ -788,6 +816,14 @@ namespace _4RTools.Forms
             {
                 this.lbPowered.Text = LocalizationManager.T("footer.powered");
             }
+            if (this.lblLinkWebsite != null)
+            {
+                this.lblLinkWebsite.Text = LocalizationManager.T("footer.website");
+            }
+            if (this.lblLinkWiki != null)
+            {
+                this.lblLinkWiki.Text = LocalizationManager.T("footer.wiki");
+            }
             RefreshHeaderTooltips();
             if (this.profileForm != null)
             {
@@ -808,6 +844,14 @@ namespace _4RTools.Forms
             this.headerToolTip.SetToolTip(this.cbTopMost, LocalizationManager.T("tooltip.top_most"));
             this.headerToolTip.SetToolTip(this.cbLanguage, LocalizationManager.T("tooltip.language"));
             this.headerToolTip.SetToolTip(this.btnRefresh, LocalizationManager.T("tooltip.refresh_clients"));
+            if (this.lblLinkWebsite != null)
+            {
+                this.headerToolTip.SetToolTip(this.lblLinkWebsite, LocalizationManager.T("tooltip.website"));
+            }
+            if (this.lblLinkWiki != null)
+            {
+                this.headerToolTip.SetToolTip(this.lblLinkWiki, LocalizationManager.T("tooltip.wiki"));
+            }
             this.headerToolTip.SetToolTip(this.lblLinkDiscord, LocalizationManager.T("tooltip.discord"));
             if (this.lblLinkGithub != null)
             {
@@ -1336,6 +1380,11 @@ namespace _4RTools.Forms
         private void lblLinkDiscord_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             OpenExternalUrl(AppConfig.DiscordLink);
+        }
+
+        private void lblLinkWiki_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            OpenExternalUrl(AppConfig.WikiLink);
         }
 
         private void websiteLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

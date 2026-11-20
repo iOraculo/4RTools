@@ -21,7 +21,7 @@ namespace _4RTools.Utils
 
     public class ModernCardPanel : Panel
     {
-        private Color borderColor = Color.FromArgb(220, 226, 236);
+        private Color borderColor = Color.FromArgb(212, 192, 152);
 
         public Color BorderColor
         {
@@ -40,7 +40,7 @@ namespace _4RTools.Utils
         {
             this.DoubleBuffered = true;
             this.ResizeRedraw = true;
-            this.BackColor = Color.White;
+            this.BackColor = Color.FromArgb(253, 248, 232);
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -49,6 +49,15 @@ namespace _4RTools.Utils
             using (Pen pen = new Pen(this.borderColor, 1))
             {
                 e.Graphics.DrawRectangle(pen, 0, 0, this.Width - 1, this.Height - 1);
+            }
+
+            if (this.BackColor.GetBrightness() < 0.3F && this.Width > 4)
+            {
+                // Subtle warm gold top highlight inspired by AureumRO panels
+                using (Pen highlight = new Pen(Color.FromArgb(40, 255, 236, 180), 1))
+                {
+                    e.Graphics.DrawLine(highlight, 1, 1, this.Width - 2, 1);
+                }
             }
         }
     }
@@ -122,12 +131,13 @@ namespace _4RTools.Utils
             Graphics g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
-            Color idleBack = this.isDarkMode ? Color.FromArgb(18, 20, 26) : Color.FromArgb(236, 240, 247);
-            Color hoverBack = this.isDarkMode ? Color.FromArgb(30, 34, 46) : Color.FromArgb(224, 231, 242);
-            Color activeBack = this.isDarkMode ? Color.FromArgb(34, 47, 72) : Color.FromArgb(219, 234, 254);
-            Color accent = this.isDarkMode ? Color.FromArgb(96, 165, 250) : Color.FromArgb(37, 99, 235);
-            Color idleText = this.isDarkMode ? Color.FromArgb(203, 213, 225) : Color.FromArgb(51, 65, 85);
-            Color activeText = this.isDarkMode ? Color.White : Color.FromArgb(29, 78, 216);
+            Color idleBack = this.isDarkMode ? Color.FromArgb(18, 12, 3) : Color.FromArgb(250, 244, 224);
+            Color hoverBack = this.isDarkMode ? Color.FromArgb(38, 26, 6) : Color.FromArgb(242, 229, 194);
+            Color activeBack = this.isDarkMode ? Color.FromArgb(54, 37, 9) : Color.FromArgb(237, 224, 182);
+            Color activeBorder = this.isDarkMode ? Color.FromArgb(120, 90, 28) : Color.FromArgb(180, 148, 86);
+            Color accent = this.isDarkMode ? Color.FromArgb(244, 217, 122) : Color.FromArgb(160, 129, 35);
+            Color idleText = this.isDarkMode ? Color.FromArgb(228, 216, 185) : Color.FromArgb(62, 44, 20);
+            Color activeText = this.isDarkMode ? Color.FromArgb(255, 244, 207) : Color.FromArgb(61, 48, 8);
 
             Color fill = this.isActive ? activeBack : (this.isHovered ? hoverBack : idleBack);
             using (SolidBrush outerBg = new SolidBrush(idleBack))
@@ -141,6 +151,13 @@ namespace _4RTools.Utils
                 using (SolidBrush bg = new SolidBrush(fill))
                 {
                     g.FillPath(bg, pill);
+                    if (this.isActive)
+                    {
+                        using (Pen pillBorder = new Pen(activeBorder, 1))
+                        {
+                            g.DrawPath(pillBorder, pill);
+                        }
+                    }
                 }
             }
 
@@ -153,7 +170,7 @@ namespace _4RTools.Utils
                 }
             }
 
-            Color iconColor = this.isActive ? accent : (this.isDarkMode ? Color.FromArgb(148, 163, 184) : Color.FromArgb(100, 116, 139));
+            Color iconColor = this.isActive ? accent : (this.isDarkMode ? Color.FromArgb(179, 160, 121) : Color.FromArgb(113, 90, 59));
             DrawVectorIcon(g, this.IconKind, new Rectangle(13, (this.Height - 14) / 2, 14, 14), iconColor);
 
             Rectangle textBounds = new Rectangle(35, 0, this.Width - 41, this.Height);
@@ -367,30 +384,56 @@ namespace _4RTools.Utils
             Graphics g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
-            Color cardBack = this.isDarkMode ? Color.FromArgb(30, 32, 38) : Color.White;
-            Color activeFill = this.isDarkMode ? Color.FromArgb(59, 130, 246) : Color.FromArgb(37, 99, 235);
-            Color idleFill = this.isDarkMode ? Color.FromArgb(40, 44, 56) : Color.FromArgb(241, 245, 249);
-            Color hoverFill = this.isDarkMode ? Color.FromArgb(50, 56, 70) : Color.FromArgb(226, 232, 240);
+            Color cardBack = this.isDarkMode ? Color.FromArgb(30, 21, 6) : Color.FromArgb(253, 248, 232);
+            Color idleFill = this.isDarkMode ? Color.FromArgb(42, 29, 8) : Color.FromArgb(242, 232, 204);
+            Color hoverFill = this.isDarkMode ? Color.FromArgb(66, 46, 12) : Color.FromArgb(234, 220, 182);
             Color border = this.isActive
-                ? activeFill
-                : (this.isDarkMode ? Color.FromArgb(62, 68, 84) : Color.FromArgb(203, 213, 225));
+                ? Color.FromArgb(212, 175, 55)
+                : (this.isDarkMode ? Color.FromArgb(120, 90, 28) : Color.FromArgb(196, 174, 128));
             Color textColor = this.isActive
-                ? Color.White
-                : (this.isDarkMode ? Color.FromArgb(203, 213, 225) : Color.FromArgb(51, 65, 85));
+                ? Color.FromArgb(42, 29, 5)
+                : (this.isDarkMode ? Color.FromArgb(243, 234, 208) : Color.FromArgb(62, 44, 20));
 
             using (SolidBrush outer = new SolidBrush(cardBack))
             {
                 g.FillRectangle(outer, 0, 0, this.Width, this.Height);
             }
 
-            Color fill = this.isActive ? activeFill : (this.isHovered ? hoverFill : idleFill);
             Rectangle rect = new Rectangle(0, 0, this.Width - 1, this.Height - 1);
 
             using (GraphicsPath pill = SidebarNavButton.CreateRoundedRect(rect, 5))
-            using (SolidBrush brush = new SolidBrush(fill))
             using (Pen pen = new Pen(border, 1))
             {
-                g.FillPath(brush, pill);
+                if (this.isActive && rect.Height > 0)
+                {
+                    // AureumRO metallic gold button gradient (#FFF0C2 -> #ECC861 -> #CDA23A -> #9C7616)
+                    using (LinearGradientBrush goldBrush = new LinearGradientBrush(
+                        rect,
+                        Color.FromArgb(255, 240, 194),
+                        Color.FromArgb(166, 126, 26),
+                        LinearGradientMode.Vertical))
+                    {
+                        ColorBlend blend = new ColorBlend(3);
+                        blend.Positions = new float[] { 0.0F, 0.45F, 1.0F };
+                        blend.Colors = new Color[]
+                        {
+                            Color.FromArgb(255, 240, 194),
+                            Color.FromArgb(236, 200, 97),
+                            Color.FromArgb(166, 126, 26)
+                        };
+                        goldBrush.InterpolationColors = blend;
+                        g.FillPath(goldBrush, pill);
+                    }
+                }
+                else
+                {
+                    Color fill = this.isHovered ? hoverFill : idleFill;
+                    using (SolidBrush brush = new SolidBrush(fill))
+                    {
+                        g.FillPath(brush, pill);
+                    }
+                }
+
                 g.DrawPath(pen, pill);
             }
 
@@ -467,7 +510,7 @@ namespace _4RTools.Utils
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             Color dotColor = this.customColor.HasValue
                 ? this.customColor.Value
-                : (this.isConnected ? Color.FromArgb(34, 197, 94) : Color.FromArgb(148, 163, 184));
+                : (this.isConnected ? Color.FromArgb(46, 204, 113) : Color.FromArgb(158, 140, 102));
             using (SolidBrush brush = new SolidBrush(dotColor))
             {
                 e.Graphics.FillEllipse(brush, 1, 1, this.Width - 3, this.Height - 3);

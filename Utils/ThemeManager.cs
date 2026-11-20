@@ -14,32 +14,36 @@ namespace _4RTools.Utils
         public const string TAG_MUTED_TEXT = "themeMuted";
         public const string TAG_ACCENT_TEXT = "themeAccent";
 
-        private static readonly Color LightBackground = Color.White;
-        private static readonly Color LightCanvas = Color.FromArgb(243, 245, 249);
-        private static readonly Color LightSidebar = Color.FromArgb(236, 240, 247);
-        private static readonly Color LightSurface = Color.White;
-        private static readonly Color LightInputBack = Color.White;
-        private static readonly Color LightButtonBack = Color.FromArgb(248, 250, 252);
-        private static readonly Color LightButtonBorder = Color.FromArgb(203, 213, 225);
-        private static readonly Color LightCardBorder = Color.FromArgb(220, 226, 236);
-        private static readonly Color LightText = Color.FromArgb(30, 36, 48);
-        private static readonly Color LightMutedText = Color.FromArgb(100, 116, 139);
-        private static readonly Color LightAccent = Color.FromArgb(37, 99, 235);
-        private static readonly Color LightDivider = Color.FromArgb(220, 226, 236);
+        // AureumRO Light Mode — Warm Parchment & Antique Gold (aureumro.com :root tokens)
+        private static readonly Color LightBackground = Color.FromArgb(253, 248, 232);   // #FDF8E8 (--bg-card)
+        private static readonly Color LightCanvas = Color.FromArgb(242, 232, 204);       // #F2E8CC (--bg-deepest)
+        private static readonly Color LightSidebar = Color.FromArgb(250, 244, 224);      // #FAF4E0 (--bg-base)
+        private static readonly Color LightSurface = Color.FromArgb(248, 238, 209);      // #F8EED1 (--bg-card-hover)
+        private static readonly Color LightInputBack = Color.FromArgb(255, 251, 237);    // #FFFBED (--bg-elevated)
+        private static readonly Color LightButtonBack = Color.FromArgb(248, 238, 209);   // #F8EED1
+        private static readonly Color LightButtonHover = Color.FromArgb(239, 224, 180);  // #EFE0B4
+        private static readonly Color LightButtonBorder = Color.FromArgb(168, 145, 105); // #A89169 (--border-bright)
+        private static readonly Color LightCardBorder = Color.FromArgb(212, 192, 152);   // #D4C098 (--border)
+        private static readonly Color LightText = Color.FromArgb(42, 30, 14);            // #2A1E0E (--text-soft)
+        private static readonly Color LightMutedText = Color.FromArgb(113, 90, 59);      // #715A3B (--text-muted)
+        private static readonly Color LightAccent = Color.FromArgb(160, 129, 35);        // #A08123 (--gold)
+        private static readonly Color LightDivider = Color.FromArgb(212, 192, 152);      // #D4C098
 
-        private static readonly Color DarkBackground = Color.FromArgb(30, 32, 38);
-        private static readonly Color DarkCanvas = Color.FromArgb(22, 24, 30);
-        private static readonly Color DarkSidebar = Color.FromArgb(18, 20, 26);
-        private static readonly Color DarkSurface = Color.FromArgb(26, 29, 36);
-        private static readonly Color DarkInputBack = Color.FromArgb(52, 56, 68);
-        private static readonly Color DarkButtonBack = Color.FromArgb(48, 53, 66);
-        private static readonly Color DarkButtonBorder = Color.FromArgb(72, 78, 94);
-        private static readonly Color DarkCardBorder = Color.FromArgb(48, 53, 66);
-        private static readonly Color DarkText = Color.FromArgb(236, 239, 244);
-        private static readonly Color DarkMutedText = Color.FromArgb(148, 163, 184);
-        private static readonly Color DarkAccent = Color.FromArgb(96, 165, 250);
-        private static readonly Color DarkDivider = Color.FromArgb(52, 58, 72);
-        private static readonly Color DarkLink = Color.FromArgb(116, 179, 255);
+        // AureumRO Dark Mode — Obsidian & Royal Gold (aureumro.com homepage theme)
+        private static readonly Color DarkBackground = Color.FromArgb(30, 21, 6);        // #1E1506
+        private static readonly Color DarkCanvas = Color.FromArgb(11, 7, 1);             // #0B0701 (home-body)
+        private static readonly Color DarkSidebar = Color.FromArgb(18, 12, 3);           // #120C03
+        private static readonly Color DarkSurface = Color.FromArgb(27, 19, 4);           // #1B1304 (topnav)
+        private static readonly Color DarkInputBack = Color.FromArgb(42, 29, 8);         // #2A1D08
+        private static readonly Color DarkButtonBack = Color.FromArgb(46, 32, 9);        // #2E2009
+        private static readonly Color DarkButtonHover = Color.FromArgb(74, 52, 14);      // #4A340E
+        private static readonly Color DarkButtonBorder = Color.FromArgb(138, 104, 32);   // #8A6820
+        private static readonly Color DarkCardBorder = Color.FromArgb(89, 66, 20);       // #594214
+        private static readonly Color DarkText = Color.FromArgb(243, 234, 208);          // #F3EAD0
+        private static readonly Color DarkMutedText = Color.FromArgb(179, 160, 121);     // #B3A079
+        private static readonly Color DarkAccent = Color.FromArgb(244, 217, 122);        // #F4D97A
+        private static readonly Color DarkDivider = Color.FromArgb(71, 52, 15);          // #47340F
+        private static readonly Color DarkLink = Color.FromArgb(244, 217, 122);          // #F4D97A
 
         public static bool IsDarkMode { get; private set; }
 
@@ -168,14 +172,14 @@ namespace _4RTools.Utils
                     if (darkMode)
                     {
                         btn.FlatAppearance.BorderColor = DarkButtonBorder;
-                        btn.FlatAppearance.MouseOverBackColor = Color.FromArgb(62, 68, 84);
+                        btn.FlatAppearance.MouseOverBackColor = DarkButtonHover;
                         btn.BackColor = DarkButtonBack;
                         btn.ForeColor = DarkText;
                     }
                     else
                     {
                         btn.FlatAppearance.BorderColor = LightButtonBorder;
-                        btn.FlatAppearance.MouseOverBackColor = Color.FromArgb(236, 242, 250);
+                        btn.FlatAppearance.MouseOverBackColor = LightButtonHover;
                         btn.BackColor = LightButtonBack;
                         btn.ForeColor = LightText;
                     }
@@ -190,7 +194,7 @@ namespace _4RTools.Utils
                     LinkLabel link = (LinkLabel)control;
                     link.LinkColor = darkMode ? DarkLink : LightAccent;
                     link.VisitedLinkColor = darkMode ? DarkLink : LightAccent;
-                    link.ActiveLinkColor = darkMode ? Color.White : Color.FromArgb(29, 78, 216);
+                    link.ActiveLinkColor = darkMode ? Color.FromArgb(255, 244, 207) : Color.FromArgb(108, 87, 21);
                     link.ForeColor = darkMode ? DarkText : LightText;
                 }
                 else if (control is DataGridView)
@@ -201,14 +205,14 @@ namespace _4RTools.Utils
                     grid.DefaultCellStyle.BackColor = darkMode ? DarkInputBack : LightInputBack;
                     grid.DefaultCellStyle.ForeColor = darkMode ? DarkText : LightText;
                     grid.ColumnHeadersDefaultCellStyle.BackColor = darkMode ? DarkSurface : LightSidebar;
-                    grid.ColumnHeadersDefaultCellStyle.ForeColor = darkMode ? DarkText : LightText;
+                    grid.ColumnHeadersDefaultCellStyle.ForeColor = darkMode ? DarkAccent : LightText;
                     grid.EnableHeadersVisualStyles = !darkMode;
                 }
                 else if (control is Label)
                 {
                     if (string.Equals(control.Name, "characterName", StringComparison.Ordinal))
                     {
-                        control.ForeColor = darkMode ? Color.FromArgb(74, 222, 128) : Color.FromArgb(21, 128, 61);
+                        control.ForeColor = darkMode ? Color.FromArgb(46, 204, 113) : Color.FromArgb(22, 163, 74);
                     }
                     else if (string.Equals(tag, TAG_MUTED_TEXT, StringComparison.Ordinal))
                     {

@@ -1,5 +1,11 @@
 [
   {
+    "name": "AureumRO",
+    "description": "AureumRO — O goldtimes que você sempre sonhou",
+    "hpAddress": "0x015FF908",
+    "nameAddress": "0x01602568"
+  },
+  {
     "name": "rtales.bin",
     "description": "Ragna Tales",
     "hpAddress": "0x00E8E434",

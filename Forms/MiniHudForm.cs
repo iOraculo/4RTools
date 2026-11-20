@@ -33,7 +33,7 @@ namespace _4RTools.Forms
             this.Opacity = 0.90;
             this.DoubleBuffered = true;
             this.ClientSize = new Size(236, 74);
-            this.Text = "4RTools Mini HUD";
+            this.Text = "AureumRO — 4RTools Mini HUD";
 
             this.badgeFont = new Font("Microsoft Sans Serif", 7.5F, FontStyle.Bold);
             this.headerFont = new Font("Microsoft Sans Serif", 8F, FontStyle.Bold);
@@ -259,7 +259,7 @@ namespace _4RTools.Forms
             }
 
             ThemeManager.ApplyTheme(this, darkMode);
-            this.borderColor = darkMode ? Color.FromArgb(90, 96, 114) : Color.FromArgb(170, 175, 185);
+            this.borderColor = darkMode ? Color.FromArgb(180, 138, 44) : Color.FromArgb(168, 145, 105);
             this.btnClose.FlatStyle = FlatStyle.Flat;
             this.btnClose.FlatAppearance.BorderSize = 0;
             this.btnClose.BackColor = this.BackColor;

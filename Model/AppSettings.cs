@@ -16,7 +16,7 @@ namespace _4RTools.Model
             set { settingsFilePath = value; }
         }
 
-        public bool DarkMode { get; set; } = false;
+        public bool DarkMode { get; set; } = true;
         public bool AlwaysOnTop { get; set; } = false;
         public bool AutoSwitchProfileByCharacter { get; set; } = true;
         public bool ShowMiniHud { get; set; } = false;

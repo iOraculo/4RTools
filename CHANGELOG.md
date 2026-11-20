@@ -1,5 +1,13 @@
 # Changelogs
 
+## [v2.13.0] - 2026-11-20 — AureumRO Edition
+### Added & Changed
+- **AureumRO Official Visual Identity (`Utils/ThemeManager.cs`, `Utils/ModernControls.cs`, `Utils/VitalBar.cs`, `Forms/Container.cs`, `Forms/MiniHudForm.cs`)**:
+  - Applied the official **AureumRO** color palette from `https://aureumro.com/`: **Obsidian & Royal Gold** Dark Mode (now default on first launch: `#0B0701`, `#120C03`, `#1B1304`, `#1E1506`, `#F4D97A`, `#F3EAD0`) and **Warm Parchment & Antique Gold** Light Mode (`#F2E8CC`, `#FAF4E0`, `#FDF8E8`, `#D4C098`, `#A08123`, `#2A1E0E`).
+  - Replaced app, window, topbar, and system-tray ON/OFF icons (`logo-4rtools.ico`, `logo_4rtools_on.ico`, `logo_4rtools_off.ico`) with the official **AureumRO Golden Winged-A Emblem** featuring emerald ON (`#2ECC71`) and bronze/ruby OFF status badges.
+  - Styled active segmented tabs with AureumRO's metallic gold CTA gradient (`#FFF0C2` → `#ECC861` → `#A67E1A`) and cards with subtle warm gold top highlights.
+  - Updated branding, links, and footer with **AureumRO** (`Site`, `Wiki`, `Discord`, `GitHub`) and added **AureumRO** (`0x015FF908` / `0x01602568`) to built-in `supported_servers.json`.
+
 ## [v2.12.0] - 2026-11-19
 ### Added
 - **Modern Redesigned Interface** (`Forms/Container.cs`, `Utils/ModernControls.cs`, `Utils/ThemeManager.cs`): replaced legacy multi-row tabs and MDI chrome with a structured desktop layout featuring a clean top bar (live ON/OFF emblem, client/profile selectors, Dark Mode / Mini HUD / Always on Top / PT-BR-EN controls), grouped left sidebar with custom GDI+ vector icons and a live session summary card, always-visible Combat Dashboard (Autopot/Yggdrasil segmented pills + ON/OFF + live HP/SP bars), active section cards with descriptive titles/subtitles, and a visible footer with GitHub & Discord links.
