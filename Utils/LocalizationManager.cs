@@ -265,6 +265,18 @@ namespace _4RTools.Utils
             { "tooltip.switch_delay", "Atraso em milissegundos (ms) antes de pressionar esta tecla" },
             { "tooltip.switch_loop", "Repete continuamente a sequência ao apertar o gatilho (aperte de novo para parar)" },
 
+            // ATKDEFForm equipment slot tooltips
+            { "equip.hat_top", "Cabeça (Topo)" },
+            { "equip.hat_mid", "Cabeça (Meio)" },
+            { "equip.hat_low", "Cabeça (Baixo)" },
+            { "equip.armor", "Armadura" },
+            { "equip.weapon", "Arma" },
+            { "equip.shield", "Escudo" },
+            { "equip.garment", "Capa / Manto" },
+            { "equip.shoes", "Calçado / Botas" },
+            { "equip.acc_left", "Acessório Esquerdo" },
+            { "equip.acc_right", "Acessório Direito" },
+
             // ProfileForm
             { "label.profile_prefix", "Perfil: {0}" },
             { "title.active_char", "Personagem Ativo" },
@@ -420,6 +432,17 @@ namespace _4RTools.Utils
             { "tooltip.switch_step_key", "Next key pressed automatically in this switch chain" },
             { "tooltip.switch_delay", "Delay in milliseconds (ms) before pressing this key" },
             { "tooltip.switch_loop", "Continuously repeat this chain when pressing the trigger (press again to stop)" },
+
+            { "equip.hat_top", "Headgear (Top)" },
+            { "equip.hat_mid", "Headgear (Mid)" },
+            { "equip.hat_low", "Headgear (Low)" },
+            { "equip.armor", "Armor" },
+            { "equip.weapon", "Weapon" },
+            { "equip.shield", "Shield" },
+            { "equip.garment", "Garment" },
+            { "equip.shoes", "Footgear" },
+            { "equip.acc_left", "Left Accessory" },
+            { "equip.acc_right", "Right Accessory" },
 
             { "label.profile_prefix", "Profile: {0}" },
             { "title.active_char", "Active Character" },

@@ -710,5 +710,32 @@ namespace _4RTools.Tests
                 Assert.Equal(2, form.GetVisibleSlotCount(3));
             }
         }
+
+        [Fact]
+        public void ATKDEFForm_ContainsAllTenEquipmentSlotsForAtkAndDef()
+        {
+            ProfileSingleton.Create("AtkDefTenSlotsTest");
+            ProfileSingleton.Load("AtkDefTenSlotsTest");
+
+            Subject subject = new Subject();
+            using (ATKDEFForm form = new ATKDEFForm(subject))
+            {
+                for (int i = 1; i <= 10; i++)
+                {
+                    System.Windows.Forms.Control[] defMatches = form.Controls.Find("inDef" + i, true);
+                    System.Windows.Forms.Control[] atkMatches = form.Controls.Find("inAtk" + i, true);
+                    Assert.Single(defMatches);
+                    Assert.Single(atkMatches);
+                }
+
+                // Verify new Hat Top (inDef6) and Right Accessory (inAtk10) persist through PROFILE_CHANGED.
+                ProfileSingleton.GetCurrent().AtkDefMode.AddSwitchItem("inDef6", Key.F1, ATKDEFEnum.DEF);
+                ProfileSingleton.GetCurrent().AtkDefMode.AddSwitchItem("inAtk10", Key.F9, ATKDEFEnum.ATK);
+                subject.Notify(new _4RTools.Utils.Message(MessageCode.PROFILE_CHANGED, null));
+
+                Assert.Equal("F1", form.Controls.Find("inDef6", true)[0].Text);
+                Assert.Equal("F9", form.Controls.Find("inAtk10", true)[0].Text);
+            }
+        }
     }
 }

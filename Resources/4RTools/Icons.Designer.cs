@@ -3115,5 +3115,40 @@ namespace _4RTools.Resources._4RTools {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        internal static System.Drawing.Bitmap equip_hat_top {
+            get {
+                object obj = ResourceManager.GetObject("equip_hat_top", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap equip_hat_mid {
+            get {
+                object obj = ResourceManager.GetObject("equip_hat_mid", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap equip_hat_low {
+            get {
+                object obj = ResourceManager.GetObject("equip_hat_low", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap equip_acc_left {
+            get {
+                object obj = ResourceManager.GetObject("equip_acc_left", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap equip_acc_right {
+            get {
+                object obj = ResourceManager.GetObject("equip_acc_right", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }
