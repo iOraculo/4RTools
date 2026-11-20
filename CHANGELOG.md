@@ -1,5 +1,9 @@
 # Changelogs
 
+## [v2.19.0] - 2026-11-20 — Simplified Progressive Song Macro UI
+### Changed
+- **Simplified `Macro Músicas` (`Forms/MacroSongForm.cs`, `Utils/LocalizationManager.cs`)**: replaced the 4×8 static grid with a clean progressive interface that starts with **Música 1** showing **1 campo de música** (plus Trigger, Delay, Dagger, and Instrument) and expands on demand via **`+ Adicionar música`** (up to 8 steps across 2 neat rows with `→`/`↴` indicators), **`- Remover música`**, **`Resetar`**, **`+ Adicionar macro musical`** (up to 4 lanes), and **`Remover macro`** while staying 100% compatible with existing saved profiles.
+
 ## [v2.18.0] - 2026-11-20 — Full 10-Slot ATK × DEF Equipment Switch
 ### Added
 - **Complete 10 Equipment Slots in `Modo ATK x DEF` (`Forms/ATKDEFForm.cs`, `Utils/LocalizationManager.cs`, `Resources/4RTools/Icons.resx`)**: added **Cabeça (Topo)** (`inDef6`/`inAtk6`), **Cabeça (Meio)** (`inDef7`/`inAtk7`), **Cabeça (Baixo)** (`inDef8`/`inAtk8`), **Acessório Esquerdo** (`inDef9`/`inAtk9`), and **Acessório Direito** (`inDef10`/`inAtk10`) alongside the existing Armor, Weapon, Shield, Garment, and Shoes slots in a clean symmetric 2×5 grid with transparent RO icons and localized PT-BR/EN tooltips (100% compatible with existing profiles).

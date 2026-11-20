@@ -737,5 +737,53 @@ namespace _4RTools.Tests
                 Assert.Equal("F9", form.Controls.Find("inAtk10", true)[0].Text);
             }
         }
+
+        [Fact]
+        public void MacroSongForm_StartsSimplifiedWithOneSongSlotAndExpandsDynamically()
+        {
+            ProfileSingleton.Create("SongUiTest");
+            ProfileSingleton.Load("SongUiTest");
+
+            Subject subject = new Subject();
+            using (MacroSongForm form = new MacroSongForm(subject))
+            {
+                Assert.True(form.IsLaneVisible(1));
+                Assert.Equal(1, form.GetVisibleSlotCount(1));
+                Assert.False(form.IsLaneVisible(2));
+                Assert.False(form.IsLaneVisible(3));
+
+                form.AddSlotToLane(1);
+                form.AddSlotToLane(1);
+                form.AddSlotToLane(1);
+                Assert.Equal(4, form.GetVisibleSlotCount(1));
+
+                form.RemoveLastSlotFromLane(1);
+                Assert.Equal(3, form.GetVisibleSlotCount(1));
+
+                Assert.True(form.AddNextSongLane());
+                Assert.True(form.IsLaneVisible(2));
+                Assert.Equal(1, form.GetVisibleSlotCount(2));
+
+                form.ResetLane(2, true);
+                Assert.False(form.IsLaneVisible(2));
+
+                ChainConfig song1 = ProfileSingleton.GetCurrent().SongMacro.chainConfigs.First(c => c.id == 1);
+                song1.trigger = Key.F1;
+                song1.macroEntries["in1mac1"] = new MacroKey(Key.F2, 50);
+                song1.macroEntries["in2mac1"] = new MacroKey(Key.F3, 50);
+                song1.macroEntries["in5mac1"] = new MacroKey(Key.F4, 50);
+
+                ChainConfig song3 = ProfileSingleton.GetCurrent().SongMacro.chainConfigs.First(c => c.id == 3);
+                song3.trigger = Key.F6;
+                song3.macroEntries["in1mac3"] = new MacroKey(Key.F7, 50);
+
+                subject.Notify(new _4RTools.Utils.Message(MessageCode.PROFILE_CHANGED, null));
+                Assert.True(form.IsLaneVisible(1));
+                Assert.Equal(5, form.GetVisibleSlotCount(1));
+                Assert.False(form.IsLaneVisible(2));
+                Assert.True(form.IsLaneVisible(3));
+                Assert.Equal(1, form.GetVisibleSlotCount(3));
+            }
+        }
     }
 }

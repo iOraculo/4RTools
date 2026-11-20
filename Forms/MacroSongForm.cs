@@ -11,40 +11,604 @@ namespace _4RTools.Forms
     public partial class MacroSongForm : Form, IObserver
     {
         public static int TOTAL_MACRO_LANES_FOR_SONGS = 4;
+        public const int MAX_SONG_SLOTS_PER_LANE = 8;
+
+        private const int LANE_WIDTH = 548;
+        private const int LANE_HEIGHT = 128;
+        private const int LANE_LEFT = 10;
+        private const int LANE_TOP_START = 8;
+        private const int LANE_SPACING = 10;
+
+        private sealed class SongLaneUi
+        {
+            public int Id;
+            public GroupBox Group;
+            public TextBox TriggerBox;
+            public NumericUpDown DelayInput;
+            public TextBox DaggerBox;
+            public TextBox InstrumentBox;
+            public TextBox[] SongBoxes = new TextBox[MAX_SONG_SLOTS_PER_LANE];
+            public Label[] ArrowLabels = new Label[MAX_SONG_SLOTS_PER_LANE - 1];
+            public Button BtnAddSlot;
+            public Button BtnRemoveSlot;
+            public Button BtnResetLane;
+            public Button BtnRemoveLane;
+            public int VisibleSlots = 1;
+            public bool IsLaneVisible;
+        }
+
+        private readonly SongLaneUi[] lanes = new SongLaneUi[TOTAL_MACRO_LANES_FOR_SONGS];
+        private Button btnAddSongMacro;
+        private ToolTip songToolTip;
+        private Image daggerIcon;
+        private Image instrumentIcon;
         private bool isUpdatingUi;
 
         public MacroSongForm(Subject subject)
         {
             subject.Attach(this);
             InitializeComponent();
-            NormalizeLabelLayout();
-            configureMacroLanes();
+            CaptureEquipmentIcons();
+            BuildSimplifiedUi();
+            updateUi();
         }
 
-        private void NormalizeLabelLayout()
+        private void CaptureEquipmentIcons()
         {
-            Label[] keyLabels = new Label[] { this.label6, this.label3, this.label9, this.label12 };
-            Label[] delayLabels = new Label[] { this.label5, this.label2, this.label8, this.label11 };
-            Label[] msLabels = new Label[] { this.label4, this.label1, this.label7, this.label10 };
-            TextBox[] triggerBoxes = new TextBox[] { this.inTriggerMacro1, this.inTriggerMacro2, this.inTriggerMacro3, this.inTriggerMacro4 };
-            NumericUpDown[] delayBoxes = new NumericUpDown[] { this.delayMac1, this.delayMac2, this.delayMac3, this.delayMac4 };
-
-            for (int i = 0; i < 4; i++)
+            if (this.pictureBox5 != null && this.pictureBox5.BackgroundImage != null)
             {
-                keyLabels[i].AutoSize = false;
-                keyLabels[i].Location = new Point(2, keyLabels[i].Location.Y - 1);
-                keyLabels[i].Size = new Size(44, 16);
-                keyLabels[i].TextAlign = ContentAlignment.MiddleRight;
-
-                delayLabels[i].AutoSize = false;
-                delayLabels[i].Location = new Point(2, delayLabels[i].Location.Y - 1);
-                delayLabels[i].Size = new Size(44, 16);
-                delayLabels[i].TextAlign = ContentAlignment.MiddleRight;
-
-                triggerBoxes[i].Location = new Point(49, triggerBoxes[i].Location.Y);
-                delayBoxes[i].Location = new Point(49, delayBoxes[i].Location.Y);
-                msLabels[i].Location = new Point(98, msLabels[i].Location.Y);
+                this.daggerIcon = ThemeManager.StripLightBackground(this.pictureBox5.BackgroundImage);
             }
+            if (this.pictureBox6 != null && this.pictureBox6.BackgroundImage != null)
+            {
+                this.instrumentIcon = ThemeManager.StripLightBackground(this.pictureBox6.BackgroundImage);
+            }
+        }
+
+        private void BuildSimplifiedUi()
+        {
+            this.SuspendLayout();
+            try
+            {
+                this.Controls.Clear();
+                this.AutoScroll = true;
+                this.AutoScrollMargin = new Size(0, 12);
+                this.songToolTip = new ToolTip(this.components);
+
+                for (int i = 0; i < TOTAL_MACRO_LANES_FOR_SONGS; i++)
+                {
+                    int id = i + 1;
+                    SongLaneUi lane = CreateLaneUi(id);
+                    lane.IsLaneVisible = (id == 1);
+                    lane.VisibleSlots = 1;
+                    this.lanes[i] = lane;
+                    this.Controls.Add(lane.Group);
+                    GetOrCreateChainConfig(id);
+                }
+
+                this.btnAddSongMacro = new Button
+                {
+                    Cursor = System.Windows.Forms.Cursors.Hand,
+                    Name = "btnAddSongMacroLane",
+                    Size = new Size(186, 25),
+                    Text = "+ Add Song Macro",
+                    UseVisualStyleBackColor = true
+                };
+                this.btnAddSongMacro.Click += OnAddSongMacroClick;
+                this.Controls.Add(this.btnAddSongMacro);
+
+                RefreshTooltips();
+                LayoutVisibleLanes();
+            }
+            finally
+            {
+                this.ResumeLayout(true);
+            }
+        }
+
+        private SongLaneUi CreateLaneUi(int id)
+        {
+            SongLaneUi lane = new SongLaneUi { Id = id };
+
+            GroupBox group = new GroupBox
+            {
+                Name = "panelMacro" + id,
+                Size = new Size(LANE_WIDTH, LANE_HEIGHT),
+                TabStop = false,
+                Text = "Song Macro " + id
+            };
+            lane.Group = group;
+
+            Label lblKey = new Label
+            {
+                AutoSize = false,
+                Location = new Point(4, 21),
+                Size = new Size(46, 18),
+                Text = "Key",
+                TextAlign = ContentAlignment.MiddleRight
+            };
+
+            lane.TriggerBox = new TextBox
+            {
+                Location = new Point(53, 20),
+                Name = "inTriggerMacro" + id,
+                Size = new Size(50, 20),
+                Tag = id + ":Trigger",
+                Text = Key.None.ToString()
+            };
+            AttachKeyHandlers(lane.TriggerBox);
+
+            Label lblDelay = new Label
+            {
+                AutoSize = false,
+                Location = new Point(4, 49),
+                Size = new Size(46, 18),
+                Text = "Delay",
+                TextAlign = ContentAlignment.MiddleRight
+            };
+
+            lane.DelayInput = new NumericUpDown
+            {
+                Location = new Point(53, 48),
+                Maximum = 99999,
+                Minimum = 0,
+                Name = "delayMac" + id,
+                Size = new Size(50, 20),
+                Value = 50
+            };
+            lane.DelayInput.ValueChanged += new EventHandler(this.onDelayChange);
+
+            Label lblMs = new Label
+            {
+                AutoSize = true,
+                Location = new Point(105, 50),
+                Text = "ms"
+            };
+
+            Panel leftDivider = new Panel
+            {
+                Location = new Point(130, 18),
+                Size = new Size(1, 66)
+            };
+
+            group.Controls.Add(lblKey);
+            group.Controls.Add(lane.TriggerBox);
+            group.Controls.Add(lblDelay);
+            group.Controls.Add(lane.DelayInput);
+            group.Controls.Add(lblMs);
+            group.Controls.Add(leftDivider);
+
+            // Song slots 1..8 arranged in 2 clean rows of 4 (1->2->3->4, 5->6->7->8)
+            for (int s = 0; s < MAX_SONG_SLOTS_PER_LANE; s++)
+            {
+                int slotNum = s + 1;
+                int row = s / 4;
+                int col = s % 4;
+                int x = 142 + (col * 70);
+                int y = row == 0 ? 20 : 50;
+
+                TextBox tb = new TextBox
+                {
+                    Location = new Point(x, y),
+                    Name = "in" + slotNum + "mac" + id,
+                    Size = new Size(50, 20),
+                    Text = Key.None.ToString()
+                };
+                AttachKeyHandlers(tb);
+                lane.SongBoxes[s] = tb;
+                group.Controls.Add(tb);
+
+                if (s < MAX_SONG_SLOTS_PER_LANE - 1)
+                {
+                    Label arrow;
+                    if (s == 3)
+                    {
+                        // Transition indicator from row 1 (slot 4) to row 2 (slot 5)
+                        arrow = new Label
+                        {
+                            AutoSize = false,
+                            Location = new Point(404, 21),
+                            Name = "arrow" + slotNum + "mac" + id,
+                            Size = new Size(14, 18),
+                            Tag = ThemeManager.TAG_ACCENT_TEXT,
+                            Text = "↴",
+                            TextAlign = ContentAlignment.MiddleCenter
+                        };
+                    }
+                    else
+                    {
+                        arrow = new Label
+                        {
+                            AutoSize = false,
+                            Location = new Point(x + 52, y + 1),
+                            Name = "arrow" + slotNum + "mac" + id,
+                            Size = new Size(16, 18),
+                            Tag = ThemeManager.TAG_ACCENT_TEXT,
+                            Text = "→",
+                            TextAlign = ContentAlignment.MiddleCenter
+                        };
+                    }
+
+                    lane.ArrowLabels[s] = arrow;
+                    group.Controls.Add(arrow);
+                }
+            }
+
+            Panel rightDivider = new Panel
+            {
+                Location = new Point(424, 18),
+                Size = new Size(1, 66)
+            };
+
+            PictureBox pbDagger = new PictureBox
+            {
+                BackColor = Color.Transparent,
+                Image = this.daggerIcon,
+                Location = new Point(434, 18),
+                Name = "pbDagger" + id,
+                Size = new Size(24, 24),
+                SizeMode = PictureBoxSizeMode.CenterImage,
+                TabStop = false
+            };
+
+            lane.DaggerBox = new TextBox
+            {
+                Location = new Point(462, 20),
+                Name = "inDaggerMacro" + id,
+                Size = new Size(56, 20),
+                Tag = id + ":Dagger",
+                Text = Key.None.ToString()
+            };
+            AttachKeyHandlers(lane.DaggerBox);
+
+            PictureBox pbInstrument = new PictureBox
+            {
+                BackColor = Color.Transparent,
+                Image = this.instrumentIcon,
+                Location = new Point(434, 48),
+                Name = "pbInstrument" + id,
+                Size = new Size(24, 24),
+                SizeMode = PictureBoxSizeMode.CenterImage,
+                TabStop = false
+            };
+
+            lane.InstrumentBox = new TextBox
+            {
+                Location = new Point(462, 50),
+                Name = "inInstrumentMacro" + id,
+                Size = new Size(56, 20),
+                Tag = id + ":Instrument",
+                Text = Key.None.ToString()
+            };
+            AttachKeyHandlers(lane.InstrumentBox);
+
+            group.Controls.Add(rightDivider);
+            group.Controls.Add(pbDagger);
+            group.Controls.Add(lane.DaggerBox);
+            group.Controls.Add(pbInstrument);
+            group.Controls.Add(lane.InstrumentBox);
+
+            // Bottom action bar inside each Song Macro card
+            lane.BtnAddSlot = new Button
+            {
+                Cursor = System.Windows.Forms.Cursors.Hand,
+                Location = new Point(10, 95),
+                Name = "btnAddSongSlot" + id,
+                Size = new Size(128, 22),
+                Text = "+ Add Song",
+                Tag = id,
+                UseVisualStyleBackColor = true
+            };
+            lane.BtnAddSlot.Click += OnAddSlotClick;
+            group.Controls.Add(lane.BtnAddSlot);
+
+            lane.BtnRemoveSlot = new Button
+            {
+                Cursor = System.Windows.Forms.Cursors.Hand,
+                Location = new Point(144, 95),
+                Name = "btnRemoveSongSlot" + id,
+                Size = new Size(124, 22),
+                Text = "- Remove Song",
+                Tag = id,
+                UseVisualStyleBackColor = true
+            };
+            lane.BtnRemoveSlot.Click += OnRemoveSlotClick;
+            group.Controls.Add(lane.BtnRemoveSlot);
+
+            lane.BtnResetLane = new Button
+            {
+                Cursor = System.Windows.Forms.Cursors.Hand,
+                Location = new Point(id == 1 ? 470 : 368, 95),
+                Name = "btnResMac" + id,
+                Size = new Size(68, 22),
+                Text = "Reset",
+                Tag = id,
+                UseVisualStyleBackColor = true
+            };
+            lane.BtnResetLane.Click += OnResetLaneClick;
+            group.Controls.Add(lane.BtnResetLane);
+
+            if (id > 1)
+            {
+                lane.BtnRemoveLane = new Button
+                {
+                    Cursor = System.Windows.Forms.Cursors.Hand,
+                    Location = new Point(442, 95),
+                    Name = "btnRemoveSongLane" + id,
+                    Size = new Size(96, 22),
+                    Text = "Remove Macro",
+                    Tag = id,
+                    UseVisualStyleBackColor = true
+                };
+                lane.BtnRemoveLane.Click += OnRemoveLaneClick;
+                group.Controls.Add(lane.BtnRemoveLane);
+            }
+
+            return lane;
+        }
+
+        private void AttachKeyHandlers(TextBox textBox)
+        {
+            textBox.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
+            textBox.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
+            textBox.TextChanged += new EventHandler(this.onTextChange);
+        }
+
+        private void RefreshTooltips()
+        {
+            if (this.songToolTip == null)
+            {
+                return;
+            }
+
+            string triggerTip = LocalizationManager.T("tooltip.song_trigger");
+            string delayTip = LocalizationManager.T("tooltip.song_delay");
+            string stepTip = LocalizationManager.T("tooltip.song_step");
+            string daggerTip = LocalizationManager.T("tooltip.song_dagger");
+            string instrumentTip = LocalizationManager.T("tooltip.song_instrument");
+
+            for (int i = 0; i < this.lanes.Length; i++)
+            {
+                SongLaneUi lane = this.lanes[i];
+                if (lane == null)
+                {
+                    continue;
+                }
+
+                this.songToolTip.SetToolTip(lane.TriggerBox, triggerTip);
+                this.songToolTip.SetToolTip(lane.DelayInput, delayTip);
+                this.songToolTip.SetToolTip(lane.DaggerBox, daggerTip);
+                this.songToolTip.SetToolTip(lane.InstrumentBox, instrumentTip);
+
+                for (int s = 0; s < MAX_SONG_SLOTS_PER_LANE; s++)
+                {
+                    this.songToolTip.SetToolTip(lane.SongBoxes[s], stepTip);
+                }
+            }
+        }
+
+        private void RefreshLaneSlots(SongLaneUi lane)
+        {
+            if (lane == null)
+            {
+                return;
+            }
+
+            int visible = Math.Max(1, Math.Min(MAX_SONG_SLOTS_PER_LANE, lane.VisibleSlots));
+            lane.VisibleSlots = visible;
+
+            lane.Group.SuspendLayout();
+            try
+            {
+                for (int s = 0; s < MAX_SONG_SLOTS_PER_LANE; s++)
+                {
+                    lane.SongBoxes[s].Visible = s < visible;
+                    if (s < MAX_SONG_SLOTS_PER_LANE - 1)
+                    {
+                        lane.ArrowLabels[s].Visible = (s + 1) < visible;
+                    }
+                }
+
+                lane.BtnAddSlot.Enabled = visible < MAX_SONG_SLOTS_PER_LANE;
+                lane.BtnRemoveSlot.Enabled = visible > 1;
+            }
+            finally
+            {
+                lane.Group.ResumeLayout(true);
+            }
+        }
+
+        private void LayoutVisibleLanes()
+        {
+            this.SuspendLayout();
+            try
+            {
+                this.AutoScrollPosition = Point.Empty;
+                int y = LANE_TOP_START;
+                bool hasHiddenLane = false;
+
+                for (int i = 0; i < this.lanes.Length; i++)
+                {
+                    SongLaneUi lane = this.lanes[i];
+                    if (lane == null)
+                    {
+                        continue;
+                    }
+
+                    RefreshLaneSlots(lane);
+                    lane.Group.Visible = lane.IsLaneVisible;
+                    if (lane.IsLaneVisible)
+                    {
+                        lane.Group.Location = new Point(LANE_LEFT, y);
+                        y += LANE_HEIGHT + LANE_SPACING;
+                    }
+                    else
+                    {
+                        hasHiddenLane = true;
+                    }
+                }
+
+                if (this.btnAddSongMacro != null)
+                {
+                    this.btnAddSongMacro.Location = new Point(LANE_LEFT, y);
+                    this.btnAddSongMacro.Visible = hasHiddenLane;
+                    this.btnAddSongMacro.Enabled = hasHiddenLane;
+                }
+            }
+            finally
+            {
+                this.ResumeLayout(true);
+            }
+        }
+
+        private SongLaneUi FindLaneById(int id)
+        {
+            if (id < 1 || id > TOTAL_MACRO_LANES_FOR_SONGS)
+            {
+                return null;
+            }
+
+            return this.lanes[id - 1];
+        }
+
+        public void AddSlotToLane(int id)
+        {
+            SongLaneUi lane = FindLaneById(id);
+            if (lane == null || lane.VisibleSlots >= MAX_SONG_SLOTS_PER_LANE)
+            {
+                return;
+            }
+
+            lane.VisibleSlots++;
+            RefreshLaneSlots(lane);
+        }
+
+        public void RemoveLastSlotFromLane(int id)
+        {
+            SongLaneUi lane = FindLaneById(id);
+            if (lane == null || lane.VisibleSlots <= 1)
+            {
+                return;
+            }
+
+            int slotIndex = lane.VisibleSlots - 1;
+            int slotNum = slotIndex + 1;
+            string entryKey = "in" + slotNum + "mac" + id;
+
+            this.isUpdatingUi = true;
+            try
+            {
+                lane.SongBoxes[slotIndex].Text = Key.None.ToString();
+            }
+            finally
+            {
+                this.isUpdatingUi = false;
+            }
+
+            ChainConfig chainConfig = GetOrCreateChainConfig(id);
+            chainConfig.macroEntries.Remove(entryKey);
+            if (!ProfileSingleton.IsSaveSuppressed)
+            {
+                ProfileSingleton.SetConfiguration(ProfileSingleton.GetCurrent().SongMacro);
+            }
+
+            lane.VisibleSlots--;
+            RefreshLaneSlots(lane);
+        }
+
+        public void ResetLane(int id, bool hideLane = false)
+        {
+            SongLaneUi lane = FindLaneById(id);
+            if (lane == null)
+            {
+                return;
+            }
+
+            Macro songMacro = ProfileSingleton.GetCurrent().SongMacro;
+            songMacro.ResetMacro(id);
+            if (!ProfileSingleton.IsSaveSuppressed)
+            {
+                ProfileSingleton.SetConfiguration(songMacro);
+            }
+
+            UpdatePanelData(id);
+            lane.VisibleSlots = 1;
+            if (hideLane && id > 1)
+            {
+                lane.IsLaneVisible = false;
+            }
+
+            LayoutVisibleLanes();
+        }
+
+        public bool AddNextSongLane()
+        {
+            for (int i = 1; i < this.lanes.Length; i++)
+            {
+                SongLaneUi lane = this.lanes[i];
+                if (lane != null && !lane.IsLaneVisible)
+                {
+                    lane.IsLaneVisible = true;
+                    lane.VisibleSlots = 1;
+                    LayoutVisibleLanes();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public int GetVisibleSlotCount(int id)
+        {
+            SongLaneUi lane = FindLaneById(id);
+            return lane != null ? lane.VisibleSlots : 0;
+        }
+
+        public bool IsLaneVisible(int id)
+        {
+            SongLaneUi lane = FindLaneById(id);
+            return lane != null && lane.IsLaneVisible;
+        }
+
+        private void OnAddSlotClick(object sender, EventArgs e)
+        {
+            Button btn = sender as Button;
+            if (btn != null && btn.Tag is int)
+            {
+                AddSlotToLane((int)btn.Tag);
+            }
+        }
+
+        private void OnRemoveSlotClick(object sender, EventArgs e)
+        {
+            Button btn = sender as Button;
+            if (btn != null && btn.Tag is int)
+            {
+                RemoveLastSlotFromLane((int)btn.Tag);
+            }
+        }
+
+        private void OnResetLaneClick(object sender, EventArgs e)
+        {
+            Button btn = sender as Button;
+            if (btn != null && btn.Tag is int)
+            {
+                ResetLane((int)btn.Tag, false);
+            }
+        }
+
+        private void OnRemoveLaneClick(object sender, EventArgs e)
+        {
+            Button btn = sender as Button;
+            if (btn != null && btn.Tag is int)
+            {
+                ResetLane((int)btn.Tag, true);
+            }
+        }
+
+        private void OnAddSongMacroClick(object sender, EventArgs e)
+        {
+            AddNextSongLane();
         }
 
         public void Update(ISubject subject)
@@ -60,6 +624,9 @@ namespace _4RTools.Forms
                 case MessageCode.PROFILE_CHANGED:
                     updateUi();
                     break;
+                case MessageCode.LANGUAGE_CHANGED:
+                    RefreshTooltips();
+                    break;
                 case MessageCode.TURN_ON:
                     ProfileSingleton.GetCurrent().SongMacro.Start();
                     break;
@@ -69,59 +636,66 @@ namespace _4RTools.Forms
             }
         }
 
+        private ChainConfig GetOrCreateChainConfig(int id)
+        {
+            Macro songMacro = ProfileSingleton.GetCurrent().SongMacro;
+            ChainConfig chainConfig = songMacro.chainConfigs.Find(cfg => cfg.id == id);
+            if (chainConfig == null)
+            {
+                chainConfig = new ChainConfig(id, Key.None);
+                songMacro.chainConfigs.Add(chainConfig);
+            }
+
+            return chainConfig;
+        }
+
         private void UpdatePanelData(int id)
         {
             this.isUpdatingUi = true;
             try
             {
-                Macro songMacro = ProfileSingleton.GetCurrent().SongMacro;
-                Control[] panels = this.Controls.Find("panelMacro" + id, true);
-                if (panels.Length == 0)
+                SongLaneUi lane = FindLaneById(id);
+                if (lane == null)
                 {
                     return;
                 }
 
-                Panel p = (Panel)panels[0];
+                Macro songMacro = ProfileSingleton.GetCurrent().SongMacro;
                 ChainConfig existing = songMacro.chainConfigs.Find(cfg => cfg.id == id);
                 ChainConfig chainConfig = existing != null ? new ChainConfig(existing) : new ChainConfig(id);
-                FormUtils.ResetForm(p);
 
-                // Update Trigger Macro Value
-                Control[] cTrigger = p.Controls.Find("inTriggerMacro" + chainConfig.id, true);
-                if (cTrigger.Length > 0)
-                {
-                    ((TextBox)cTrigger[0]).Text = chainConfig.trigger.ToString();
-                }
+                lane.TriggerBox.Text = chainConfig.trigger.ToString();
+                lane.DaggerBox.Text = chainConfig.daggerKey.ToString();
+                lane.InstrumentBox.Text = chainConfig.instrumentKey.ToString();
+                FormUtils.SetNumericValue(lane.DelayInput, chainConfig.delay);
 
-                // Update Dagger Value
-                Control[] cDagger = p.Controls.Find("inDaggerMacro" + chainConfig.id, true);
-                if (cDagger.Length > 0)
+                int highestSlot = 0;
+                for (int s = 0; s < MAX_SONG_SLOTS_PER_LANE; s++)
                 {
-                    ((TextBox)cDagger[0]).Text = chainConfig.daggerKey.ToString();
-                }
-
-                // Update Instrument Value
-                Control[] cInstrument = p.Controls.Find("inInstrumentMacro" + chainConfig.id, true);
-                if (cInstrument.Length > 0)
-                {
-                    ((TextBox)cInstrument[0]).Text = chainConfig.instrumentKey.ToString();
-                }
-
-                foreach (KeyValuePair<string, MacroKey> entry in chainConfig.macroEntries)
-                {
-                    Control[] controls = p.Controls.Find(entry.Key, true);
-                    if (controls.Length > 0 && entry.Value != null)
+                    int slotNum = s + 1;
+                    string entryKey = "in" + slotNum + "mac" + id;
+                    MacroKey entry;
+                    if (chainConfig.macroEntries != null && chainConfig.macroEntries.TryGetValue(entryKey, out entry) && entry != null)
                     {
-                        ((TextBox)controls[0]).Text = entry.Value.key.ToString();
+                        lane.SongBoxes[s].Text = entry.key.ToString();
+                        if (entry.key != Key.None)
+                        {
+                            highestSlot = slotNum;
+                        }
+                    }
+                    else
+                    {
+                        lane.SongBoxes[s].Text = Key.None.ToString();
                     }
                 }
 
-                // Update Delay Macro Value
-                Control[] d = p.Controls.Find("delayMac" + chainConfig.id, true);
-                if (d.Length > 0)
-                {
-                    FormUtils.SetNumericValue((NumericUpDown)d[0], chainConfig.delay);
-                }
+                bool hasAnyBinding = highestSlot > 0
+                    || chainConfig.trigger != Key.None
+                    || chainConfig.daggerKey != Key.None
+                    || chainConfig.instrumentKey != Key.None;
+
+                lane.IsLaneVisible = (id == 1) || hasAnyBinding;
+                lane.VisibleSlots = Math.Max(1, highestSlot);
             }
             catch (Exception ex)
             {
@@ -163,11 +737,7 @@ namespace _4RTools.Forms
 
                 int macroid = short.Parse(inputTag[0]);
                 string type = inputTag[1];
-                ChainConfig chainConfig = songMacro.chainConfigs.Find(config => config.id == macroid);
-                if (chainConfig == null)
-                {
-                    return;
-                }
+                ChainConfig chainConfig = GetOrCreateChainConfig(macroid);
 
                 switch (type)
                 {
@@ -185,12 +755,7 @@ namespace _4RTools.Forms
             else
             {
                 int macroID = short.Parse(textBox.Name.Split(new[] { "mac" }, StringSplitOptions.None)[1]);
-                ChainConfig chainConfig = songMacro.chainConfigs.Find(cfg => cfg.id == macroID);
-                if (chainConfig == null)
-                {
-                    return;
-                }
-
+                ChainConfig chainConfig = GetOrCreateChainConfig(macroID);
                 chainConfig.macroEntries[textBox.Name] = new MacroKey(key, chainConfig.delay);
             }
 
@@ -212,12 +777,7 @@ namespace _4RTools.Forms
             }
 
             int macroID = short.Parse(delayInput.Name.Split(new[] { "delayMac" }, StringSplitOptions.None)[1]);
-            ChainConfig chainConfig = songMacro.chainConfigs.Find(cfg => cfg.id == macroID);
-            if (chainConfig == null)
-            {
-                return;
-            }
-
+            ChainConfig chainConfig = GetOrCreateChainConfig(macroID);
             chainConfig.delay = decimal.ToInt32(delayInput.Value);
 
             foreach (MacroKey entry in chainConfig.macroEntries.Values)
@@ -231,68 +791,14 @@ namespace _4RTools.Forms
             ProfileSingleton.SetConfiguration(songMacro);
         }
 
-        private void onReset(object sender, EventArgs e)
-        {
-            Macro songMacro = ProfileSingleton.GetCurrent().SongMacro;
-            Button resetButton = sender as Button;
-            if (resetButton == null)
-            {
-                return;
-            }
-
-            int btnResetID = short.Parse(resetButton.Name.Split(new[] { "btnResMac" }, StringSplitOptions.None)[1]);
-            songMacro.ResetMacro(btnResetID);
-            ProfileSingleton.SetConfiguration(songMacro);
-            UpdatePanelData(btnResetID);
-        }
-
         private void updateUi()
         {
             for (int i = 1; i <= TOTAL_MACRO_LANES_FOR_SONGS; i++)
             {
                 UpdatePanelData(i);
             }
-        }
 
-        private void configureMacroLanes()
-        {
-            for (int i = 1; i <= TOTAL_MACRO_LANES_FOR_SONGS; i++)
-            {
-                initializeLane(i);
-            }
-        }
-
-        private void initializeLane(int id)
-        {
-            try
-            {
-                Control[] panels = this.Controls.Find("panelMacro" + id, true);
-                if (panels.Length == 0)
-                {
-                    return;
-                }
-
-                Panel p = (Panel)panels[0];
-                foreach (Control c in p.Controls)
-                {
-                    if (c is TextBox)
-                    {
-                        TextBox textBox = (TextBox)c;
-                        textBox.KeyDown += new System.Windows.Forms.KeyEventHandler(FormUtils.OnKeyDown);
-                        textBox.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
-                        textBox.TextChanged += new EventHandler(this.onTextChange);
-                    }
-                    else if (c is Button)
-                    {
-                        Button resetButton = (Button)c;
-                        resetButton.Click += new EventHandler(this.onReset);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Warn("MacroSongForm", "Failed to initialize lane " + id, ex);
-            }
+            LayoutVisibleLanes();
         }
     }
 }

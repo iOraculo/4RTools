@@ -132,6 +132,14 @@ namespace _4RTools.Utils
             { "- Remove Slot", "- Remover campo" },
             { "+ Add Switch", "+ Adicionar troca" },
             { "Remove Switch", "Remover troca" },
+            { "Song Macro 1", "Música 1" },
+            { "Song Macro 2", "Música 2" },
+            { "Song Macro 3", "Música 3" },
+            { "Song Macro 4", "Música 4" },
+            { "+ Add Song", "+ Adicionar música" },
+            { "- Remove Song", "- Remover música" },
+            { "+ Add Song Macro", "+ Adicionar macro musical" },
+            { "Remove Macro", "Remover macro" },
 
             // ATKDEFForm
             { "ATK Switch", "Troca ATK" },
@@ -264,6 +272,13 @@ namespace _4RTools.Utils
             { "tooltip.switch_step_key", "Próxima tecla enviada automaticamente na sequência desta troca" },
             { "tooltip.switch_delay", "Atraso em milissegundos (ms) antes de pressionar esta tecla" },
             { "tooltip.switch_loop", "Repete continuamente a sequência ao apertar o gatilho (aperte de novo para parar)" },
+
+            // MacroSongForm tooltips
+            { "tooltip.song_trigger", "Tecla gatilho: aperte no jogo para executar esta sequência musical" },
+            { "tooltip.song_delay", "Atraso em milissegundos (ms) entre cada música da sequência" },
+            { "tooltip.song_step", "Tecla da música/dança nesta etapa da sequência" },
+            { "tooltip.song_dagger", "Tecla da Adaga/Arma secundária (equipada após cada música para cancelar animação)" },
+            { "tooltip.song_instrument", "Tecla do Instrumento/Chicote (equipado antes de tocar cada música)" },
 
             // ATKDEFForm equipment slot tooltips
             { "equip.hat_top", "Cabeça (Topo)" },
@@ -432,6 +447,12 @@ namespace _4RTools.Utils
             { "tooltip.switch_step_key", "Next key pressed automatically in this switch chain" },
             { "tooltip.switch_delay", "Delay in milliseconds (ms) before pressing this key" },
             { "tooltip.switch_loop", "Continuously repeat this chain when pressing the trigger (press again to stop)" },
+
+            { "tooltip.song_trigger", "Trigger key: press in-game to run this song sequence" },
+            { "tooltip.song_delay", "Delay in milliseconds (ms) between each song in the sequence" },
+            { "tooltip.song_step", "Song/dance skill hotkey for this step" },
+            { "tooltip.song_dagger", "Dagger/Secondary weapon key (equipped after each song to cancel animation)" },
+            { "tooltip.song_instrument", "Instrument/Whip key (equipped before playing each song)" },
 
             { "equip.hat_top", "Headgear (Top)" },
             { "equip.hat_mid", "Headgear (Mid)" },
