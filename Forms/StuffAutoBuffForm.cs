@@ -131,6 +131,14 @@ namespace _4RTools.Forms
             {
                 this.toolTip1.SetToolTip(this.numCooldown, LocalizationManager.T("tooltip.buff_cd"));
             }
+            if (this.renderer != null)
+            {
+                this.renderer.RefreshLocalizedTooltips();
+                if (this.txtSearch != null && !string.IsNullOrWhiteSpace(this.txtSearch.Text))
+                {
+                    this.renderer.ApplyFilter(this.txtSearch.Text);
+                }
+            }
         }
 
         private void SyncAutobuffOptionsFromProfile()

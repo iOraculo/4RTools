@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
 using System.Windows.Forms;
 
 namespace _4RTools.Utils
@@ -90,6 +92,8 @@ namespace _4RTools.Utils
             { "Gunslinger Skills", "Justiceiro / Evoluções" },
             { "Summoner", "Invocador (Doram)" },
             { "Hyper Novice", "Hiper Aprendiz" },
+            { "Night Watch", "Vigilante Noturno" },
+            { "Soul Ascetic", "Asceta da Alma" },
             { "Homunculus", "Homúnculo" },
             { "Potions", "Poções" },
             { "Elementals", "Elementais / Conversores" },
@@ -600,6 +604,443 @@ namespace _4RTools.Utils
             {
                 ApplyToControl(child);
             }
+        }
+
+        private sealed class BuffTranslation
+        {
+            public readonly string Pt;
+            public readonly string En;
+
+            public BuffTranslation(string pt, string en)
+            {
+                this.Pt = pt;
+                this.En = en;
+            }
+        }
+
+        // Complete bilingual PT-BR (bRO) and EN-US dictionary for all Skills, Consumables, and Debuffs.
+        private static readonly Dictionary<string, BuffTranslation> BuffTranslations = new Dictionary<string, BuffTranslation>(StringComparer.OrdinalIgnoreCase)
+        {
+            // Archer / Bard / Dancer / Ranger / Maestro / Wanderer / Windhawk / Troubadour / Trouvere
+            { "Concentration", new BuffTranslation("Concentração", "Concentration") },
+            { "Wind Walk", new BuffTranslation("Caminhar no Vento", "Wind Walk") },
+            { "True Sight", new BuffTranslation("Visão Real", "True Sight") },
+            { "Ilimitar", new BuffTranslation("Ilimitar", "Unlimit") },
+            { "A Poem of Bragi", new BuffTranslation("Poema de Bragi", "A Poem of Bragi") },
+            { "Windmill Rush", new BuffTranslation("Sinfonia dos Ventos", "Windmill Rush") },
+            { "Moonlight Serenade", new BuffTranslation("Serenata ao Luar", "Moonlight Serenade") },
+            { "Frigg's Song", new BuffTranslation("Canção de Frigga", "Frigg's Song") },
+            { "Mystic Symphony", new BuffTranslation("Sinfonia Mística", "Mystic Symphony") },
+            { "Jawaii Serenade", new BuffTranslation("Serenata de Jawaii", "Jawaii Serenade") },
+            { "Musical Interlude", new BuffTranslation("Interlúdio Musical", "Musical Interlude") },
+            { "Prontera March", new BuffTranslation("Marcha de Prontera", "Prontera March") },
+            { "Swing Dance", new BuffTranslation("Dança Cigana", "Swing Dance") },
+            { "Calamity Gale", new BuffTranslation("Vendaval da Calamidade", "Calamity Gale") },
+            { "Fear Breeze", new BuffTranslation("Disparo Selvagem", "Fear Breeze") },
+
+            // Swordsman / Knight / Crusader / RK / RG / Dragon Knight / Imperial Guard
+            { "Endure", new BuffTranslation("Vigor", "Endure") },
+            { "Auto Berserk", new BuffTranslation("Instinto de Sobrevivência", "Auto Berserk") },
+            { "Guard", new BuffTranslation("Bloqueio", "Auto Guard") },
+            { "Shield Reflection", new BuffTranslation("Escudo Refletor", "Reflect Shield") },
+            { "Spear Quicken", new BuffTranslation("Rapidez com Lança", "Spear Quicken") },
+            { "Defending Aura", new BuffTranslation("Aura Sagrada", "Defending Aura") },
+            { "Dedication", new BuffTranslation("Dedicação", "Dedication") },
+            { "Frenzy", new BuffTranslation("Frenesi", "Frenzy") },
+            { "Twohand Quicken", new BuffTranslation("Rapidez com Duas Mãos", "Twohand Quicken") },
+            { "Parry", new BuffTranslation("Aparar Golpe", "Parry") },
+            { "Aura Blade", new BuffTranslation("Lâmina de Aura", "Aura Blade") },
+            { "Enchant Blade", new BuffTranslation("Encantar Lâmina", "Enchant Blade") },
+            { "Shrink", new BuffTranslation("Submissão", "Shrink") },
+            { "Inspiration", new BuffTranslation("Consagração", "Inspiration") },
+            { "Prestige", new BuffTranslation("Prestígio Divino", "Prestige") },
+            { "Shield Spell", new BuffTranslation("Aegis Domini", "Shield Spell") },
+            { "Vanguard Force", new BuffTranslation("Força da Vanguarda", "Vanguard Force") },
+            { "Reflect Damage", new BuffTranslation("Reflexão Amplificada", "Reflect Damage") },
+            { "Vigor", new BuffTranslation("Vigor Dracônico", "Vigor") },
+            { "Servant Weapon", new BuffTranslation("Arma Serva", "Servant Weapon") },
+            { "Attack Stance", new BuffTranslation("Postura de Ataque", "Attack Stance") },
+            { "Guard Stance", new BuffTranslation("Postura de Guarda", "Guard Stance") },
+            { "Rebound Shield", new BuffTranslation("Escudo de Rebote", "Rebound Shield") },
+            { "Guardian Shield", new BuffTranslation("Escudo Guardião", "Guardian Shield") },
+            { "Holy Shield", new BuffTranslation("Escudo Sagrado", "Holy Shield") },
+            { "Exceed Break", new BuffTranslation("Exceder Limite", "Exceed Break") },
+            { "One-Hand Quicken", new BuffTranslation("Rapidez com Uma Mão", "One-Hand Quicken") },
+
+            // Mage / Wizard / Sage / Warlock / Sorcerer / Arch Mage
+            { "Energy Coat", new BuffTranslation("Proteção Arcana", "Energy Coat") },
+            { "Sight Blaster", new BuffTranslation("Explosão Protetora", "Sight Blaster") },
+            { "Autospell", new BuffTranslation("Desejo Arcano", "Autospell") },
+            { "Double Casting", new BuffTranslation("Lanças Duplas", "Double Casting") },
+            { "Memorize", new BuffTranslation("Presciência", "Memorize") },
+            { "Telekinesis Intense", new BuffTranslation("Telecinesia", "Telekinesis Intense") },
+            { "Amplification", new BuffTranslation("Amplificação Mística", "Mystical Amplification") },
+            { "Recognized Spell", new BuffTranslation("Maestria Arcana", "Recognized Spell") },
+            { "Climax", new BuffTranslation("Clímax", "Climax") },
+
+            // Merchant / Blacksmith / Alchemist / Mechanic / Genetic / Meister / Biolo
+            { "Crazy Uproar", new BuffTranslation("Grito de Guerra", "Crazy Uproar") },
+            { "Power-Thrust", new BuffTranslation("Força Violenta", "Power-Thrust") },
+            { "Adrenaline Rush", new BuffTranslation("Adrenalina Pura", "Adrenaline Rush") },
+            { "Advanced Adrenaline Rush", new BuffTranslation("Adrenalina Concentrada", "Advanced Adrenaline Rush") },
+            { "Maximum Power-Thrust", new BuffTranslation("Força Violentíssima", "Maximum Power-Thrust") },
+            { "Weapon Perfection", new BuffTranslation("Manejo Perfeito", "Weapon Perfection") },
+            { "Power Maximize", new BuffTranslation("Amplificar Poder", "Power Maximize") },
+            { "Cart Boost", new BuffTranslation("Impulso no Carrinho", "Cart Boost") },
+            { "Meltdown", new BuffTranslation("Golpe Estilhaçante", "Meltdown") },
+            { "Acceleration", new BuffTranslation("Aceleração", "Acceleration") },
+            { "Research Report", new BuffTranslation("Relatório de Pesquisa", "Research Report") },
+            { "Create Hell Tree", new BuffTranslation("Criar Árvore Infernal", "Create Hell Tree") },
+
+            // Thief / Assassin / Rogue / GX / SC / Shadow Cross / Abyss Chaser
+            { "Poison React", new BuffTranslation("Refletir Veneno", "Poison React") },
+            { "Reject Sword", new BuffTranslation("Instinto de Defesa", "Reject Sword") },
+            { "Preserve", new BuffTranslation("Preservar", "Preserve") },
+            { "Enchant Deadly Poison", new BuffTranslation("Encantar com Veneno Mortal", "Enchant Deadly Poison") },
+            { "Weapon Blocking", new BuffTranslation("Reflexo de Combate", "Weapon Blocking") },
+            { "Dancing Knife", new BuffTranslation("Lâminas Dançantes", "Dancing Knife") },
+            { "Enchanting Shadow", new BuffTranslation("Encantar Sombra", "Enchanting Shadow") },
+            { "Potent Venom", new BuffTranslation("Veneno Potente", "Potent Venom") },
+            { "Shadow Exceed", new BuffTranslation("Exceder Sombra", "Shadow Exceed") },
+            { "Abyss Slayer", new BuffTranslation("Matador Abissal", "Abyss Slayer") },
+            { "Abyss Dagger", new BuffTranslation("Adaga Abissal", "Abyss Dagger") },
+
+            // Acolyte / Priest / Monk / AB / Sura / Cardinal / Inquisitor
+            { "Gloria", new BuffTranslation("Glória", "Gloria") },
+            { "Magnificat", new BuffTranslation("Magnificat", "Magnificat") },
+            { "Angelus", new BuffTranslation("Angelus", "Angelus") },
+            { "Rising Dragon", new BuffTranslation("Dragão Ascendente", "Rising Dragon") },
+            { "Gentle Touch-Revitalize", new BuffTranslation("Chakra do Vigor", "Gentle Touch-Revitalize") },
+            { "Gentle Touch-Convert", new BuffTranslation("Chakra da Fúria", "Gentle Touch-Convert") },
+            { "Fury", new BuffTranslation("Fúria Interior", "Fury") },
+            { "Impositio Manus", new BuffTranslation("Impositio Manus", "Impositio Manus") },
+            { "Competentia", new BuffTranslation("Competentia", "Competentia") },
+            { "Offertorium", new BuffTranslation("Offertorium", "Offertorium") },
+            { "Sincere Faith", new BuffTranslation("Fé Sincera", "Sincere Faith") },
+            { "Firm Faith", new BuffTranslation("Fé Firme", "Firm Faith") },
+            { "Powerful Faith", new BuffTranslation("Fé Poderosa", "Powerful Faith") },
+            { "First Faith Power", new BuffTranslation("Poder da Primeira Fé", "First Faith Power") },
+            { "Second Judgement", new BuffTranslation("Segundo Julgamento", "Second Judgement") },
+            { "Third Exorcism Flame", new BuffTranslation("Terceira Chama do Exorcismo", "Third Exorcism Flame") },
+
+            // Ninja
+            { "Cicada Skin Shed", new BuffTranslation("Troca de Pele", "Cicada Skin Shed") },
+            { "Ninja Aura", new BuffTranslation("Aura Ninja", "Ninja Aura") },
+            { "Izayoi", new BuffTranslation("Izayoi", "Izayoi") },
+
+            // Taekwon / Star Gladiator / Star Emperor / Sky Emperor
+            { "Mild Wind (Earth)", new BuffTranslation("Brisa Leve - Terra", "Mild Wind - Earth") },
+            { "Mild Wind (Fire)", new BuffTranslation("Brisa Leve - Fogo", "Mild Wind - Fire") },
+            { "Mild Wind (Water)", new BuffTranslation("Brisa Leve - Água", "Mild Wind - Water") },
+            { "Mild Wind (Wind)", new BuffTranslation("Brisa Leve - Vento", "Mild Wind - Wind") },
+            { "Mild Wind (Ghost)", new BuffTranslation("Brisa Leve - Fantasma", "Mild Wind - Ghost") },
+            { "Mild Wind (Holy)", new BuffTranslation("Brisa Leve - Sagrado", "Mild Wind - Holy") },
+            { "Mild Wind (Shadow)", new BuffTranslation("Brisa Leve - Sombrio", "Mild Wind - Shadow") },
+            { "Calor solar", new BuffTranslation("Calor Solar", "Solar Heat") },
+            { "Proteção solar", new BuffTranslation("Proteção Solar", "Solar Protection") },
+            { "Calor lunar", new BuffTranslation("Calor Lunar", "Lunar Heat") },
+            { "Proteção lunar", new BuffTranslation("Proteção Lunar", "Lunar Protection") },
+            { "Calor estelar", new BuffTranslation("Calor Estelar", "Stellar Heat") },
+            { "Proteção estelar", new BuffTranslation("Proteção Estelar", "Stellar Protection") },
+            { "Tumbling", new BuffTranslation("Cambalhota", "Tumbling") },
+            { "Enchanting Sky", new BuffTranslation("Encantar Céu", "Enchanting Sky") },
+            { "Universal Stance", new BuffTranslation("Postura Universal", "Universal Stance") },
+
+            // Gunslinger
+            { "Gatling Fever", new BuffTranslation("Ataque Gatling", "Gatling Fever") },
+            { "Madness Canceller", new BuffTranslation("Resistência Final", "Madness Canceller") },
+            { "Adjustment", new BuffTranslation("Pânico do Justiceiro", "Adjustment") },
+            { "Increase Accuracy", new BuffTranslation("Aumentar Precisão", "Increase Accuracy") },
+
+            // Summoner / Spirit Handler
+            { "Bunch of Shrimp", new BuffTranslation("Chuva de Mariscos", "Bunch of Shrimp") },
+            { "Temporary Communion", new BuffTranslation("Comunhão Temporária", "Temporary Communion") },
+            { "Marine Festival of Kisul", new BuffTranslation("Festival Marinho de Kisul", "Marine Festival of Kisul") },
+            { "Sandy Festival of Kisul", new BuffTranslation("Festival Arenoso de Kisul", "Sandy Festival of Kisul") },
+            { "Colors of Hyunrok Lv 1", new BuffTranslation("Cores de Hyunrok Nv 1", "Colors of Hyunrok Lv 1") },
+            { "Colors of Hyunrok Lv 2", new BuffTranslation("Cores de Hyunrok Nv 2", "Colors of Hyunrok Lv 2") },
+            { "Colors of Hyunrok Lv 3", new BuffTranslation("Cores de Hyunrok Nv 3", "Colors of Hyunrok Lv 3") },
+            { "Colors of Hyunrok Lv 4", new BuffTranslation("Cores de Hyunrok Nv 4", "Colors of Hyunrok Lv 4") },
+            { "Colors of Hyunrok Lv 5", new BuffTranslation("Cores de Hyunrok Nv 5", "Colors of Hyunrok Lv 5") },
+            { "Colors of Hyunrok Lv 6", new BuffTranslation("Cores de Hyunrok Nv 6", "Colors of Hyunrok Lv 6") },
+
+            // Soul Ascetic
+            { "Soul of Heaven and Earth", new BuffTranslation("Alma do Céu e da Terra", "Soul of Heaven and Earth") },
+
+            // Night Watch
+            { "Hidden Card", new BuffTranslation("Carta na Manga", "Hidden Card") },
+            { "Intensive Aim", new BuffTranslation("Mira Intensiva", "Intensive Aim") },
+            { "Auto Firing Launcher", new BuffTranslation("Lançador Automático", "Auto Firing Launcher") },
+            { "Platinum Altar", new BuffTranslation("Altar de Platina", "Platinum Altar") },
+            { "Heat Barrel", new BuffTranslation("Cano Superaquecido", "Heat Barrel") },
+            { "Eternal Chain", new BuffTranslation("Corrente Eterna", "Eternal Chain") },
+            { "Grenade Fragment Lv 1", new BuffTranslation("Fragmento de Granada Nv 1", "Grenade Fragment Lv 1") },
+            { "Grenade Fragment Lv 2", new BuffTranslation("Fragmento de Granada Nv 2", "Grenade Fragment Lv 2") },
+            { "Grenade Fragment Lv 3", new BuffTranslation("Fragmento de Granada Nv 3", "Grenade Fragment Lv 3") },
+            { "Grenade Fragment Lv 4", new BuffTranslation("Fragmento de Granada Nv 4", "Grenade Fragment Lv 4") },
+            { "Grenade Fragment Lv 5", new BuffTranslation("Fragmento de Granada Nv 5", "Grenade Fragment Lv 5") },
+            { "Grenade Fragment Lv 6", new BuffTranslation("Fragmento de Granada Nv 6", "Grenade Fragment Lv 6") },
+
+            // Hyper Novice
+            { "Rule Break", new BuffTranslation("Quebra de Regras", "Rule Break") },
+            { "Breaking Limit", new BuffTranslation("Quebra de Limite", "Breaking Limit") },
+
+            // Homunculus
+            { "Pyroclastic", new BuffTranslation("Piroclástico", "Pyroclastic") },
+            { "HOMUN_LAST", new BuffTranslation("Têmpera de Homúnculo", "Homunculus Tempering") },
+
+            // Potions
+            { "Concentration Potion", new BuffTranslation("Poção da Concentração", "Concentration Potion") },
+            { "Awakening Potion", new BuffTranslation("Poção do Despertar", "Awakening Potion") },
+            { "Berserk Potion", new BuffTranslation("Poção da Fúria Selvagem", "Berserk Potion") },
+            { "Regeneration Potion", new BuffTranslation("Poção de Regeneração", "Regeneration Potion") },
+            { "HP Increase Potion", new BuffTranslation("Poção Grande de HP", "HP Increase Potion") },
+            { "SP Increase Potion", new BuffTranslation("Poção Grande de SP", "SP Increase Potion") },
+            { "Red Herb Activator", new BuffTranslation("Ativador de Erva Vermelha", "Red Herb Activator") },
+            { "Blue Herb Activator", new BuffTranslation("Ativador de Erva Azul", "Blue Herb Activator") },
+            { "Golden X", new BuffTranslation("Poção Dourada X", "Golden X") },
+            { "Energy Drink", new BuffTranslation("Bebida Energética", "Energy Drink") },
+            { "Mega Resist Potion", new BuffTranslation("Poção Anti-Elemento Mega", "Mega Resist Potion") },
+            { "Full SwingK Potion", new BuffTranslation("Poção do Furor Físico", "Full SwingK Potion") },
+            { "Mana Plus Potion", new BuffTranslation("Poção do Furor Mágico", "Mana Plus Potion") },
+            { "Blessing Of Tyr", new BuffTranslation("Bênção de Tyr", "Blessing of Tyr") },
+            { "True Limit Power Booster (Poção Ilimitada)", new BuffTranslation("Poção Ilimitada", "True Limit Power Booster") },
+            { "Infinity Drink", new BuffTranslation("Poção Infinita", "Infinity Drink") },
+            { "Red Booster (ATK +30, MATK +30)", new BuffTranslation("Reforço Vermelho +30 ATQ/ATQM", "Red Booster +30 ATK/MATK") },
+            { "Poção Fantástica (Sealed Kiel Card)", new BuffTranslation("Poção Fantástica", "Fantastic Potion - Sealed Kiel") },
+            { "Poção do Furor Físico", new BuffTranslation("Poção do Furor Físico", "Physical Fury Potion") },
+            { "Poção Mágica", new BuffTranslation("Poção Mágica", "Magic Potion") },
+            { "True ASPD Intensifying Potion", new BuffTranslation("Poção de Vel. de Ataque", "True ASPD Intensifying Potion") },
+            { "True Medium Life Potion", new BuffTranslation("Poção Média de Vida", "True Medium Life Potion") },
+
+            // Elementals
+            { "Elemental Converter (Fire)", new BuffTranslation("Conversor Elemental - Fogo", "Elemental Converter - Fire") },
+            { "Elemental Converter (Wind)", new BuffTranslation("Conversor Elemental - Vento", "Elemental Converter - Wind") },
+            { "Elemental Converter (Earth)", new BuffTranslation("Conversor Elemental - Terra", "Elemental Converter - Earth") },
+            { "Elemental Converter (Water)", new BuffTranslation("Conversor Elemental - Água", "Elemental Converter - Water") },
+            { "Cursed Water", new BuffTranslation("Água Amaldiçoada", "Cursed Water") },
+            { "Fire Conversor", new BuffTranslation("Conversor de Fogo", "Fire Converter") },
+            { "Wind Conversor", new BuffTranslation("Conversor de Vento", "Wind Converter") },
+            { "Earth Conversor", new BuffTranslation("Conversor de Terra", "Earth Converter") },
+            { "Water Conversor", new BuffTranslation("Conversor de Água", "Water Converter") },
+            { "Aspersio Scroll", new BuffTranslation("Pergaminho de Aspersio", "Aspersio Scroll") },
+            { "GHOST Conversor", new BuffTranslation("Conversor Fantasma", "Ghost Converter") },
+            { "Fireproof Potion", new BuffTranslation("Poção Anti-Fogo", "Fireproof Potion") },
+            { "Waterproof Potion", new BuffTranslation("Poção Anti-Água", "Waterproof Potion") },
+            { "Windproof Potion", new BuffTranslation("Poção Anti-Vento", "Windproof Potion") },
+            { "Earthproof Potion", new BuffTranslation("Poção Anti-Terra", "Earthproof Potion") },
+
+            // Foods
+            { "STR Food", new BuffTranslation("Comida de FOR", "STR Food") },
+            { "AGI Food", new BuffTranslation("Comida de AGI", "AGI Food") },
+            { "VIT Food", new BuffTranslation("Comida de VIT", "VIT Food") },
+            { "INT Food", new BuffTranslation("Comida de INT", "INT Food") },
+            { "DEX Food", new BuffTranslation("Comida de DES", "DEX Food") },
+            { "LUK Food", new BuffTranslation("Comida de SOR", "LUK Food") },
+            { "3RD STR Food", new BuffTranslation("Comida +20 FOR", "3rd Class STR Food") },
+            { "3RD AGI Food", new BuffTranslation("Comida +20 AGI", "3rd Class AGI Food") },
+            { "3RD VIT Food", new BuffTranslation("Comida +20 VIT", "3rd Class VIT Food") },
+            { "3RD INT Food", new BuffTranslation("Comida +20 INT", "3rd Class INT Food") },
+            { "3RD DEX Food", new BuffTranslation("Comida +20 DES", "3rd Class DEX Food") },
+            { "3RD LUK Food", new BuffTranslation("Comida +20 SOR", "3rd Class LUK Food") },
+            { "Almighty", new BuffTranslation("Bolinho Divino", "Almighty") },
+            { "CASH Food", new BuffTranslation("Comida de ROPs/Cash", "Cash Food") },
+            { "Acarajé", new BuffTranslation("Acarajé", "Acaraje") },
+            { "STR Biscuit Stick", new BuffTranslation("Palito de FOR", "STR Biscuit Stick") },
+            { "AGI Biscuit Stick", new BuffTranslation("Palito de AGI", "AGI Biscuit Stick") },
+            { "VIT Biscuit Stick", new BuffTranslation("Palito de VIT", "VIT Biscuit Stick") },
+            { "INT Biscuit Stick", new BuffTranslation("Palito de INT", "INT Biscuit Stick") },
+            { "DEX Biscuit Stick", new BuffTranslation("Palito de DES", "DEX Biscuit Stick") },
+            { "LUK Biscuit Stick", new BuffTranslation("Palito de SOR", "LUK Biscuit Stick") },
+            { "STR Bubble Gum Green", new BuffTranslation("Chiclete de FOR - Verde", "STR Bubble Gum Green") },
+            { "AGI Bubble Gum Red", new BuffTranslation("Chiclete de AGI - Vermelho", "AGI Bubble Gum Red") },
+            { "INT Bubble Gum Yellow", new BuffTranslation("Chiclete de INT - Amarelo", "INT Bubble Gum Yellow") },
+            { "DEX Bubble Gum Orange", new BuffTranslation("Chiclete de DES - Laranja", "DEX Bubble Gum Orange") },
+            { "Winter Cookie ATK", new BuffTranslation("Biscoito de Inverno ATQ", "Winter Cookie ATK") },
+            { "Flora Cookie MATK", new BuffTranslation("Biscoito da Flora ATQM", "Flora Cookie MATK") },
+            { "Banquete Revigorante", new BuffTranslation("Banquete Revigorante", "Invigorating Banquet") },
+
+            // Boxes / Speed / Status
+            { "Drowsiness Box", new BuffTranslation("Caixa da Sonolência", "Drowsiness Box") },
+            { "Resentment Box", new BuffTranslation("Caixa do Ressentimento", "Resentment Box") },
+            { "Sunlight Box", new BuffTranslation("Caixa da Luz do Sol", "Sunlight Box") },
+            { "Box of Gloom", new BuffTranslation("Caixa da Escuridão", "Box of Gloom") },
+            { "Box of Thunder", new BuffTranslation("Caixa do Trovão", "Box of Thunder") },
+            { "Speed Potion / Guyak", new BuffTranslation("Poção do Vento / Guyak", "Speed Potion / Guyak") },
+            { "Anodyne", new BuffTranslation("Analgésico", "Anodyne") },
+            { "Aloevera", new BuffTranslation("Aloevera", "Aloevera") },
+            { "Abrasivo", new BuffTranslation("Abrasivo", "Abrasive") },
+            { "Combat Pill", new BuffTranslation("Pílula de Combate", "Combat Pill") },
+            { "Advance Combat Pill", new BuffTranslation("Grande Pílula de Combate", "Enriched Combat Pill") },
+            { "Celermine Juice", new BuffTranslation("Suco Celular Enriquecido", "Enriched Celermine Juice") },
+            { "Guarana Candy", new BuffTranslation("Bala de Guaraná", "Guarana Candy") },
+            { "Poison Bottle", new BuffTranslation("Garrafa de Veneno", "Poison Bottle") },
+
+            // Scroll Buffs
+            { "Éden Scroll", new BuffTranslation("Pergaminho do Éden", "Eden Scroll") },
+            { "Increase Agility Scroll", new BuffTranslation("Pergaminho de Aumentar Agilidade", "Increase Agility Scroll") },
+            { "Bless Scroll", new BuffTranslation("Pergaminho de Bênção", "Blessing Scroll") },
+            { "Full Chemical Protection (Scroll)", new BuffTranslation("Pergaminho de Proteção Química Total", "Full Chemical Protection Scroll") },
+            { "Burn Incense", new BuffTranslation("Incenso Queimado", "Burnt Incense") },
+            { "Link Scroll", new BuffTranslation("Pergaminho de Espírito", "Soul Link Scroll") },
+            { "Monster Transform", new BuffTranslation("Transformação em Monstro", "Monster Transform") },
+            { "Assumptio", new BuffTranslation("Assumptio", "Assumptio") },
+            { "Holy Armor Scroll", new BuffTranslation("Pergaminho de Armadura Sagrada", "Holy Armor Scroll") },
+            { "Shadow Armor Scroll", new BuffTranslation("Pergaminho de Armadura Sombria", "Shadow Armor Scroll") },
+            { "Soul Scroll", new BuffTranslation("Pergaminho da Alma", "Soul Scroll") },
+            { "Undead Element Scroll", new BuffTranslation("Pergaminho de Propriedade Maldita", "Undead Element Scroll") },
+
+            // ETC
+            { "THURISAZ Rune", new BuffTranslation("Runa Thurisaz", "Thurisaz Rune") },
+            { "OTHILA Rune", new BuffTranslation("Runa Othila", "Othila Rune") },
+            { "HAGALAZ Rune", new BuffTranslation("Runa Hagalaz", "Hagalaz Rune") },
+            { "LUX AMINA Rune", new BuffTranslation("Runa Lux Anima", "Lux Anima Rune") },
+            { "Cat Can", new BuffTranslation("Lata de Comida para Gato", "Cat Can") },
+            { "HE Bubble Gum", new BuffTranslation("Goma de Mascar Especial", "HE Bubble Gum") },
+            { "Frost Giant Blood (GvG GIANT)", new BuffTranslation("Sangue do Gigante de Gelo", "Frost Giant Blood - GvG Giant") },
+            { "Battle Manual (GvG GOLEM)", new BuffTranslation("Pedra de Golem", "Golem Stone - GvG Golem") },
+            { "Magic Candy", new BuffTranslation("Doce Mágico", "Magic Candy") },
+            { "Ghostring", new BuffTranslation("Pergaminho de Ghostring", "Ghostring") },
+            { "Angeling", new BuffTranslation("Pergaminho de Angeling", "Angeling") },
+            { "Tao Gunka", new BuffTranslation("Pergaminho de Tao Gunka", "Tao Gunka") },
+            { "Orc Lord", new BuffTranslation("Pergaminho do Senhor dos Orcs", "Orc Lord") },
+            { "Orc Hero", new BuffTranslation("Pergaminho do Orc Herói", "Orc Hero") },
+            { "MISTRESS", new BuffTranslation("Pergaminho da Abelha-Rainha", "Mistress") },
+
+            // Candies
+            { "Sweets Macaron Cake", new BuffTranslation("Bolo de Macaron", "Sweets Macaron Cake") },
+            { "Sweets Strawberry Parfait", new BuffTranslation("Parfait de Morango", "Sweets Strawberry Parfait") },
+            { "Popcorn Festival Buff", new BuffTranslation("Pipoca do Festival", "Popcorn Festival Buff") },
+            { "Doce Hiper Açucarado", new BuffTranslation("Doce Hiper Açucarado", "Spark Candy") },
+            { "Elixir Ultra Milagroso", new BuffTranslation("Elixir Ultra Milagroso", "Ultra Miracle Elixir") },
+            { "Cherry Blossom Rice Cake", new BuffTranslation("Bolinho de Flor de Cerejeira", "Cherry Blossom Rice Cake") },
+
+            // EXP
+            { "Goma de Mascar", new BuffTranslation("Goma de Mascar", "Bubble Gum") },
+            { "Manual de Combate", new BuffTranslation("Manual de Combate", "Battle Manual") },
+            { "Manual de Combate de classe", new BuffTranslation("Manual de Combate de Classe", "Job Battle Manual") },
+
+            // Debuffs
+            { "Critical Wounds", new BuffTranslation("Ferimento Crítico", "Critical Wounds") },
+            { "FREEZING", new BuffTranslation("Congelamento", "Freezing") },
+            { "Curse", new BuffTranslation("Maldição", "Curse") },
+            { "Bleeding", new BuffTranslation("Sangramento", "Bleeding") },
+            { "Silence", new BuffTranslation("Silêncio", "Silence") },
+            { "Decrease Agi", new BuffTranslation("Diminuir Agilidade", "Decrease Agility") },
+            { "Confusion / chaos", new BuffTranslation("Confusão / Caos", "Confusion / Chaos") },
+            { "STUN", new BuffTranslation("Atordoamento", "Stun") },
+            { "Deep Sleep", new BuffTranslation("Sono Profundo", "Deep Sleep") },
+            { "Poison", new BuffTranslation("Envenenamento", "Poison") },
+            { "Lucky Water", new BuffTranslation("Azar / Infortúnio", "Misfortune / Lucky Water") }
+        };
+
+        public static bool HasBuffTranslation(string rawName)
+        {
+            if (string.IsNullOrWhiteSpace(rawName))
+            {
+                return false;
+            }
+
+            return BuffTranslations.ContainsKey(rawName.Trim());
+        }
+
+        public static string GetBuffDisplayName(string rawName)
+        {
+            if (string.IsNullOrWhiteSpace(rawName))
+            {
+                return string.Empty;
+            }
+
+            string trimmed = rawName.Trim();
+            BuffTranslation entry;
+            if (!BuffTranslations.TryGetValue(trimmed, out entry))
+            {
+                return trimmed;
+            }
+
+            if (!IsPortuguese)
+            {
+                return entry.En;
+            }
+
+            if (string.Equals(NormalizeForSearch(entry.Pt), NormalizeForSearch(entry.En), StringComparison.OrdinalIgnoreCase))
+            {
+                return entry.Pt;
+            }
+
+            return string.Format("{0} ({1})", entry.Pt, entry.En);
+        }
+
+        public static bool MatchesBuffSearch(string rawName, string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(rawName))
+            {
+                return false;
+            }
+
+            string normalizedQuery = NormalizeForSearch(query);
+            string trimmed = rawName.Trim();
+            if (NormalizeForSearch(trimmed).IndexOf(normalizedQuery, StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return true;
+            }
+
+            BuffTranslation entry;
+            if (BuffTranslations.TryGetValue(trimmed, out entry))
+            {
+                if (NormalizeForSearch(entry.Pt).IndexOf(normalizedQuery, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+
+                if (NormalizeForSearch(entry.En).IndexOf(normalizedQuery, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool MatchesSearchText(string text, string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return false;
+            }
+
+            return NormalizeForSearch(text).IndexOf(NormalizeForSearch(query), StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static string NormalizeForSearch(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return string.Empty;
+            }
+
+            string normalized = text.Trim().Normalize(NormalizationForm.FormD);
+            StringBuilder sb = new StringBuilder(normalized.Length);
+            for (int i = 0; i < normalized.Length; i++)
+            {
+                UnicodeCategory category = CharUnicodeInfo.GetUnicodeCategory(normalized[i]);
+                if (category != UnicodeCategory.NonSpacingMark)
+                {
+                    sb.Append(normalized[i]);
+                }
+            }
+
+            return sb.ToString().Normalize(NormalizationForm.FormC);
         }
 
         private static Dictionary<string, string> BuildReverseDictionary(Dictionary<string, string> source)
