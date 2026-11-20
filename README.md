@@ -64,11 +64,11 @@ Autopot, Autobuff inteligente com Modo Pré-Renewal, pausa automática na cidade
 - **Macro Switch / Macro Chain:** encadeamento de trocas e habilidades com suporte a clique e modo *Loop* por faixa.
 - **Modo ATK × DEF:** troca instantânea de conjunto ofensivo e defensivo em um único atalho.
 
-### 👤 Perfis e Servidores
+### 👤 Perfis e Cliente AureumRO
+- **Exclusivo para AureumRO:** pré-configurado unicamente para o servidor **AureumRO**, com detecção e seleção automática da janela do jogo ao abrir (suportando também múltiplas janelas no seletor do topo).
 - **Gerenciador Completo de Perfis:** criar, renomear, copiar, excluir, importar/exportar `.json` e **Backup/Restauração completa em `.zip`**.
 - **Troca Automática por Personagem:** vincule perfis ao nome do personagem detectado em tempo real.
 - **Inspetor de Conflito de Teclas:** identifica atalhos duplicados entre abas antes de ir para WoE/MVP.
-- **Gerenciador de Servidores:** suporte nativo embutido ao **AureumRO**, além de editor de endereços de memória com botão **Testar** ao vivo.
 
 ---
 

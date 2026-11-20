@@ -71,6 +71,15 @@ namespace _4RTools.Forms
             }
         }
 
+        public const string EXCLUSIVE_SERVER_NAME = "AureumRO";
+
+        public static bool IsExclusiveServer(ClientDTO clientDTO)
+        {
+            return clientDTO != null
+                && !string.IsNullOrWhiteSpace(clientDTO.name)
+                && string.Equals(clientDTO.name.Trim(), EXCLUSIVE_SERVER_NAME, StringComparison.OrdinalIgnoreCase);
+        }
+
         public static string LoadResourceServerFile()
         {
             return Resources._4RTools.ETCResource.supported_servers;
@@ -86,18 +95,13 @@ namespace _4RTools.Forms
             {
                 try
                 {
-                    if (clientDTO == null || string.IsNullOrWhiteSpace(clientDTO.name))
+                    if (!IsExclusiveServer(clientDTO))
                     {
                         continue;
                     }
 
-                    string dedupKey = string.Format(
-                        "{0}|{1}|{2}",
-                        clientDTO.name.Trim(),
-                        (clientDTO.hpAddress ?? string.Empty).Trim(),
-                        (clientDTO.nameAddress ?? string.Empty).Trim());
-
-                    if (seen.Add(dedupKey))
+                    string normalizedName = clientDTO.name.Trim();
+                    if (seen.Add(normalizedName))
                     {
                         ClientListSingleton.AddClient(new Client(clientDTO));
                     }

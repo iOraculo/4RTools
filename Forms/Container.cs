@@ -107,7 +107,6 @@ namespace _4RTools.Forms
             SetSongMacroWindow();
             SetATKDEFWindow();
             SetProfileWindow();
-            SetServerWindow();
 
             SelectSection("spammer");
             ApplyAppSettingsToUi();
@@ -335,7 +334,6 @@ namespace _4RTools.Forms
 
                 y = 358;
                 AddSidebarButton("profiles", "Profiles", SidebarIconKind.Profiles, ref y);
-                AddSidebarButton("servers", "Servers", SidebarIconKind.Servers, ref y);
 
                 // Live Session Summary Card anchored at the bottom of the sidebar
                 this.cardQuickStatus = new ModernCardPanel
@@ -1281,6 +1279,10 @@ namespace _4RTools.Forms
                 {
                     this.processCB.SelectedItem = previousSelection;
                 }
+                else if (this.processCB.Items.Count == 1)
+                {
+                    this.processCB.SelectedIndex = 0;
+                }
             };
 
             if (this.InvokeRequired)
@@ -1631,11 +1633,6 @@ namespace _4RTools.Forms
             ProfileForm frm = new ProfileForm(this);
             this.profileForm = frm;
             RegisterSectionForm("profiles", frm);
-        }
-
-        public void SetServerWindow()
-        {
-            RegisterSectionForm("servers", new ServersForm(this.subject));
         }
 
         public void SetAHKWindow()

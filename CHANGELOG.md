@@ -1,5 +1,11 @@
 # Changelogs
 
+## [v2.15.0] - 2026-11-20 — Exclusivo AureumRO
+### Changed & Removed
+- **Removed "Servers" (`Servidores`) Tab (`Forms/Container.cs`)**: removed the Servers navigation section from the sidebar so the interface stays focused and clean for AureumRO players.
+- **Exclusive AureumRO Configuration (`supported_servers.json`, `assets/etc/supported_servers.txt`, `Forms/ClientUpdaterForm.cs`)**: stripped all third-party servers so only **AureumRO** (`0x015FF908` / `0x01602568`) is bundled and accepted (while still supporting remote `AureumRO` address updates via `supported_servers.json`).
+- **Auto-Select AureumRO Client (`Forms/Container.cs`)**: automatically selects the running `AureumRO.exe` window when a single client instance is detected.
+
 ## [v2.14.1] - 2026-11-20 — Battle Chant (Canto de Batalha)
 ### Added
 - **Battle Chant (`EFST_GOSPEL` / `109`) in Swordsman Skills (`Model/Buff.cs`, `Utils/EffectStatusIDs.cs`, `Utils/LocalizationManager.cs`, `assets/images/pa_gospel.png`)**: added Paladin's **Canto de Batalha (Battle Chant / Gospel)** with its official 24×24 RO skill icon, Pre-Renewal Mode visibility, and bilingual PT-BR/EN search support (`canto`, `batalha`, `battle chant`, `gospel`).

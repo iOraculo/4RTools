@@ -487,10 +487,12 @@ namespace _4RTools.Tests
             List<ClientDTO> servers = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ClientDTO>>(raw);
 
             Assert.NotNull(servers);
-            ClientDTO aureum = servers.FirstOrDefault(s => string.Equals(s.name, "AureumRO", StringComparison.OrdinalIgnoreCase));
-            Assert.NotNull(aureum);
+            ClientDTO aureum = Assert.Single(servers);
+            Assert.Equal("AureumRO", aureum.name);
             Assert.Equal("0x015FF908", aureum.hpAddress);
             Assert.Equal("0x01602568", aureum.nameAddress);
+            Assert.True(ClientUpdaterForm.IsExclusiveServer(aureum));
+            Assert.False(ClientUpdaterForm.IsExclusiveServer(new ClientDTO("OtherRO", "Other", "0x01", "0x02")));
             Assert.Contains("iOraculo/AureumRO-4Tools", AppConfig._4RClientsURL);
         }
 
