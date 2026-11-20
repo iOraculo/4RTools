@@ -1,5 +1,9 @@
 # Changelogs
 
+## [v2.15.1] - 2026-11-20 — Button Text Alignment Fix
+### Fixed
+- **Profile "Create / Criar" Button Text Alignment (`Forms/ProfileForm.Designer.cs`, `Utils/ThemeManager.cs`)**: increased `btnSave` height from `20px` to `24px` (vertically centered with `txtProfileName`) and enforced `Padding.Empty` + `ContentAlignment.MiddleCenter` on flat text buttons so labels never clip or shift downward.
+
 ## [v2.15.0] - 2026-11-20 — Exclusivo AureumRO
 ### Changed & Removed
 - **Removed "Servers" (`Servidores`) Tab (`Forms/Container.cs`)**: removed the Servers navigation section from the sidebar so the interface stays focused and clean for AureumRO players.

@@ -47,11 +47,13 @@
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(267, 29);
+            this.btnSave.Location = new System.Drawing.Point(267, 27);
             this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(78, 20);
+            this.btnSave.Padding = new System.Windows.Forms.Padding(0);
+            this.btnSave.Size = new System.Drawing.Size(78, 24);
             this.btnSave.TabIndex = 1;
             this.btnSave.Text = "Create";
+            this.btnSave.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.btnSave.UseVisualStyleBackColor = true;
             this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 

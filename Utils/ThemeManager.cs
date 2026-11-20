@@ -383,6 +383,11 @@ namespace _4RTools.Utils
                     Button btn = (Button)control;
                     btn.FlatStyle = FlatStyle.Flat;
                     btn.FlatAppearance.BorderSize = 1;
+                    if (btn.Image == null && !string.IsNullOrEmpty(btn.Text))
+                    {
+                        btn.Padding = Padding.Empty;
+                        btn.TextAlign = ContentAlignment.MiddleCenter;
+                    }
                     if (darkMode)
                     {
                         btn.FlatAppearance.BorderColor = DarkButtonBorder;
