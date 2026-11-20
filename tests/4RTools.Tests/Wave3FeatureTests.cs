@@ -428,15 +428,32 @@ namespace _4RTools.Tests
                 Assert.True(LocalizationManager.HasBuffTranslation(buff.name), "Missing translation for buff: " + buff.name);
             }
 
-            // PT-BR mode shows "Portuguese (English)" and avoids duplicating identical names.
+            // PT-BR mode shows "Portuguese (English)" using official bRO / RO LATAM names and avoids duplicating identical names.
             LocalizationManager.SetLanguage(LocalizationManager.LANG_PT_BR);
             Assert.Equal("Poção da Fúria Selvagem (Berserk Potion)", LocalizationManager.GetBuffDisplayName("Berserk Potion"));
-            Assert.Equal("Concentração (Concentration)", LocalizationManager.GetBuffDisplayName("Concentration"));
+            Assert.Equal("Concentrar (Concentration)", LocalizationManager.GetBuffDisplayName("Concentration"));
+            Assert.Equal("Caminho do Vento (Wind Walk)", LocalizationManager.GetBuffDisplayName("Wind Walk"));
+            Assert.Equal("Proteção da Vanguarda (Vanguard Force)", LocalizationManager.GetBuffDisplayName("Vanguard Force"));
+            Assert.Equal("Determinação (Vigor)", LocalizationManager.GetBuffDisplayName("Vigor"));
+            Assert.Equal("Espada Alada (Servant Weapon)", LocalizationManager.GetBuffDisplayName("Servant Weapon"));
+            Assert.Equal("Carrasco Sombrio (Shadow Exceed)", LocalizationManager.GetBuffDisplayName("Shadow Exceed"));
+            Assert.Equal("Mantra da Energia (Sincere Faith)", LocalizationManager.GetBuffDisplayName("Sincere Faith"));
+            Assert.Equal("Mantra da Saúde (Firm Faith)", LocalizationManager.GetBuffDisplayName("Firm Faith"));
+            Assert.Equal("Mantra da Força (Powerful Faith)", LocalizationManager.GetBuffDisplayName("Powerful Faith"));
+            Assert.Equal("Auréola do Poder (First Faith Power)", LocalizationManager.GetBuffDisplayName("First Faith Power"));
+            Assert.Equal("Propulsão do Carrinho (Cart Boost - Genetic)", LocalizationManager.GetBuffDisplayName("Cart Boost (Genetic)"));
+            Assert.Equal("Energético Físico (Red Herb Activator)", LocalizationManager.GetBuffDisplayName("Red Herb Activator"));
+            Assert.Equal("Churrasco de Selvagem +20 FOR (Savage BBQ +20 STR)", LocalizationManager.GetBuffDisplayName("3RD STR Food"));
+            Assert.Equal("Núcleo Golem (Golem Stone - GvG Golem)", LocalizationManager.GetBuffDisplayName("Battle Manual (GvG GOLEM)"));
+            Assert.Equal("Taça da Felicidade (Sweets Strawberry Parfait)", LocalizationManager.GetBuffDisplayName("Sweets Strawberry Parfait"));
+            Assert.Equal("Escritos Elementais (Undead Element Scroll)", LocalizationManager.GetBuffDisplayName("Undead Element Scroll"));
             Assert.Equal("Atordoamento (Stun)", LocalizationManager.GetBuffDisplayName("STUN"));
             Assert.Equal("Ilimitar (Unlimit)", LocalizationManager.GetBuffDisplayName("Ilimitar"));
             Assert.Equal("Fúria Interior (Fury)", LocalizationManager.GetBuffDisplayName("Fury "));
             Assert.Equal("Magnificat", LocalizationManager.GetBuffDisplayName("Magnificat"));
             Assert.Equal("Glória", LocalizationManager.GetBuffDisplayName("Gloria"));
+            Assert.Equal("Guerrilheiro", LocalizationManager.TranslateText("Night Watch"));
+            Assert.Equal("Asceta das Almas", LocalizationManager.TranslateText("Soul Ascetic"));
 
             // EN-US mode shows clean English names (including entries originally written in Portuguese).
             LocalizationManager.SetLanguage(LocalizationManager.LANG_EN_US);
@@ -444,20 +461,26 @@ namespace _4RTools.Tests
             Assert.Equal("Unlimit", LocalizationManager.GetBuffDisplayName("Ilimitar"));
             Assert.Equal("Bubble Gum", LocalizationManager.GetBuffDisplayName("Goma de Mascar"));
             Assert.Equal("Stun", LocalizationManager.GetBuffDisplayName("STUN"));
+            Assert.Equal("Night Watch", LocalizationManager.TranslateText("Guerrilheiro"));
+            Assert.Equal("Soul Ascetic", LocalizationManager.TranslateText("Asceta das Almas"));
 
             // Bilingual, accent-insensitive search matches both PT-BR and EN-US terms.
             Assert.True(LocalizationManager.MatchesBuffSearch("Berserk Potion", "pocao"));
             Assert.True(LocalizationManager.MatchesBuffSearch("Berserk Potion", "furia"));
             Assert.True(LocalizationManager.MatchesBuffSearch("Berserk Potion", "berserk"));
-            Assert.True(LocalizationManager.MatchesBuffSearch("Concentration", "concentracao"));
+            Assert.True(LocalizationManager.MatchesBuffSearch("Concentration", "concentrar"));
+            Assert.True(LocalizationManager.MatchesBuffSearch("First Faith Power", "aureola"));
+            Assert.True(LocalizationManager.MatchesBuffSearch("3RD DEX Food", "cha gelado"));
+            Assert.True(LocalizationManager.MatchesBuffSearch("3RD DEX Food", "siroma"));
             Assert.True(LocalizationManager.MatchesBuffSearch("STUN", "atordoamento"));
             Assert.True(LocalizationManager.MatchesBuffSearch("STUN", "stun"));
             Assert.False(LocalizationManager.MatchesBuffSearch("Berserk Potion", "Magnificat"));
 
-            // BuffRenderer updates tooltips live when switching languages.
+            // BuffRenderer updates tooltips live when switching languages and matches group titles bilingually.
             using (System.Windows.Forms.GroupBox gp = new System.Windows.Forms.GroupBox())
             using (System.Windows.Forms.ToolTip tip = new System.Windows.Forms.ToolTip())
             {
+                gp.Text = "Poções";
                 List<BuffContainer> containers = new List<BuffContainer>
                 {
                     new BuffContainer(gp, new List<Buff>
@@ -474,10 +497,36 @@ namespace _4RTools.Tests
                 Assert.NotNull(icon);
                 Assert.Equal("Poção da Fúria Selvagem (Berserk Potion)", tip.GetToolTip(icon));
 
+                // Searching English group name "potions" should match Portuguese GroupBox "Poções".
+                renderer.ApplyFilter("potions");
+                Assert.True(icon.Visible);
+
                 LocalizationManager.SetLanguage(LocalizationManager.LANG_EN_US);
                 renderer.RefreshLocalizedTooltips();
                 Assert.Equal("Berserk Potion", tip.GetToolTip(icon));
             }
+        }
+
+        [Fact]
+        public void KeybindConflictDetector_UsesLocalizedOfficialBroBuffNamesInPtAndEn()
+        {
+            Profile profile = new Profile("Bilingue");
+            profile.Autobuff.AddKeyToBuff(EffectStatusIDs.CONCENTRATION, Key.F3);
+            profile.Autobuff.AddKeyToBuff(EffectStatusIDs.AWAKENING_POTION, Key.F3);
+
+            LocalizationManager.SetLanguage(LocalizationManager.LANG_PT_BR);
+            List<KeybindConflict> ptConflicts = KeybindConflictDetector.DetectConflicts(profile);
+            string ptReport = KeybindConflictDetector.FormatReport(profile.Name, ptConflicts);
+            Assert.Contains("Autobuff (Concentrar (Concentration))", ptReport);
+            Assert.Contains("Autobuff (Poção do Despertar (Awakening Potion))", ptReport);
+            Assert.DoesNotContain("AWAKENING_POTION", ptReport);
+
+            LocalizationManager.SetLanguage(LocalizationManager.LANG_EN_US);
+            List<KeybindConflict> enConflicts = KeybindConflictDetector.DetectConflicts(profile);
+            string enReport = KeybindConflictDetector.FormatReport(profile.Name, enConflicts);
+            Assert.Contains("Autobuff (Concentration)", enReport);
+            Assert.Contains("Autobuff (Awakening Potion)", enReport);
+            Assert.DoesNotContain("AWAKENING_POTION", enReport);
         }
 
         [Fact]
