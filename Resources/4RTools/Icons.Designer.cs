@@ -3150,5 +3150,61 @@ namespace _4RTools.Resources._4RTools {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        internal static System.Drawing.Bitmap burning {
+            get {
+                object obj = ResourceManager.GetObject("burning", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap blind {
+            get {
+                object obj = ResourceManager.GetObject("blind", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap hallucination {
+            get {
+                object obj = ResourceManager.GetObject("hallucination", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap frozen {
+            get {
+                object obj = ResourceManager.GetObject("frozen", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap sleep {
+            get {
+                object obj = ResourceManager.GetObject("sleep", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap stone_curse {
+            get {
+                object obj = ResourceManager.GetObject("stone_curse", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap spider_web {
+            get {
+                object obj = ResourceManager.GetObject("spider_web", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap cursed_circle {
+            get {
+                object obj = ResourceManager.GetObject("cursed_circle", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }

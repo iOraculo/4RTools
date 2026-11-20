@@ -881,13 +881,40 @@ namespace _4RTools.Tests
         }
 
         [Fact]
-        public void DebuffRecoveryForm_ShowsOnlyPreRenewalDebuffsWithFullLabels()
+        public void DebuffRecoveryForm_IncludesAureumAlmasDebuffsWithFullLabelsAndAliases()
         {
             List<Buff> debuffs = Buff.GetDebuffs();
-            Assert.Equal(8, debuffs.Count);
-            Assert.DoesNotContain(debuffs, b => b.effectStatusID == EffectStatusIDs.EFST_FREEZING);
+            Assert.Equal(17, debuffs.Count);
+
+            // Renewal-only debuffs that do not exist in AureumRO remain excluded.
             Assert.DoesNotContain(debuffs, b => b.effectStatusID == EffectStatusIDs.EFST_DEEP_SLEEP);
             Assert.DoesNotContain(debuffs, b => b.effectStatusID == EffectStatusIDs.EFST_HANDICAPSTATE_MISFORTUNE);
+
+            // AureumRO Almas status effects must all be present with non-null icons.
+            EffectStatusIDs[] expectedAlmasDebuffs = new EffectStatusIDs[]
+            {
+                EffectStatusIDs.EFST_FREEZING,            // Hipotermia (Alma de Iceicle)
+                EffectStatusIDs.EFST_BURNING,             // Queimadura (Alma de Imp / Salamander)
+                EffectStatusIDs.BLIND,                    // Cegueira (Alma de Waste Stove / Grizzly)
+                EffectStatusIDs.HALLUCINATION,            // Alucinação (Alma de Crab / Tengu)
+                EffectStatusIDs.EFST_FREEZE,              // Congelamento (Alma de Ktullanux / Violy / Swordfish)
+                EffectStatusIDs.EFST_SLEEP,               // Sono (Alma de Nightmare)
+                EffectStatusIDs.EFST_STONE,               // Petrificação (Alma de Medusa / Phreeoni)
+                EffectStatusIDs.EFST_SPIDERWEB,           // Prisão da Teia (Alma de Giant Spider)
+                EffectStatusIDs.EFST_CURSEDCIRCLE_TARGET  // Campo Amaldiçoado (Alma de Chen Verdadeiro)
+            };
+            foreach (EffectStatusIDs statusId in expectedAlmasDebuffs)
+            {
+                Buff found = debuffs.FirstOrDefault(b => b.effectStatusID == statusId);
+                Assert.NotNull(found);
+                Assert.NotNull(found.icon);
+            }
+
+            // Canonical alias resolution for rAthena client status IDs.
+            Assert.Equal(EffectStatusIDs.EFST_BURNING, DebuffsRecovery.ResolveCanonicalStatus(EffectStatusIDs.EFST_BURNT));
+            Assert.Equal(EffectStatusIDs.EFST_FREEZING, DebuffsRecovery.ResolveCanonicalStatus(EffectStatusIDs.MISTY_FROST));
+            Assert.Equal(EffectStatusIDs.EFST_BLEEDING, DebuffsRecovery.ResolveCanonicalStatus(EffectStatusIDs.EFST_HEALTHSTATE_BLOODING));
+            Assert.Equal(EffectStatusIDs.EFST_STONE, DebuffsRecovery.ResolveCanonicalStatus(EffectStatusIDs.EFST_STONE_ING));
 
             LocalizationManager.SetLanguage(LocalizationManager.LANG_PT_BR);
             Subject subject = new Subject();
@@ -902,8 +929,10 @@ namespace _4RTools.Tests
                     Assert.False(string.IsNullOrWhiteSpace(labelMatches[0].Text));
                 }
 
-                Assert.Equal("Ferimento Crítico", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.CRITICALWOUND, true)[0].Text);
-                Assert.Equal("Silêncio", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.SILENCE, true)[0].Text);
+                Assert.Equal("Hipotermia", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.EFST_FREEZING, true)[0].Text);
+                Assert.Equal("Queimadura", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.EFST_BURNING, true)[0].Text);
+                Assert.Equal("Petrificação", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.EFST_STONE, true)[0].Text);
+                Assert.Equal("Campo Amaldiçoado", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.EFST_CURSEDCIRCLE_TARGET, true)[0].Text);
             }
         }
     }

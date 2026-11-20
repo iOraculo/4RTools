@@ -1057,15 +1057,23 @@ namespace _4RTools.Utils
 
             // Debuffs
             { "Critical Wounds", new BuffTranslation("Ferimento Crítico", "Critical Wounds") },
-            { "FREEZING", new BuffTranslation("Congelamento", "Freezing") },
+            { "FREEZING", new BuffTranslation("Hipotermia", "Freezing (Frost)") },
+            { "Burning", new BuffTranslation("Queimadura", "Burning") },
             { "Curse", new BuffTranslation("Maldição", "Curse") },
             { "Bleeding", new BuffTranslation("Sangramento", "Bleeding") },
             { "Silence", new BuffTranslation("Silêncio", "Silence") },
             { "Decrease Agi", new BuffTranslation("Diminuir Agilidade", "Decrease Agility") },
             { "Confusion / chaos", new BuffTranslation("Confusão / Caos", "Confusion / Chaos") },
+            { "Blind", new BuffTranslation("Cegueira", "Blind") },
+            { "Hallucination", new BuffTranslation("Alucinação", "Hallucination") },
             { "STUN", new BuffTranslation("Atordoamento", "Stun") },
             { "Deep Sleep", new BuffTranslation("Sono Profundo", "Deep Sleep") },
             { "Poison", new BuffTranslation("Envenenamento", "Poison") },
+            { "Frozen", new BuffTranslation("Congelamento", "Frozen") },
+            { "Sleep", new BuffTranslation("Sono", "Sleep") },
+            { "Stone Curse", new BuffTranslation("Petrificação", "Stone Curse") },
+            { "Spider Web", new BuffTranslation("Prisão da Teia", "Spider Web") },
+            { "Cursed Circle", new BuffTranslation("Campo Amaldiçoado", "Cursed Circle") },
             { "Lucky Water", new BuffTranslation("Azar / Infortúnio", "Misfortune / Lucky Water") }
         };
 

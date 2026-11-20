@@ -1066,4 +1066,28 @@
   <data name="equip_acc_right" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\..\assets\images\ring_acc.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="burning" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\debuffs\burning.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="blind" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\debuffs\blind.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="hallucination" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\debuffs\hallucination.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="frozen" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\debuffs\frozen.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="sleep" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\debuffs\sleep.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="stone_curse" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\debuffs\stone_curse.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="spider_web" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\debuffs\spider_web.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="cursed_circle" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\debuffs\cursed_circle.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

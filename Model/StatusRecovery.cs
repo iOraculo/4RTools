@@ -14,7 +14,11 @@ namespace _4RTools.Model
             EffectStatusIDs.CRITICALWOUND,
             EffectStatusIDs.PROPERTYUNDEAD,
             EffectStatusIDs.BLOODING,
+            EffectStatusIDs.EFST_HEALTHSTATE_BLOODING,
+            EffectStatusIDs.EFST_FREEZING,
             EffectStatusIDs.MISTY_FROST,
+            EffectStatusIDs.EFST_BURNING,
+            EffectStatusIDs.EFST_BURNT,
             EffectStatusIDs.OVERHEAT,
             EffectStatusIDs.EFST_MANDRAGORA
         };

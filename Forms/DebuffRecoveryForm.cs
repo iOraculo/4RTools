@@ -50,18 +50,20 @@ namespace _4RTools.Forms
             this.groupBox1.Location = new Point(288, 8);
             this.groupBox1.Size = new Size(270, 112);
 
+            List<Buff> debuffs = Buff.GetDebuffs();
+            int rowsPerCol = (debuffs.Count + 1) / 2;
+            int rowStep = 28;
+            int groupHeight = 28 + (rowsPerCol * rowStep);
+
             this.DebuffRecoveryGP.Controls.Clear();
             this.DebuffRecoveryGP.AutoSize = false;
             this.DebuffRecoveryGP.Location = new Point(10, 126);
-            this.DebuffRecoveryGP.Size = new Size(548, 144);
-
-            List<Buff> debuffs = Buff.GetDebuffs();
-            int rowsPerCol = (debuffs.Count + 1) / 2;
+            this.DebuffRecoveryGP.Size = new Size(548, groupHeight);
 
             Panel midDivider = new Panel
             {
                 Location = new Point(272, 20),
-                Size = new Size(1, Math.Max(60, rowsPerCol * 29 - 4))
+                Size = new Size(1, Math.Max(60, rowsPerCol * rowStep - 4))
             };
             this.DebuffRecoveryGP.Controls.Add(midDivider);
 
@@ -71,7 +73,7 @@ namespace _4RTools.Forms
                 int col = i / rowsPerCol;
                 int row = i % rowsPerCol;
                 int baseX = col == 0 ? 12 : 284;
-                int y = 20 + (row * 29);
+                int y = 20 + (row * rowStep);
 
                 PictureBox pb = new PictureBox
                 {
@@ -80,7 +82,7 @@ namespace _4RTools.Forms
                     Location = new Point(baseX, y),
                     Name = "pbox" + (int)debuff.effectStatusID,
                     Size = new Size(24, 24),
-                    SizeMode = PictureBoxSizeMode.CenterImage,
+                    SizeMode = PictureBoxSizeMode.Zoom,
                     TabStop = false
                 };
 
@@ -120,6 +122,7 @@ namespace _4RTools.Forms
                 });
             }
 
+            this.AutoScrollMinSize = new Size(0, this.DebuffRecoveryGP.Bottom + 12);
             RefreshLocalizedDebuffLabels();
         }
 
@@ -265,7 +268,11 @@ namespace _4RTools.Forms
             statusRec.AddKeyToBuff(EffectStatusIDs.CRITICALWOUND, k);
             statusRec.AddKeyToBuff(EffectStatusIDs.PROPERTYUNDEAD, k);
             statusRec.AddKeyToBuff(EffectStatusIDs.BLOODING, k);
+            statusRec.AddKeyToBuff(EffectStatusIDs.EFST_HEALTHSTATE_BLOODING, k);
+            statusRec.AddKeyToBuff(EffectStatusIDs.EFST_FREEZING, k);
             statusRec.AddKeyToBuff(EffectStatusIDs.MISTY_FROST, k);
+            statusRec.AddKeyToBuff(EffectStatusIDs.EFST_BURNING, k);
+            statusRec.AddKeyToBuff(EffectStatusIDs.EFST_BURNT, k);
             statusRec.AddKeyToBuff(EffectStatusIDs.OVERHEAT, k);
             statusRec.AddKeyToBuff(EffectStatusIDs.EFST_MANDRAGORA, k);
 

@@ -1,5 +1,22 @@
 # Changelogs
 
+## [v2.23.0] - 2026-11-20 — AureumRO Almas Status Effects & Debuff Alias Detection
+### Added
+- **AureumRO Almas Status Effects (`Model/Buff.cs`, `Utils/EffectStatusIDs.cs`, `Forms/DebuffRecoveryForm.cs`, `Utils/LocalizationManager.cs`, `Resources/4RTools/Icons.resx`)**:
+  - Added all **9 status effects inflicted by AureumRO Souls (Almas)** from the official wiki with official Ragnarok Online icons and full PT-BR/EN names beside each icon:
+    - **Hipotermia** (`EFST_FREEZING = 351` + alias `MISTY_FROST = 1141`) — *Alma de Iceicle*
+    - **Queimadura** (`EFST_BURNING = 881` + alias `EFST_BURNT = 737`) — *Alma de Imp*, *Alma de Salamander*
+    - **Cegueira** (`BLIND = 887`) — *Alma de Waste Stove*, *Alma de Grizzly*
+    - **Alucinação** (`HALLUCINATION = 34`) — *Alma de Crab*, *Alma de Tengu*
+    - **Congelamento** (`EFST_FREEZE = 876`) — *Alma de Ktullanux*, *Alma de Violy*, *Alma de Swordfish*
+    - **Sono** (`EFST_SLEEP = 878`) — *Alma de Nightmare*
+    - **Petrificação** (`EFST_STONE = 875` + alias `EFST_STONE_ING = 880`) — *Alma de Medusa*, *Alma de Phreeoni*
+    - **Prisão da Teia** (`EFST_SPIDERWEB = 129`) — *Alma de Giant Spider*
+    - **Campo Amaldiçoado** (`EFST_CURSEDCIRCLE_TARGET = 417`) — *Alma de Chen Verdadeiro*
+- **Canonical rAthena Alias Detection (`Model/DebuffsRecovery.cs`, `Model/StatusRecovery.cs`)**:
+  - Automatically matches client-side Opt1/Opt2/Icon EFST aliases (`EFST_BURNT -> EFST_BURNING`, `MISTY_FROST -> EFST_FREEZING`, `EFST_HEALTHSTATE_BLOODING -> EFST_BLEEDING`, `EFST_STONE_ING -> EFST_STONE`) and includes Hipotermia + Queimadura in **Bala de Elvira** quick-recovery.
+  - Upgraded `DebuffRecoveryForm` to dynamic scrollable height and `PictureBoxSizeMode.Zoom` so all 17 debuff icons render uncropped.
+
 ## [v2.22.0] - 2026-11-20 — Standardized Macros Suite & Clean Pre-Renewal Debuff Layout
 ### Changed & Removed
 - **Standardized `Macros` Sub-Tabs (`Forms/MacroSongForm.cs`, `Forms/ATKDEFForm.cs`, `Utils/LocalizationManager.cs`)**:
