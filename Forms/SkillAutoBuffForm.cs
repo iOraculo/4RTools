@@ -14,6 +14,8 @@ namespace _4RTools.Forms
         private TextBox txtSearch;
         private NumericUpDown numMinSp;
         private NumericUpDown numCooldown;
+        private CheckBox cbPreRenewal;
+        private CheckBox cbPauseWhenSitting;
         private bool isUpdatingOptions;
 
         public SkillAutoBuffForm(Subject subject)
@@ -38,7 +40,8 @@ namespace _4RTools.Forms
 
             this.renderer = new BuffRenderer("Autobuff", this.skillContainers, this.toolTip1);
             InitializeSearchBar();
-            this.renderer.doRender(42);
+            this.renderer.doRender(64);
+            this.renderer.SetPreRenewalOnly(this.cbPreRenewal != null && this.cbPreRenewal.Checked);
             this.VisibleChanged += (s, e) => SyncAutobuffOptionsFromProfile();
             subject.Attach(this);
         }
@@ -117,6 +120,33 @@ namespace _4RTools.Forms
                 }
             };
 
+            AppSettings currentSettings = AppSettings.Load();
+            this.cbPreRenewal = new CheckBox
+            {
+                AutoSize = true,
+                Cursor = Cursors.Hand,
+                Location = new Point(8, 37),
+                Name = "cbPreRenewal",
+                Text = "Pre-Renewal Mode (hide 3rd/4th)",
+                Checked = currentSettings.PreRenewalMode,
+                UseVisualStyleBackColor = true,
+                Tag = FormUtils.SKIP_RESET_TAG
+            };
+            this.cbPreRenewal.CheckedChanged += OnPreRenewalModeChanged;
+
+            this.cbPauseWhenSitting = new CheckBox
+            {
+                AutoSize = true,
+                Cursor = Cursors.Hand,
+                Location = new Point(280, 37),
+                Name = "cbSkillPauseWhenSitting",
+                Text = "Pause when sitting",
+                Checked = true,
+                UseVisualStyleBackColor = true,
+                Tag = FormUtils.SKIP_RESET_TAG
+            };
+            this.cbPauseWhenSitting.CheckedChanged += OnAutobuffOptionsChanged;
+
             this.Controls.Add(lblSearch);
             this.Controls.Add(this.txtSearch);
             this.Controls.Add(lblMinSp);
@@ -124,8 +154,28 @@ namespace _4RTools.Forms
             this.Controls.Add(lblCooldown);
             this.Controls.Add(this.numCooldown);
             this.Controls.Add(btnClear);
+            this.Controls.Add(this.cbPreRenewal);
+            this.Controls.Add(this.cbPauseWhenSitting);
 
             RefreshLocalizedTooltips();
+        }
+
+        private void OnPreRenewalModeChanged(object sender, EventArgs e)
+        {
+            if (this.isUpdatingOptions || this.cbPreRenewal == null)
+            {
+                return;
+            }
+
+            bool preRenewal = this.cbPreRenewal.Checked;
+            if (this.renderer != null)
+            {
+                this.renderer.SetPreRenewalOnly(preRenewal);
+            }
+
+            AppSettings settings = AppSettings.Load();
+            settings.PreRenewalMode = preRenewal;
+            AppSettings.Save(settings);
         }
 
         private void RefreshLocalizedTooltips()
@@ -137,6 +187,14 @@ namespace _4RTools.Forms
             if (this.numCooldown != null)
             {
                 this.toolTip1.SetToolTip(this.numCooldown, LocalizationManager.T("tooltip.buff_cd"));
+            }
+            if (this.cbPreRenewal != null)
+            {
+                this.toolTip1.SetToolTip(this.cbPreRenewal, LocalizationManager.T("tooltip.pre_renewal"));
+            }
+            if (this.cbPauseWhenSitting != null)
+            {
+                this.toolTip1.SetToolTip(this.cbPauseWhenSitting, LocalizationManager.T("tooltip.pause_sitting"));
             }
             if (this.renderer != null)
             {
@@ -161,6 +219,10 @@ namespace _4RTools.Forms
                 AutoBuff autobuff = ProfileSingleton.GetCurrent().Autobuff;
                 FormUtils.SetNumericValue(this.numMinSp, autobuff.minSpPercent);
                 FormUtils.SetNumericValue(this.numCooldown, autobuff.buffCooldownMs);
+                if (this.cbPauseWhenSitting != null)
+                {
+                    this.cbPauseWhenSitting.Checked = autobuff.pauseWhenSitting;
+                }
             }
             finally
             {
@@ -178,6 +240,10 @@ namespace _4RTools.Forms
             AutoBuff autobuff = ProfileSingleton.GetCurrent().Autobuff;
             autobuff.minSpPercent = Convert.ToInt32(this.numMinSp.Value);
             autobuff.buffCooldownMs = Convert.ToInt32(this.numCooldown.Value);
+            if (this.cbPauseWhenSitting != null)
+            {
+                autobuff.pauseWhenSitting = this.cbPauseWhenSitting.Checked;
+            }
             ProfileSingleton.SetConfiguration(autobuff);
         }
 

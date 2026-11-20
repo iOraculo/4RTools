@@ -18,6 +18,94 @@ namespace _4RTools.Model
             this.icon = icon;
         }
 
+        // Authentic Pre-Renewal (Ep. 13.1 / Transclasses + Ninja/Gunslinger/Taekwon) skill buff IDs.
+        private static readonly HashSet<EffectStatusIDs> PreRenewalSkillIds = new HashSet<EffectStatusIDs>
+        {
+            // Archer / Hunter / Bard / Dancer / Sniper / Clown / Gypsy
+            EffectStatusIDs.CONCENTRATION,
+            EffectStatusIDs.WINDWALK,
+            EffectStatusIDs.TRUESIGHT,
+            EffectStatusIDs.POEMBRAGI,
+
+            // Swordsman / Knight / Crusader / Lord Knight / Paladin
+            EffectStatusIDs.ENDURE,
+            EffectStatusIDs.AUTOBERSERK,
+            EffectStatusIDs.AUTOGUARD,
+            EffectStatusIDs.REFLECTSHIELD,
+            EffectStatusIDs.SPEARQUICKEN,
+            EffectStatusIDs.DEFENDER,
+            EffectStatusIDs.LKCONCENTRATION,
+            EffectStatusIDs.BERSERK,
+            EffectStatusIDs.TWOHANDQUICKEN,
+            EffectStatusIDs.PARRYING,
+            EffectStatusIDs.AURABLADE,
+            EffectStatusIDs.CR_SHRINK,
+            EffectStatusIDs.EFST_ONEHANDQUICKEN,
+
+            // Mage / Wizard / Sage / High Wizard / Professor
+            EffectStatusIDs.ENERGYCOAT,
+            EffectStatusIDs.SIGHTBLASTER,
+            EffectStatusIDs.AUTOSPELL,
+            EffectStatusIDs.DOUBLECASTING,
+            EffectStatusIDs.MEMORIZE,
+            EffectStatusIDs.MYST_AMPLIFY,
+
+            // Merchant / Blacksmith / Alchemist / Whitesmith / Creator
+            EffectStatusIDs.CRAZY_UPROAR,
+            EffectStatusIDs.OVERTHRUST,
+            EffectStatusIDs.ADRENALINE,
+            EffectStatusIDs.ADRENALINE2,
+            EffectStatusIDs.OVERTHRUSTMAX,
+            EffectStatusIDs.WEAPONPERFECT,
+            EffectStatusIDs.MAXIMIZE,
+            EffectStatusIDs.CARTBOOST,
+            EffectStatusIDs.MELTDOWN,
+
+            // Thief / Assassin / Rogue / Assassin Cross / Stalker
+            EffectStatusIDs.POISONREACT,
+            EffectStatusIDs.SWORDREJECT,
+            EffectStatusIDs.PRESERVE,
+            EffectStatusIDs.EDP,
+
+            // Acolyte / Priest / Monk / High Priest / Champion
+            EffectStatusIDs.GLORIA,
+            EffectStatusIDs.MAGNIFICAT,
+            EffectStatusIDs.ANGELUS,
+            EffectStatusIDs.FURY,
+            EffectStatusIDs.IMPOSITIO,
+
+            // Ninja
+            EffectStatusIDs.PEEL_CHANGE,
+            EffectStatusIDs.AURA_NINJA,
+
+            // Taekwon / Star Gladiator
+            EffectStatusIDs.PROPERTYGROUND,
+            EffectStatusIDs.PROPERTYFIRE,
+            EffectStatusIDs.PROPERTYWATER,
+            EffectStatusIDs.PROPERTYWIND,
+            EffectStatusIDs.PROPERTYTELEKINESIS,
+            EffectStatusIDs.ASPERSIO,
+            EffectStatusIDs.PROPERTYDARK,
+            EffectStatusIDs.EFST_SG_SUN_WARM,
+            EffectStatusIDs.EFST_SUN_COMFORT,
+            EffectStatusIDs.EFST_SG_MOON_WARM,
+            EffectStatusIDs.EFST_MOON_COMFORT,
+            EffectStatusIDs.EFST_SG_STAR_WARM,
+            EffectStatusIDs.EFST_STAR_COMFORT,
+            EffectStatusIDs.DODGE_ON,
+
+            // Gunslinger
+            EffectStatusIDs.GATLINGFEVER,
+            EffectStatusIDs.MADNESSCANCEL,
+            EffectStatusIDs.ADJUSTMENT,
+            EffectStatusIDs.ACCURACY
+        };
+
+        public static bool IsPreRenewalSkill(EffectStatusIDs statusId)
+        {
+            return PreRenewalSkillIds.Contains(statusId);
+        }
+
         //--------------------- SKILLS ------------------------------
 
         //Archer Skills

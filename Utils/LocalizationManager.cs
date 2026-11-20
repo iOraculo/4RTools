@@ -82,6 +82,9 @@ namespace _4RTools.Utils
             { "CD(ms):", "CD(ms):" },
             { "Clear Skills", "Limpar Skills" },
             { "Clear Stuffs", "Limpar Itens" },
+            { "Pre-Renewal Mode (hide 3rd/4th)", "Modo Pré-Renewal (ocultar 3rd/4th)" },
+            { "Pause when sitting", "Pausar ao sentar" },
+            { "Pause when sitting (save consumables)", "Pausar ao sentar (economizar itens)" },
             { "Archer Skills", "Arqueiro / Evoluções" },
             { "Swordsman Skills", "Espadachim / Evoluções" },
             { "Mage Skills", "Mago / Evoluções" },
@@ -247,6 +250,8 @@ namespace _4RTools.Utils
             // Autobuff Forms
             { "tooltip.min_sp", "Pausar Autobuff quando o SP estiver abaixo desta % (0 = desativado)" },
             { "tooltip.buff_cd", "Tempo de recarga por buff em milissegundos (ex.: 1500ms evita uso duplo)" },
+            { "tooltip.pre_renewal", "Exibe apenas skills de Pré-Renewal / Transclasses (oculta 3ª/4ª classe, Doram, Night Watch, Hyper Novice e Soul Ascetic)" },
+            { "tooltip.pause_sitting", "Pausa Autobuffs (skills e consumíveis) automaticamente enquanto o personagem estiver sentado (EFST_SIT)" },
             { "msg.clear_skills_confirm", "Limpar todas as teclas de skills de Autobuff nesta aba?" },
             { "msg.clear_stuffs_confirm", "Limpar todas as teclas de itens de Autobuff nesta aba?" },
 
@@ -396,6 +401,8 @@ namespace _4RTools.Utils
 
             { "tooltip.min_sp", "Pause Autobuff when SP is below this % (0 = disabled)" },
             { "tooltip.buff_cd", "Per-buff recast cooldown in milliseconds (e.g. 1500ms prevents double-use)" },
+            { "tooltip.pre_renewal", "Show only Pre-Renewal / Transcendent class skills (hides 3rd/4th jobs, Doram, Night Watch, Hyper Novice, and Soul Ascetic)" },
+            { "tooltip.pause_sitting", "Automatically pauses Autobuffs (skills & consumables) while your character is sitting (EFST_SIT)" },
             { "msg.clear_skills_confirm", "Clear all skill autobuff keys on this tab?" },
             { "msg.clear_stuffs_confirm", "Clear all consumable autobuff keys on this tab?" },
 

@@ -28,6 +28,8 @@ namespace _4RTools.Model
         private readonly ToolTip _toolTip;
         private readonly Dictionary<BuffContainer, List<RenderedBuffItem>> _renderedItems = new Dictionary<BuffContainer, List<RenderedBuffItem>>();
         private int _initialTopY;
+        private bool _preRenewalOnly;
+        private string _lastSearchQuery = string.Empty;
 
         public BuffRenderer(string model, List<BuffContainer> containers, ToolTip toolTip)
         {
@@ -119,6 +121,12 @@ namespace _4RTools.Model
             }
         }
 
+        public void SetPreRenewalOnly(bool preRenewalOnly)
+        {
+            this._preRenewalOnly = preRenewalOnly;
+            ApplyFilter(this._lastSearchQuery);
+        }
+
         public void ApplyFilter(string searchQuery)
         {
             if (this._containers == null || this._containers.Count == 0)
@@ -127,6 +135,7 @@ namespace _4RTools.Model
             }
 
             string query = string.IsNullOrWhiteSpace(searchQuery) ? string.Empty : searchQuery.Trim();
+            this._lastSearchQuery = query;
             ScrollableControl parentForm = this._containers[0].container.Parent as ScrollableControl;
 
             if (parentForm != null)
@@ -156,9 +165,10 @@ namespace _4RTools.Model
 
                 foreach (RenderedBuffItem item in items)
                 {
-                    bool visible = query.Length == 0
+                    bool allowedByMode = !this._preRenewalOnly || Buff.IsPreRenewalSkill(item.Skill.effectStatusID);
+                    bool visible = allowedByMode && (query.Length == 0
                         || groupMatches
-                        || LocalizationManager.MatchesBuffSearch(item.Skill.name, query);
+                        || LocalizationManager.MatchesBuffSearch(item.Skill.name, query));
 
                     item.IconBox.Visible = visible;
                     item.KeyBox.Visible = visible;

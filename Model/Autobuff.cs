@@ -39,6 +39,7 @@ namespace _4RTools.Model
         public int minSpPercent { get; set; } = 0;
         public int buffCooldownMs { get; set; } = 0;
         public bool pauseOnDebuff { get; set; } = true;
+        public bool pauseWhenSitting { get; set; } = true;
         public Dictionary<EffectStatusIDs, Key> buffMapping = new Dictionary<EffectStatusIDs, Key>();
 
         public void Start()
@@ -65,6 +66,7 @@ namespace _4RTools.Model
                 {
                     bool foundQuag = false;
                     bool foundBlockingDebuff = false;
+                    bool isSitting = false;
                     Dictionary<EffectStatusIDs, Key> missingBuffs = GetBuffMappingSnapshot();
 
                     if (missingBuffs.Count > 0)
@@ -90,13 +92,17 @@ namespace _4RTools.Model
                             {
                                 foundQuag = true;
                             }
+                            else if (status == EffectStatusIDs.EFST_SIT)
+                            {
+                                isSitting = true;
+                            }
                             else if (IncapacitatingDebuffs.Contains(status))
                             {
                                 foundBlockingDebuff = true;
                             }
                         }
 
-                        if (missingBuffs.Count > 0)
+                        if (missingBuffs.Count > 0 && !(this.pauseWhenSitting && isSitting))
                         {
                             uint currentHp;
                             uint maxHp;
@@ -113,7 +119,7 @@ namespace _4RTools.Model
                                         break;
                                     }
 
-                                    if (!ShouldCastBuff(item.Key, nowMs, foundQuag, foundBlockingDebuff, currentSp, maxSp))
+                                    if (!ShouldCastBuff(item.Key, nowMs, foundQuag, foundBlockingDebuff, currentSp, maxSp, isSitting))
                                     {
                                         continue;
                                     }
@@ -140,8 +146,14 @@ namespace _4RTools.Model
             bool hasQuagmire,
             bool hasBlockingDebuff,
             uint currentSp,
-            uint maxSp)
+            uint maxSp,
+            bool isSitting = false)
         {
+            if (this.pauseWhenSitting && isSitting)
+            {
+                return false;
+            }
+
             if (this.pauseOnDebuff && hasBlockingDebuff)
             {
                 return false;

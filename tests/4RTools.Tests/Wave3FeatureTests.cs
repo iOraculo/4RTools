@@ -546,5 +546,65 @@ namespace _4RTools.Tests
             AppSettings.Save(defaults);
             Assert.True(AppSettings.Load().UseBuffsInTown);
         }
+
+        [Fact]
+        public void AutoBuff_PauseWhenSitting_BlocksBuffsWhileSitting()
+        {
+            AutoBuff autobuff = new AutoBuff();
+            Assert.True(autobuff.pauseWhenSitting);
+
+            // While sitting (EFST_SIT), autobuff must not fire when pauseWhenSitting is enabled.
+            Assert.False(autobuff.ShouldCastBuff(EffectStatusIDs.BLESSING, 1000, false, false, 1000, 1000, true));
+            Assert.True(autobuff.ShouldCastBuff(EffectStatusIDs.BLESSING, 1000, false, false, 1000, 1000, false));
+
+            // Disabling pauseWhenSitting allows casting even while sitting.
+            autobuff.pauseWhenSitting = false;
+            Assert.True(autobuff.ShouldCastBuff(EffectStatusIDs.BLESSING, 1000, false, false, 1000, 1000, true));
+        }
+
+        [Fact]
+        public void PreRenewalMode_FiltersOutThirdAndFourthClassSkillsAndGroups()
+        {
+            Assert.True(Buff.IsPreRenewalSkill(EffectStatusIDs.CONCENTRATION));
+            Assert.True(Buff.IsPreRenewalSkill(EffectStatusIDs.EDP));
+            Assert.True(Buff.IsPreRenewalSkill(EffectStatusIDs.AURABLADE));
+            Assert.True(Buff.IsPreRenewalSkill(EffectStatusIDs.CARTBOOST));
+            Assert.False(Buff.IsPreRenewalSkill(EffectStatusIDs.UNLIMIT));
+            Assert.False(Buff.IsPreRenewalSkill(EffectStatusIDs.ENCHANT_BLADE));
+            Assert.False(Buff.IsPreRenewalSkill(EffectStatusIDs.EFST_HIDDEN_CARD));
+            Assert.False(Buff.IsPreRenewalSkill(EffectStatusIDs.EFST_SHRIMP));
+            Assert.False(Buff.IsPreRenewalSkill(EffectStatusIDs.GN_CARTBOOST));
+
+            using (System.Windows.Forms.GroupBox archerGp = new System.Windows.Forms.GroupBox { Text = "Archer Skills" })
+            using (System.Windows.Forms.GroupBox doramGp = new System.Windows.Forms.GroupBox { Text = "Summoner" })
+            using (System.Windows.Forms.ToolTip tip = new System.Windows.Forms.ToolTip())
+            {
+                List<BuffContainer> containers = new List<BuffContainer>
+                {
+                    new BuffContainer(archerGp, new List<Buff>
+                    {
+                        new Buff("Concentration", EffectStatusIDs.CONCENTRATION, null),
+                        new Buff("Ilimitar", EffectStatusIDs.UNLIMIT, null)
+                    }),
+                    new BuffContainer(doramGp, new List<Buff>
+                    {
+                        new Buff("Bunch of Shrimp", EffectStatusIDs.EFST_SHRIMP, null)
+                    })
+                };
+
+                BuffRenderer renderer = new BuffRenderer("Autobuff", containers, tip);
+                renderer.doRender(0);
+                renderer.SetPreRenewalOnly(true);
+
+                Assert.True(archerGp.Visible);
+                Assert.True(archerGp.Controls["pbox" + (int)EffectStatusIDs.CONCENTRATION].Visible);
+                Assert.False(archerGp.Controls["pbox" + (int)EffectStatusIDs.UNLIMIT].Visible);
+                Assert.False(doramGp.Visible);
+
+                renderer.SetPreRenewalOnly(false);
+                Assert.True(archerGp.Controls["pbox" + (int)EffectStatusIDs.UNLIMIT].Visible);
+                Assert.True(doramGp.Visible);
+            }
+        }
     }
 }

@@ -1,5 +1,10 @@
 # Changelogs
 
+## [v2.14.0] - 2026-11-20 — Pre-Renewal Mode & Sit-Safe AutoBuff
+### Added
+- **Pre-Renewal Mode Filter (`Model/Buff.cs`, `Model/BuffRenderer.cs`, `Forms/SkillAutoBuffForm.cs`, `Model/AppSettings.cs`)**: new **Modo Pré-Renewal (ocultar 3rd/4th)** toggle on the *Autobuff - Skills* tab (enabled by default and saved in `settings.json`) that filters the skill grid to the 61 authentic Pre-Renewal / Transcendent / Expanded skills and hides 3rd/4th job skills and Renewal-only classes (Doram, Soul Ascetic, Night Watch, Hyper Novice, Homunculus S) without losing saved bindings.
+- **Pause Autobuffs When Sitting (`Model/Autobuff.cs`, `Forms/SkillAutoBuffForm.cs`, `Forms/StuffAutoBuffForm.cs`)**: detects `EFST_SIT` in the active status buffer and automatically pauses skill & consumable autobuffs while sitting (configurable per profile via **Pausar ao sentar**, enabled by default) so converters, foods, and buffs aren't wasted while recovering SP.
+
 ## [v2.13.3] - 2026-11-20 — UI Polish & Town Pause
 ### Fixed & Added
 - **Transparent Icons Everywhere (`Utils/ThemeManager.cs`, `Model/BuffRenderer.cs`, `Forms/AutopotForm.cs`, `assets/etc/Yggdrasil.png`)**: converted `Yggdrasil.bmp` and opaque white-background PNG assets to transparent PNGs and added automatic border flood-fill transparency in `ThemeManager.StripLightBackground` for all `PictureBox` thumbnails (removing white squares in Dark & Light modes while preserving interior highlights).

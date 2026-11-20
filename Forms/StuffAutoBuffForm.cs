@@ -14,6 +14,7 @@ namespace _4RTools.Forms
         private TextBox txtSearch;
         private NumericUpDown numMinSp;
         private NumericUpDown numCooldown;
+        private CheckBox cbPauseWhenSitting;
         private bool isUpdatingOptions;
 
         public StuffAutoBuffForm(Subject subject)
@@ -30,7 +31,7 @@ namespace _4RTools.Forms
 
             this.renderer = new BuffRenderer("Autobuff", this.stuffContainers, this.toolTip1);
             InitializeSearchBar();
-            this.renderer.doRender(42);
+            this.renderer.doRender(64);
             this.VisibleChanged += (s, e) => SyncAutobuffOptionsFromProfile();
 
             subject.Attach(this);
@@ -110,6 +111,19 @@ namespace _4RTools.Forms
                 }
             };
 
+            this.cbPauseWhenSitting = new CheckBox
+            {
+                AutoSize = true,
+                Cursor = Cursors.Hand,
+                Location = new Point(8, 37),
+                Name = "cbStuffPauseWhenSitting",
+                Text = "Pause when sitting (save consumables)",
+                Checked = true,
+                UseVisualStyleBackColor = true,
+                Tag = FormUtils.SKIP_RESET_TAG
+            };
+            this.cbPauseWhenSitting.CheckedChanged += OnAutobuffOptionsChanged;
+
             this.Controls.Add(lblSearch);
             this.Controls.Add(this.txtSearch);
             this.Controls.Add(lblMinSp);
@@ -117,6 +131,7 @@ namespace _4RTools.Forms
             this.Controls.Add(lblCooldown);
             this.Controls.Add(this.numCooldown);
             this.Controls.Add(btnClear);
+            this.Controls.Add(this.cbPauseWhenSitting);
 
             RefreshLocalizedTooltips();
         }
@@ -130,6 +145,10 @@ namespace _4RTools.Forms
             if (this.numCooldown != null)
             {
                 this.toolTip1.SetToolTip(this.numCooldown, LocalizationManager.T("tooltip.buff_cd"));
+            }
+            if (this.cbPauseWhenSitting != null)
+            {
+                this.toolTip1.SetToolTip(this.cbPauseWhenSitting, LocalizationManager.T("tooltip.pause_sitting"));
             }
             if (this.renderer != null)
             {
@@ -154,6 +173,10 @@ namespace _4RTools.Forms
                 AutoBuff autobuff = ProfileSingleton.GetCurrent().Autobuff;
                 FormUtils.SetNumericValue(this.numMinSp, autobuff.minSpPercent);
                 FormUtils.SetNumericValue(this.numCooldown, autobuff.buffCooldownMs);
+                if (this.cbPauseWhenSitting != null)
+                {
+                    this.cbPauseWhenSitting.Checked = autobuff.pauseWhenSitting;
+                }
             }
             finally
             {
@@ -171,6 +194,10 @@ namespace _4RTools.Forms
             AutoBuff autobuff = ProfileSingleton.GetCurrent().Autobuff;
             autobuff.minSpPercent = Convert.ToInt32(this.numMinSp.Value);
             autobuff.buffCooldownMs = Convert.ToInt32(this.numCooldown.Value);
+            if (this.cbPauseWhenSitting != null)
+            {
+                autobuff.pauseWhenSitting = this.cbPauseWhenSitting.Checked;
+            }
             ProfileSingleton.SetConfiguration(autobuff);
         }
 

@@ -19,6 +19,7 @@ namespace _4RTools.Model
         public bool DarkMode { get; set; } = true;
         public bool AlwaysOnTop { get; set; } = false;
         public bool UseBuffsInTown { get; set; } = false;
+        public bool PreRenewalMode { get; set; } = true;
         public bool AutoSwitchProfileByCharacter { get; set; } = true;
         public bool ShowMiniHud { get; set; } = false;
         public int MiniHudX { get; set; } = -1;
