@@ -657,5 +657,58 @@ namespace _4RTools.Tests
                 Assert.True(doramGp.Visible);
             }
         }
+
+        [Fact]
+        public void MacroSwitchForm_StartsSimplifiedWithOneSlotAndExpandsDynamically()
+        {
+            ProfileSingleton.Create("SwitchUiTest");
+            ProfileSingleton.Load("SwitchUiTest");
+
+            Subject subject = new Subject();
+            using (MacroSwitchForm form = new MacroSwitchForm(subject))
+            {
+                // Fresh profile starts clean: only Switch 1 visible, with 1 slot.
+                Assert.True(form.IsLaneVisible(1));
+                Assert.Equal(1, form.GetVisibleSlotCount(1));
+                Assert.False(form.IsLaneVisible(2));
+                Assert.False(form.IsLaneVisible(3));
+
+                // Adding slots expands up to 7 and removing collapses back down cleanly.
+                form.AddSlotToLane(1);
+                form.AddSlotToLane(1);
+                Assert.Equal(3, form.GetVisibleSlotCount(1));
+
+                form.RemoveLastSlotFromLane(1);
+                Assert.Equal(2, form.GetVisibleSlotCount(1));
+
+                // Adding extra switch lanes reveals Switch 2 on demand.
+                Assert.True(form.AddNextSwitchLane());
+                Assert.True(form.IsLaneVisible(2));
+                Assert.Equal(1, form.GetVisibleSlotCount(2));
+
+                // Removing Switch 2 hides it again.
+                form.ClearLane(2, true);
+                Assert.False(form.IsLaneVisible(2));
+
+                // Loading a profile with existing bindings auto-expands only configured lanes/slots.
+                ChainConfig lane1 = ProfileSingleton.GetCurrent().MacroSwitch.chainConfigs.First(c => c.id == 1);
+                lane1.trigger = Key.F1;
+                lane1.macroEntries["in1mac1"] = new MacroKey(Key.F1, 50);
+                lane1.macroEntries["in2mac1"] = new MacroKey(Key.F2, 50);
+                lane1.macroEntries["in3mac1"] = new MacroKey(Key.F3, 50);
+
+                ChainConfig lane3 = ProfileSingleton.GetCurrent().MacroSwitch.chainConfigs.First(c => c.id == 3);
+                lane3.trigger = Key.F5;
+                lane3.macroEntries["in1mac3"] = new MacroKey(Key.F5, 50);
+                lane3.macroEntries["in2mac3"] = new MacroKey(Key.F6, 50);
+
+                subject.Notify(new _4RTools.Utils.Message(MessageCode.PROFILE_CHANGED, null));
+                Assert.True(form.IsLaneVisible(1));
+                Assert.Equal(3, form.GetVisibleSlotCount(1));
+                Assert.False(form.IsLaneVisible(2));
+                Assert.True(form.IsLaneVisible(3));
+                Assert.Equal(2, form.GetVisibleSlotCount(3));
+            }
+        }
     }
 }

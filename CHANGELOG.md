@@ -1,5 +1,9 @@
 # Changelogs
 
+## [v2.17.0] - 2026-11-20 — Simplified Progressive Equipment Switch Macro UI
+### Changed
+- **Simplified `Macro Troca de Equipamentos` (`Forms/MacroSwitchForm.cs`, `Utils/LocalizationManager.cs`)**: replaced the cluttered 5×7 static grid with a clean progressive interface that starts with **Troca 1** showing **1 campo de troca** (`Tecla`, `Delay(ms)`, `Clique`, `Loop`) and lets you expand on demand via **`+ Adicionar campo`** (up to 7 steps with `→` flow arrows), **`- Remover campo`**, **`Limpar`**, **`+ Adicionar troca`** (up to 5 switches), and **`Remover troca`** while staying 100% compatible with existing saved profiles (auto-expanding any configured lanes and steps on load).
+
 ## [v2.16.0] - 2026-11-20 — Complete Pre-Renewal Bard / Clown & Dancer / Gypsy Skills
 ### Added
 - **18 Pre-Renewal Bard/Clown & Dancer/Gypsy Skills (`Model/Buff.cs`, `Utils/EffectStatusIDs.cs`, `Utils/LocalizationManager.cs`)**: added all classic songs, dances, ensembles, and transcendent buffs with official 24×24 RO icons, Pre-Renewal Mode visibility, and bilingual PT-BR/EN search:

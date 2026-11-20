@@ -128,6 +128,10 @@ namespace _4RTools.Utils
             { "Keys:", "Teclas:" },
             { "Delays(ms):", "Delay(ms):" },
             { "Click", "Clique" },
+            { "+ Add Slot", "+ Adicionar campo" },
+            { "- Remove Slot", "- Remover campo" },
+            { "+ Add Switch", "+ Adicionar troca" },
+            { "Remove Switch", "Remover troca" },
 
             // ATKDEFForm
             { "ATK Switch", "Troca ATK" },
@@ -254,6 +258,12 @@ namespace _4RTools.Utils
             { "tooltip.pause_sitting", "Pausa Autobuffs (skills e consumíveis) automaticamente enquanto o personagem estiver sentado (EFST_SIT)" },
             { "msg.clear_skills_confirm", "Limpar todas as teclas de skills de Autobuff nesta aba?" },
             { "msg.clear_stuffs_confirm", "Limpar todas as teclas de itens de Autobuff nesta aba?" },
+
+            // MacroSwitchForm tooltips
+            { "tooltip.switch_trigger_key", "Tecla 1 (gatilho): aperte esta tecla no jogo para executar a sequência de troca" },
+            { "tooltip.switch_step_key", "Próxima tecla enviada automaticamente na sequência desta troca" },
+            { "tooltip.switch_delay", "Atraso em milissegundos (ms) antes de pressionar esta tecla" },
+            { "tooltip.switch_loop", "Repete continuamente a sequência ao apertar o gatilho (aperte de novo para parar)" },
 
             // ProfileForm
             { "label.profile_prefix", "Perfil: {0}" },
@@ -405,6 +415,11 @@ namespace _4RTools.Utils
             { "tooltip.pause_sitting", "Automatically pauses Autobuffs (skills & consumables) while your character is sitting (EFST_SIT)" },
             { "msg.clear_skills_confirm", "Clear all skill autobuff keys on this tab?" },
             { "msg.clear_stuffs_confirm", "Clear all consumable autobuff keys on this tab?" },
+
+            { "tooltip.switch_trigger_key", "Key 1 (trigger): press this key in-game to run this switch chain" },
+            { "tooltip.switch_step_key", "Next key pressed automatically in this switch chain" },
+            { "tooltip.switch_delay", "Delay in milliseconds (ms) before pressing this key" },
+            { "tooltip.switch_loop", "Continuously repeat this chain when pressing the trigger (press again to stop)" },
 
             { "label.profile_prefix", "Profile: {0}" },
             { "title.active_char", "Active Character" },
