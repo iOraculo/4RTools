@@ -96,21 +96,30 @@ namespace _4RTools.Model
             EffectStatusIDs.MELTDOWN,
 
             // Thief / Assassin / Rogue / Assassin Cross / Stalker
+            EffectStatusIDs.EFST_HIDING,
             EffectStatusIDs.POISONREACT,
             EffectStatusIDs.SWORDREJECT,
             EffectStatusIDs.PRESERVE,
             EffectStatusIDs.EDP,
 
             // Acolyte / Priest / Monk / High Priest / Champion
+            EffectStatusIDs.BLESSING,
+            EffectStatusIDs.INC_AGI,
+            EffectStatusIDs.ASSUMPTIO,
+            EffectStatusIDs.EFST_BASILICA,
+            EffectStatusIDs.EFST_KYRIE,
+            EffectStatusIDs.EFST_SUFFRAGIUM,
             EffectStatusIDs.GLORIA,
             EffectStatusIDs.MAGNIFICAT,
             EffectStatusIDs.ANGELUS,
             EffectStatusIDs.FURY,
             EffectStatusIDs.IMPOSITIO,
+            EffectStatusIDs.ASPERSIO,
 
             // Ninja
             EffectStatusIDs.PEEL_CHANGE,
             EffectStatusIDs.AURA_NINJA,
+            EffectStatusIDs.EFST_NJ_BUNSINJYUTSU,
 
             // Taekwon / Star Gladiator
             EffectStatusIDs.PROPERTYGROUND,
@@ -270,6 +279,7 @@ namespace _4RTools.Model
         {
             List<Buff> skills = new List<Buff>
             {
+                new Buff("Hiding", EffectStatusIDs.EFST_HIDING, Resources._4RTools.Icons.tf_hiding),
                 new Buff("Poison React", EffectStatusIDs.POISONREACT, Resources._4RTools.Icons.as_poisonreact),
                 new Buff("Reject Sword", EffectStatusIDs.SWORDREJECT, Resources._4RTools.Icons.st_rejectsword),
                 new Buff("Preserve", EffectStatusIDs.PRESERVE, Resources._4RTools.Icons.st_preserve),
@@ -291,6 +301,13 @@ namespace _4RTools.Model
         {
             List<Buff> skills = new List<Buff>
             {
+                new Buff("Blessing", EffectStatusIDs.BLESSING, Resources._4RTools.Icons.al_blessing),
+                new Buff("Increase Agility", EffectStatusIDs.INC_AGI, Resources._4RTools.Icons.al_incagi),
+                new Buff("Assumptio", EffectStatusIDs.ASSUMPTIO, Resources._4RTools.Icons.assumptio),
+                new Buff("Basilica", EffectStatusIDs.EFST_BASILICA, Resources._4RTools.Icons.hp_basilica),
+                new Buff("Kyrie Eleison", EffectStatusIDs.EFST_KYRIE, Resources._4RTools.Icons.pr_kyrie),
+                new Buff("Suffragium", EffectStatusIDs.EFST_SUFFRAGIUM, Resources._4RTools.Icons.pr_suffragium),
+                new Buff("Aspersio", EffectStatusIDs.ASPERSIO, Resources._4RTools.Icons.pr_aspersio),
                 new Buff("Gloria", EffectStatusIDs.GLORIA, Resources._4RTools.Icons.pr_gloria),
                 new Buff("Magnificat", EffectStatusIDs.MAGNIFICAT, Resources._4RTools.Icons.pr_magnificat),
                 new Buff("Angelus", EffectStatusIDs.ANGELUS, Resources._4RTools.Icons.al_angelus),
@@ -319,6 +336,7 @@ namespace _4RTools.Model
             {
                 new Buff("Cicada Skin Shed", EffectStatusIDs.PEEL_CHANGE, Resources._4RTools.Icons.nj_utsusemi),
                 new Buff("Ninja Aura", EffectStatusIDs.AURA_NINJA, Resources._4RTools.Icons.nj_nen),
+                new Buff("Mirror Image", EffectStatusIDs.EFST_NJ_BUNSINJYUTSU, Resources._4RTools.Icons.nj_bunsinjyutsu),
                 new Buff("Izayoi", EffectStatusIDs.IZAYOI, Resources._4RTools.Icons.izayoi)
             };
 

@@ -1,5 +1,14 @@
 # Changelogs
 
+## [v2.28.0] - 2026-11-21 — Auto-Skills Self-Target Auto-Click, Hiding, Mirror Image (Pre-Skill), Suffragium & Basilica
+### Added
+- **New Pre-Renewal Class Buffs in `Auto-Skills` (`Model/Buff.cs`, `Utils/EffectStatusIDs.cs`, `Resources/4RTools/Icons.resx`, `Utils/LocalizationManager.cs`)**:
+  - **Thief (`Gatuno / Evoluções`)**: **Esconderijo (`Hiding` — `EFST_HIDING = 4`)**.
+  - **Ninja**: **Imagem Falsa (`Mirror Image` — `EFST_NJ_BUNSINJYUTSU = 207`)** with automatic prerequisite handling in `Model/Autobuff.cs` (activates **Aura Ninja** first and waits until `AURA_NINJA` is active before casting *Mirror Image*).
+  - **Acolyte / Priest / High Priest (`Noviço / Evoluções`)**: **Bênção (`BLESSING`)**, **Aumentar Agilidade (`INC_AGI`)**, **Assumptio (`ASSUMPTIO`)**, **Basílica (`EFST_BASILICA = 111`)**, **Kyrie Eleison (`EFST_KYRIE = 19`)**, **Sufrágio (`EFST_SUFFRAGIUM = 16`)**, and **Aspersio (`ASPERSIO = 17`)**.
+- **Automatic Self-Target Click for Target Buffs (`Model/Autobuff.cs`, `Utils/Interop.cs`, `Forms/SkillAutoBuffForm.cs`)**:
+  - Added **`Auto-clique em si (alvo)`** (enabled by default): when `Auto-Skills` recasts target-based buffs (*Bênção*, *Aumentar Agilidade*, *Assumptio*, *Kyrie Eleison*, *Sufrágio*, *Impositio Manus*, *Aspersio*), 4Tools automatically clicks the center of the RO window (your character) via `PostMessage` without stealing your mouse cursor.
+
 ## [v2.27.0] - 2026-11-21 — Cleaner Sidebar Navigation Names
 ### Changed
 - **Renamed sidebar navigation items (`Forms/Container.cs`, `Utils/LocalizationManager.cs`, `Forms/GuideForm.cs`)** for cleaner, more natural PT-BR labels while keeping **Auto-Skills** and **Consumíveis** as separate direct tabs:

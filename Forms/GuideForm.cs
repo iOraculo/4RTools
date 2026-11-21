@@ -227,15 +227,15 @@ namespace _4RTools.Forms
                     TitlePt = "4. Auto-Skills",
                     BodyPt =
                         "• O 4Tools lê diretamente os ícones de buff ativos na memória do jogo e aperta a tecla da skill assim que o buff acabar.\n" +
-                        "• Modo Pré-Renewal: mantém visíveis apenas skills de classes Pré-Renewal / Transclasses (incluindo Canto de Batalha e todas as músicas/danças de Bardo/Odalisca).\n" +
-                        "• SP Mín% e CD(ms): pausa o autobuff se seu SP estiver abaixo da % escolhida e aplica uma recarga mínima entre tentativas (ex.: 1500ms evita conjurar duas vezes seguidas).\n" +
-                        "• Pausar ao sentar: evita gastar SP/skills enquanto o personagem está sentado recuperando.",
+                        "• Auto-clique em si (alvo): quando marcado, buffs que exigem clique no alvo (Bênção, Aumentar Agilidade, Assumptio, Kyrie Eleison, Sufrágio, Impositio Manus e Aspersio) clicam automaticamente no centro da janela (em cima do seu personagem)!\n" +
+                        "• Pré-skill automática (Ninja): configure Aura Ninja + Imagem Falsa juntas — o 4Tools ativa a Aura Ninja primeiro e só dispara Imagem Falsa quando a Aura estiver ativa.\n" +
+                        "• Modo Pré-Renewal, SP Mín%, CD(ms) e Pausar ao sentar: mantém visíveis apenas skills Pré-Renewal (incluindo Esconderijo, Basílica, Canto de Batalha e músicas de Bardo/Odalisca) e evita gastar SP à toa.",
                     TitleEn = "4. Auto-Skills",
                     BodyEn =
                         "• 4Tools reads active status icons directly from client memory and recasts the skill as soon as the buff expires.\n" +
-                        "• Pre-Renewal Mode: shows only Pre-Renewal / Transcendent class skills (including Battle Chant and all Bard/Dancer songs and dances).\n" +
-                        "• Min SP% and CD(ms): pauses autobuff when SP drops below your % threshold and enforces a per-buff cooldown (e.g., 1500ms prevents double-casting).\n" +
-                        "• Pause when sitting: skips recasting while your character is sitting to recover."
+                        "• Auto-click self (target): when enabled, target-cast buffs (Blessing, Increase Agility, Assumptio, Kyrie Eleison, Suffragium, Impositio Manus, and Aspersio) automatically click the center of the RO window (your character)!\n" +
+                        "• Automatic prerequisite (Ninja): bind both Ninja Aura and Mirror Image — 4Tools activates Ninja Aura first and waits until it is active before casting Mirror Image.\n" +
+                        "• Pre-Renewal Mode, Min SP%, CD(ms), and Pause when sitting: focuses on Pre-Renewal skills (including Hiding, Basilica, Battle Chant, and Bard/Dancer songs) without wasting SP."
                 },
                 new GuideSectionData
                 {

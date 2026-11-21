@@ -96,6 +96,7 @@ namespace _4RTools.Utils
             { "Clear Stuffs", "Limpar Itens" },
             { "Pre-Renewal Mode (hide 3rd/4th)", "Modo Pré-Renewal (ocultar 3rd/4th)" },
             { "Pause when sitting", "Pausar ao sentar" },
+            { "Auto-click self (target)", "Auto-clique em si (alvo)" },
             { "Pause when sitting (save consumables)", "Pausar ao sentar (economizar itens)" },
             { "Archer Skills", "Arqueiro / Evoluções" },
             { "Swordsman Skills", "Espadachim / Evoluções" },
@@ -384,6 +385,7 @@ namespace _4RTools.Utils
             { "filter.items_common", "Apenas Itens Comuns" },
             { "filter.items_rops", "Apenas Itens de ROPs" },
             { "tooltip.pause_sitting", "Pausa Autobuffs (skills e consumíveis) automaticamente enquanto o personagem estiver sentado (EFST_SIT)" },
+            { "tooltip.auto_self_click", "Envia um clique automático no centro da janela (em cima do seu personagem) ao usar skills de alvo em si mesmo: Bênção, Aumentar Agilidade, Assumptio, Kyrie Eleison, Sufrágio, Impositio Manus e Aspersio." },
             { "msg.clear_skills_confirm", "Limpar todas as teclas de skills de Autobuff nesta aba?" },
             { "msg.clear_stuffs_confirm", "Limpar todas as teclas de itens de Autobuff nesta aba?" },
 
@@ -651,6 +653,7 @@ namespace _4RTools.Utils
             { "filter.items_common", "Common Items Only" },
             { "filter.items_rops", "ROPs Items Only" },
             { "tooltip.pause_sitting", "Automatically pauses Autobuffs (skills & consumables) while your character is sitting (EFST_SIT)" },
+            { "tooltip.auto_self_click", "Automatically sends a click to the center of the RO window (your character) when casting target buffs on yourself: Blessing, Increase Agility, Assumptio, Kyrie Eleison, Suffragium, Impositio Manus, and Aspersio." },
             { "msg.clear_skills_confirm", "Clear all skill autobuff keys on this tab?" },
             { "msg.clear_stuffs_confirm", "Clear all consumable autobuff keys on this tab?" },
 
@@ -1004,6 +1007,7 @@ namespace _4RTools.Utils
             { "Create Hell Tree", new BuffTranslation("Criar Árvore Infernal", "Create Hell Tree") },
 
             // Thief / Assassin / Rogue / GX / SC / Shadow Cross / Abyss Chaser
+            { "Hiding", new BuffTranslation("Esconderijo", "Hiding") },
             { "Poison React", new BuffTranslation("Refletir Veneno", "Poison React") },
             { "Reject Sword", new BuffTranslation("Instinto de Defesa", "Reject Sword") },
             { "Preserve", new BuffTranslation("Preservar", "Preserve") },
@@ -1017,6 +1021,12 @@ namespace _4RTools.Utils
             { "Abyss Dagger", new BuffTranslation("Adaga Abissal", "Abyss Dagger") },
 
             // Acolyte / Priest / Monk / AB / Sura / Cardinal / Inquisitor
+            { "Blessing", new BuffTranslation("Bênção", "Blessing") },
+            { "Increase Agility", new BuffTranslation("Aumentar Agilidade", "Increase Agility") },
+            { "Basilica", new BuffTranslation("Basílica", "Basilica") },
+            { "Kyrie Eleison", new BuffTranslation("Kyrie Eleison", "Kyrie Eleison") },
+            { "Suffragium", new BuffTranslation("Sufrágio", "Suffragium") },
+            { "Aspersio", new BuffTranslation("Aspersio", "Aspersio") },
             { "Gloria", new BuffTranslation("Glória", "Gloria") },
             { "Magnificat", new BuffTranslation("Magnificat", "Magnificat") },
             { "Angelus", new BuffTranslation("Angelus", "Angelus") },
@@ -1037,6 +1047,7 @@ namespace _4RTools.Utils
             // Ninja
             { "Cicada Skin Shed", new BuffTranslation("Troca de Pele", "Cicada Skin Shed") },
             { "Ninja Aura", new BuffTranslation("Aura Ninja", "Ninja Aura") },
+            { "Mirror Image", new BuffTranslation("Imagem Falsa (req. Aura Ninja)", "Mirror Image (req. Ninja Aura)") },
             { "Izayoi", new BuffTranslation("Izayoi", "Izayoi") },
 
             // Taekwon / Star Gladiator / Star Emperor / Sky Emperor

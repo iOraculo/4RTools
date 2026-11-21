@@ -985,5 +985,62 @@ namespace _4RTools.Tests
                 Assert.Contains("Songs", macrosGroup[0].Text);
             }
         }
+
+        [Fact]
+        public void AutoSkills_IncludesHidingMirrorImageBasilicaAndSelfTargetAcolyteBuffs()
+        {
+            List<Buff> thief = Buff.GetThiefSkills();
+            List<Buff> ninja = Buff.GetNinjaSkills();
+            List<Buff> acolyte = Buff.GetAcolyteSkills();
+
+            Buff hiding = thief.FirstOrDefault(b => b.effectStatusID == EffectStatusIDs.EFST_HIDING);
+            Assert.NotNull(hiding);
+            Assert.NotNull(hiding.icon);
+            Assert.True(hiding.IsPreRenewal);
+
+            Buff mirrorImage = ninja.FirstOrDefault(b => b.effectStatusID == EffectStatusIDs.EFST_NJ_BUNSINJYUTSU);
+            Assert.NotNull(mirrorImage);
+            Assert.NotNull(mirrorImage.icon);
+            Assert.True(mirrorImage.IsPreRenewal);
+
+            EffectStatusIDs[] expectedAcolyte = new EffectStatusIDs[]
+            {
+                EffectStatusIDs.BLESSING,
+                EffectStatusIDs.INC_AGI,
+                EffectStatusIDs.ASSUMPTIO,
+                EffectStatusIDs.EFST_BASILICA,
+                EffectStatusIDs.EFST_KYRIE,
+                EffectStatusIDs.EFST_SUFFRAGIUM,
+                EffectStatusIDs.ASPERSIO
+            };
+            foreach (EffectStatusIDs id in expectedAcolyte)
+            {
+                Buff b = acolyte.FirstOrDefault(x => x.effectStatusID == id);
+                Assert.NotNull(b);
+                Assert.NotNull(b.icon);
+                Assert.True(b.IsPreRenewal);
+            }
+
+            // Prerequisite check: Mirror Image requires Ninja Aura active first.
+            EffectStatusIDs prereq;
+            Assert.True(AutoBuff.TryGetPrerequisite(EffectStatusIDs.EFST_NJ_BUNSINJYUTSU, out prereq));
+            Assert.Equal(EffectStatusIDs.AURA_NINJA, prereq);
+
+            AutoBuff autobuff = new AutoBuff();
+            Assert.False(autobuff.ShouldCastBuff(EffectStatusIDs.EFST_NJ_BUNSINJYUTSU, 1000, false, false, 100, 100, false, false));
+            Assert.True(autobuff.ShouldCastBuff(EffectStatusIDs.EFST_NJ_BUNSINJYUTSU, 1000, false, false, 100, 100, false, true));
+
+            // Self-target auto-click detection for target-cast buffs vs self-cast buffs.
+            Assert.True(AutoBuff.RequiresSelfTargetClick(EffectStatusIDs.BLESSING));
+            Assert.True(AutoBuff.RequiresSelfTargetClick(EffectStatusIDs.INC_AGI));
+            Assert.True(AutoBuff.RequiresSelfTargetClick(EffectStatusIDs.ASSUMPTIO));
+            Assert.True(AutoBuff.RequiresSelfTargetClick(EffectStatusIDs.EFST_KYRIE));
+            Assert.True(AutoBuff.RequiresSelfTargetClick(EffectStatusIDs.EFST_SUFFRAGIUM));
+            Assert.True(AutoBuff.RequiresSelfTargetClick(EffectStatusIDs.IMPOSITIO));
+            Assert.True(AutoBuff.RequiresSelfTargetClick(EffectStatusIDs.ASPERSIO));
+            Assert.False(AutoBuff.RequiresSelfTargetClick(EffectStatusIDs.EFST_BASILICA));
+            Assert.False(AutoBuff.RequiresSelfTargetClick(EffectStatusIDs.EFST_HIDING));
+            Assert.False(AutoBuff.RequiresSelfTargetClick(EffectStatusIDs.AURA_NINJA));
+        }
     }
 }

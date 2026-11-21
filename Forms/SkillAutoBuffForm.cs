@@ -17,6 +17,7 @@ namespace _4RTools.Forms
         private Button btnClearSkills;
         private CheckBox cbPreRenewal;
         private CheckBox cbPauseWhenSitting;
+        private CheckBox cbAutoSelfClick;
         private bool isUpdatingOptions;
 
         public SkillAutoBuffForm(Subject subject)
@@ -128,7 +129,7 @@ namespace _4RTools.Forms
                 Cursor = Cursors.Hand,
                 Location = new Point(8, 37),
                 Name = "cbPreRenewal",
-                Text = "Pre-Renewal Mode (hide 3rd/4th)",
+                Text = "Pre-Renewal Mode",
                 Checked = currentSettings.PreRenewalMode,
                 UseVisualStyleBackColor = true,
                 Tag = FormUtils.SKIP_RESET_TAG
@@ -139,7 +140,7 @@ namespace _4RTools.Forms
             {
                 AutoSize = true,
                 Cursor = Cursors.Hand,
-                Location = new Point(280, 37),
+                Location = new Point(154, 37),
                 Name = "cbSkillPauseWhenSitting",
                 Text = "Pause when sitting",
                 Checked = true,
@@ -147,6 +148,19 @@ namespace _4RTools.Forms
                 Tag = FormUtils.SKIP_RESET_TAG
             };
             this.cbPauseWhenSitting.CheckedChanged += OnAutobuffOptionsChanged;
+
+            this.cbAutoSelfClick = new CheckBox
+            {
+                AutoSize = true,
+                Cursor = Cursors.Hand,
+                Location = new Point(290, 37),
+                Name = "cbAutoSelfClick",
+                Text = "Auto-click self (target)",
+                Checked = true,
+                UseVisualStyleBackColor = true,
+                Tag = FormUtils.SKIP_RESET_TAG
+            };
+            this.cbAutoSelfClick.CheckedChanged += OnAutobuffOptionsChanged;
 
             this.Controls.Add(lblSearch);
             this.Controls.Add(this.txtSearch);
@@ -157,6 +171,7 @@ namespace _4RTools.Forms
             this.Controls.Add(this.btnClearSkills);
             this.Controls.Add(this.cbPreRenewal);
             this.Controls.Add(this.cbPauseWhenSitting);
+            this.Controls.Add(this.cbAutoSelfClick);
 
             RefreshLocalizedTooltips();
         }
@@ -207,6 +222,10 @@ namespace _4RTools.Forms
             {
                 this.toolTip1.SetToolTip(this.cbPauseWhenSitting, LocalizationManager.T("tooltip.pause_sitting"));
             }
+            if (this.cbAutoSelfClick != null)
+            {
+                this.toolTip1.SetToolTip(this.cbAutoSelfClick, LocalizationManager.T("tooltip.auto_self_click"));
+            }
             if (this.renderer != null)
             {
                 this.renderer.RefreshLocalizedTooltips();
@@ -233,6 +252,10 @@ namespace _4RTools.Forms
                 if (this.cbPauseWhenSitting != null)
                 {
                     this.cbPauseWhenSitting.Checked = autobuff.pauseWhenSitting;
+                }
+                if (this.cbAutoSelfClick != null)
+                {
+                    this.cbAutoSelfClick.Checked = autobuff.autoSelfClick;
                 }
                 if (this.cbPreRenewal != null)
                 {
@@ -263,6 +286,10 @@ namespace _4RTools.Forms
             if (this.cbPauseWhenSitting != null)
             {
                 autobuff.pauseWhenSitting = this.cbPauseWhenSitting.Checked;
+            }
+            if (this.cbAutoSelfClick != null)
+            {
+                autobuff.autoSelfClick = this.cbAutoSelfClick.Checked;
             }
             ProfileSingleton.SetConfiguration(autobuff);
         }

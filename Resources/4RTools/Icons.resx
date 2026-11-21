@@ -1090,4 +1090,22 @@
   <data name="cursed_circle" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\..\assets\images\debuffs\cursed_circle.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="tf_hiding" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\tf_hiding.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="nj_bunsinjyutsu" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\nj_bunsinjyutsu.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="pr_suffragium" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\pr_suffragium.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="pr_kyrie" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\pr_kyrie.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="pr_aspersio" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\pr_aspersio.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="hp_basilica" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\assets\images\hp_basilica.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

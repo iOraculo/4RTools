@@ -3206,5 +3206,47 @@ namespace _4RTools.Resources._4RTools {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        internal static System.Drawing.Bitmap tf_hiding {
+            get {
+                object obj = ResourceManager.GetObject("tf_hiding", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap nj_bunsinjyutsu {
+            get {
+                object obj = ResourceManager.GetObject("nj_bunsinjyutsu", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap pr_suffragium {
+            get {
+                object obj = ResourceManager.GetObject("pr_suffragium", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap pr_kyrie {
+            get {
+                object obj = ResourceManager.GetObject("pr_kyrie", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap pr_aspersio {
+            get {
+                object obj = ResourceManager.GetObject("pr_aspersio", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap hp_basilica {
+            get {
+                object obj = ResourceManager.GetObject("hp_basilica", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }

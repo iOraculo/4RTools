@@ -30,6 +30,24 @@ namespace _4RTools.Model
             EffectStatusIDs.EFST_DEEP_SLEEP
         };
 
+        // Skills that require a prerequisite buff active before casting (e.g. Mirror Image requires Ninja Aura).
+        private static readonly Dictionary<EffectStatusIDs, EffectStatusIDs> PrerequisiteBuffs = new Dictionary<EffectStatusIDs, EffectStatusIDs>
+        {
+            { EffectStatusIDs.EFST_NJ_BUNSINJYUTSU, EffectStatusIDs.AURA_NINJA }
+        };
+
+        // Target-cast buffs that require clicking on your own character (center of the RO window) to self-cast.
+        private static readonly HashSet<EffectStatusIDs> SelfTargetClickBuffs = new HashSet<EffectStatusIDs>
+        {
+            EffectStatusIDs.BLESSING,
+            EffectStatusIDs.INC_AGI,
+            EffectStatusIDs.ASSUMPTIO,
+            EffectStatusIDs.EFST_KYRIE,
+            EffectStatusIDs.EFST_SUFFRAGIUM,
+            EffectStatusIDs.IMPOSITIO,
+            EffectStatusIDs.ASPERSIO
+        };
+
         private readonly object mappingLock = new object();
         private readonly Dictionary<EffectStatusIDs, long> lastCastTimesMs = new Dictionary<EffectStatusIDs, long>();
         private readonly Stopwatch clock = Stopwatch.StartNew();
@@ -40,7 +58,18 @@ namespace _4RTools.Model
         public int buffCooldownMs { get; set; } = 0;
         public bool pauseOnDebuff { get; set; } = true;
         public bool pauseWhenSitting { get; set; } = true;
+        public bool autoSelfClick { get; set; } = true;
         public Dictionary<EffectStatusIDs, Key> buffMapping = new Dictionary<EffectStatusIDs, Key>();
+
+        public static bool TryGetPrerequisite(EffectStatusIDs status, out EffectStatusIDs prerequisite)
+        {
+            return PrerequisiteBuffs.TryGetValue(status, out prerequisite);
+        }
+
+        public static bool RequiresSelfTargetClick(EffectStatusIDs status)
+        {
+            return SelfTargetClickBuffs.Contains(status);
+        }
 
         public void Start()
         {
@@ -71,6 +100,7 @@ namespace _4RTools.Model
 
                     if (missingBuffs.Count > 0)
                     {
+                        HashSet<EffectStatusIDs> activeStatuses = new HashSet<EffectStatusIDs>();
                         int count = c.ReadBuffStatusBuffer(rawBuffer, statusBuffer);
                         for (int i = 0; i < count; i++)
                         {
@@ -80,6 +110,8 @@ namespace _4RTools.Model
                             {
                                 continue;
                             }
+
+                            activeStatuses.Add(status);
 
                             if (status == EffectStatusIDs.OVERTHRUSTMAX)
                             {
@@ -119,12 +151,16 @@ namespace _4RTools.Model
                                         break;
                                     }
 
-                                    if (!ShouldCastBuff(item.Key, nowMs, foundQuag, foundBlockingDebuff, currentSp, maxSp, isSitting))
+                                    EffectStatusIDs prerequisite;
+                                    bool prerequisiteSatisfied = !TryGetPrerequisite(item.Key, out prerequisite)
+                                        || activeStatuses.Contains(prerequisite);
+
+                                    if (!ShouldCastBuff(item.Key, nowMs, foundQuag, foundBlockingDebuff, currentSp, maxSp, isSitting, prerequisiteSatisfied))
                                     {
                                         continue;
                                     }
 
-                                    UseAutobuff(c, item.Value);
+                                    UseAutobuff(c, item.Key, item.Value, token);
                                     RecordBuffCast(item.Key, nowMs);
                                     if (!_4RThread.Sleep(10, token))
                                     {
@@ -147,8 +183,14 @@ namespace _4RTools.Model
             bool hasBlockingDebuff,
             uint currentSp,
             uint maxSp,
-            bool isSitting = false)
+            bool isSitting = false,
+            bool prerequisiteSatisfied = true)
         {
+            if (!prerequisiteSatisfied)
+            {
+                return false;
+            }
+
             if (this.pauseWhenSitting && isSitting)
             {
                 return false;
@@ -254,15 +296,29 @@ namespace _4RTools.Model
             return ACTION_NAME_AUTOBUFF;
         }
 
-        private void UseAutobuff(Client client, Key key)
+        private void UseAutobuff(Client client, EffectStatusIDs status, Key key, CancellationToken token)
         {
             if (key == Key.None || KeyHelper.IsAltPressed() || client == null)
             {
                 return;
             }
 
+            IntPtr hWnd = client.GetWindowHandle();
+            if (hWnd == IntPtr.Zero)
+            {
+                return;
+            }
+
             Keys formsKey = KeyHelper.ToFormsKeys(key);
-            Interop.SendKeyDown(client.GetWindowHandle(), formsKey);
+            Interop.SendKeyDown(hWnd, formsKey);
+
+            if (this.autoSelfClick && RequiresSelfTargetClick(status))
+            {
+                if (_4RThread.Sleep(45, token))
+                {
+                    Interop.SendLeftClickAtCenter(hWnd);
+                }
+            }
         }
     }
 }

@@ -726,6 +726,12 @@
     <None Include="assets\images\foods\banquete.png" />
     <None Include="assets\images\one_hand_quicken.png" />
     <None Include="assets\images\pa_gospel.png" />
+    <None Include="assets\images\tf_hiding.png" />
+    <None Include="assets\images\nj_bunsinjyutsu.png" />
+    <None Include="assets\images\pr_suffragium.png" />
+    <None Include="assets\images\pr_kyrie.png" />
+    <None Include="assets\images\pr_aspersio.png" />
+    <None Include="assets\images\hp_basilica.png" />
     <None Include="assets\images\ba_whistle.png" />
     <None Include="assets\images\ba_assassincross.png" />
     <None Include="assets\images\ba_appleidun.png" />
