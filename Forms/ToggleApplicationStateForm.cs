@@ -71,7 +71,7 @@ namespace _4RTools.Forms
 
         private void InitializeOptionCheckboxes()
         {
-            this.optionsToolTip = new ToolTip();
+            this.optionsToolTip = FormUtils.CreateHelpToolTip(this.components);
 
             this.cbFocusOnly = new CheckBox
             {
@@ -104,6 +104,9 @@ namespace _4RTools.Forms
         {
             if (this.optionsToolTip != null)
             {
+                this.optionsToolTip.SetToolTip(this.btnStatusToggle, LocalizationManager.T("tooltip.toggle_btn"));
+                this.optionsToolTip.SetToolTip(this.txtStatusToggleKey, LocalizationManager.T("tooltip.toggle_key"));
+                this.optionsToolTip.SetToolTip(this.cbAudio, LocalizationManager.T("tooltip.toggle_audio"));
                 if (this.cbFocusOnly != null)
                 {
                     this.optionsToolTip.SetToolTip(this.cbFocusOnly, LocalizationManager.T("tooltip.focus_only"));

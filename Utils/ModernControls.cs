@@ -16,7 +16,8 @@ namespace _4RTools.Utils
         MacroSongs,
         AtkDef,
         Profiles,
-        Servers
+        Servers,
+        Guide
     }
 
     public class ModernCardPanel : Panel
@@ -298,6 +299,16 @@ namespace _4RTools.Utils
                         // Stacked server bars
                         g.DrawRectangle(pen, r.X + 2, r.Y + 2, r.Width - 4, 4);
                         g.DrawRectangle(pen, r.X + 2, r.Y + 8, r.Width - 4, 4);
+                        break;
+
+                    case SidebarIconKind.Guide:
+                        // Help circle with '?'
+                        g.DrawEllipse(pen, r.X + 1, r.Y + 1, r.Width - 2, r.Height - 2);
+                        using (Font qFont = new Font("Segoe UI", 7.5F, FontStyle.Bold))
+                        using (StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+                        {
+                            g.DrawString("?", qFont, brush, new RectangleF(r.X, r.Y + 0.5F, r.Width, r.Height), sf);
+                        }
                         break;
                 }
             }

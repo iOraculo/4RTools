@@ -10,26 +10,61 @@ namespace _4RTools.Forms
     public partial class ProfileForm : Form
     {
         private readonly Container container;
+        private readonly ToolTip profileToolTip;
         private CheckBox cbAutoSwitch;
         private Label lblTargetProfile;
         private TextBox txtBoundCharacter;
+        private Button btnExportProfile;
+        private Button btnImportProfile;
+        private Button btnBackupZip;
+        private Button btnRestoreZip;
+        private Button btnCheckConflicts;
+        private Button btnUseActiveChar;
+        private Button btnSaveBinding;
+        private Button btnClearBinding;
         private bool isUpdatingBindingUi;
 
         public ProfileForm(Container container)
         {
             InitializeComponent();
             this.container = container;
+            this.profileToolTip = FormUtils.CreateHelpToolTip(this.components);
             InitializeImportExportButtons();
             InitializeCharacterBindingPanel();
             InitializeBackupAndDiagnosticsBar();
             this.lbProfilesList.SelectedIndexChanged += lbProfilesList_SelectedIndexChanged;
             RefreshProfileList();
             RefreshCharacterBindingUi();
+            RefreshTooltips();
+        }
+
+        public void RefreshTooltips()
+        {
+            if (this.profileToolTip == null)
+            {
+                return;
+            }
+
+            this.profileToolTip.SetToolTip(this.txtProfileName, LocalizationManager.T("tooltip.profile_name"));
+            this.profileToolTip.SetToolTip(this.btnSave, LocalizationManager.T("tooltip.profile_create"));
+            this.profileToolTip.SetToolTip(this.btnEditProfile, LocalizationManager.T("tooltip.profile_rename"));
+            this.profileToolTip.SetToolTip(this.btnCopy, LocalizationManager.T("tooltip.profile_copy"));
+            this.profileToolTip.SetToolTip(this.btnRemoveProfile, LocalizationManager.T("tooltip.profile_delete"));
+            if (this.btnExportProfile != null) this.profileToolTip.SetToolTip(this.btnExportProfile, LocalizationManager.T("tooltip.profile_export"));
+            if (this.btnImportProfile != null) this.profileToolTip.SetToolTip(this.btnImportProfile, LocalizationManager.T("tooltip.profile_import"));
+            if (this.btnBackupZip != null) this.profileToolTip.SetToolTip(this.btnBackupZip, LocalizationManager.T("tooltip.profile_backup"));
+            if (this.btnRestoreZip != null) this.profileToolTip.SetToolTip(this.btnRestoreZip, LocalizationManager.T("tooltip.profile_restore"));
+            if (this.btnCheckConflicts != null) this.profileToolTip.SetToolTip(this.btnCheckConflicts, LocalizationManager.T("tooltip.profile_conflicts"));
+            if (this.cbAutoSwitch != null) this.profileToolTip.SetToolTip(this.cbAutoSwitch, LocalizationManager.T("tooltip.profile_autoswitch"));
+            if (this.txtBoundCharacter != null) this.profileToolTip.SetToolTip(this.txtBoundCharacter, LocalizationManager.T("tooltip.profile_autoswitch"));
+            if (this.btnUseActiveChar != null) this.profileToolTip.SetToolTip(this.btnUseActiveChar, LocalizationManager.T("tooltip.profile_use_char"));
+            if (this.btnSaveBinding != null) this.profileToolTip.SetToolTip(this.btnSaveBinding, LocalizationManager.T("tooltip.profile_save_char"));
+            if (this.btnClearBinding != null) this.profileToolTip.SetToolTip(this.btnClearBinding, LocalizationManager.T("tooltip.profile_clear_char"));
         }
 
         private void InitializeImportExportButtons()
         {
-            Button btnExport = new Button
+            this.btnExportProfile = new Button
             {
                 Location = new Point(267, 164),
                 Name = "btnExportProfile",
@@ -37,9 +72,9 @@ namespace _4RTools.Forms
                 Text = "Export",
                 UseVisualStyleBackColor = true
             };
-            btnExport.Click += btnExport_Click;
+            this.btnExportProfile.Click += btnExport_Click;
 
-            Button btnImport = new Button
+            this.btnImportProfile = new Button
             {
                 Location = new Point(267, 193),
                 Name = "btnImportProfile",
@@ -47,15 +82,15 @@ namespace _4RTools.Forms
                 Text = "Import",
                 UseVisualStyleBackColor = true
             };
-            btnImport.Click += btnImport_Click;
+            this.btnImportProfile.Click += btnImport_Click;
 
-            this.Controls.Add(btnExport);
-            this.Controls.Add(btnImport);
+            this.Controls.Add(this.btnExportProfile);
+            this.Controls.Add(this.btnImportProfile);
         }
 
         private void InitializeBackupAndDiagnosticsBar()
         {
-            Button btnBackupZip = new Button
+            this.btnBackupZip = new Button
             {
                 Location = new Point(23, 224),
                 Name = "btnBackupZip",
@@ -63,9 +98,9 @@ namespace _4RTools.Forms
                 Text = "Backup All (.zip)",
                 UseVisualStyleBackColor = true
             };
-            btnBackupZip.Click += btnBackupZip_Click;
+            this.btnBackupZip.Click += btnBackupZip_Click;
 
-            Button btnRestoreZip = new Button
+            this.btnRestoreZip = new Button
             {
                 Location = new Point(146, 224),
                 Name = "btnRestoreZip",
@@ -73,9 +108,9 @@ namespace _4RTools.Forms
                 Text = "Restore (.zip)",
                 UseVisualStyleBackColor = true
             };
-            btnRestoreZip.Click += btnRestoreZip_Click;
+            this.btnRestoreZip.Click += btnRestoreZip_Click;
 
-            Button btnCheckConflicts = new Button
+            this.btnCheckConflicts = new Button
             {
                 Location = new Point(267, 224),
                 Name = "btnCheckConflicts",
@@ -83,11 +118,11 @@ namespace _4RTools.Forms
                 Text = "Check Key Conflicts",
                 UseVisualStyleBackColor = true
             };
-            btnCheckConflicts.Click += btnCheckConflicts_Click;
+            this.btnCheckConflicts.Click += btnCheckConflicts_Click;
 
-            this.Controls.Add(btnBackupZip);
-            this.Controls.Add(btnRestoreZip);
-            this.Controls.Add(btnCheckConflicts);
+            this.Controls.Add(this.btnBackupZip);
+            this.Controls.Add(this.btnRestoreZip);
+            this.Controls.Add(this.btnCheckConflicts);
         }
 
         private void InitializeCharacterBindingPanel()
@@ -136,7 +171,7 @@ namespace _4RTools.Forms
                 Tag = FormUtils.SKIP_RESET_TAG
             };
 
-            Button btnUseActiveChar = new Button
+            this.btnUseActiveChar = new Button
             {
                 Location = new Point(10, 108),
                 Name = "btnUseActiveChar",
@@ -144,9 +179,9 @@ namespace _4RTools.Forms
                 Text = "Use Active Character",
                 UseVisualStyleBackColor = true
             };
-            btnUseActiveChar.Click += btnUseActiveChar_Click;
+            this.btnUseActiveChar.Click += btnUseActiveChar_Click;
 
-            Button btnSaveBinding = new Button
+            this.btnSaveBinding = new Button
             {
                 Location = new Point(10, 137),
                 Name = "btnSaveBinding",
@@ -154,9 +189,9 @@ namespace _4RTools.Forms
                 Text = "Save",
                 UseVisualStyleBackColor = true
             };
-            btnSaveBinding.Click += btnSaveBinding_Click;
+            this.btnSaveBinding.Click += btnSaveBinding_Click;
 
-            Button btnClearBinding = new Button
+            this.btnClearBinding = new Button
             {
                 Location = new Point(98, 137),
                 Name = "btnClearBinding",
@@ -164,7 +199,7 @@ namespace _4RTools.Forms
                 Text = "Clear",
                 UseVisualStyleBackColor = true
             };
-            btnClearBinding.Click += btnClearBinding_Click;
+            this.btnClearBinding.Click += btnClearBinding_Click;
 
             Label lblBindingHint = new Label
             {
@@ -179,9 +214,9 @@ namespace _4RTools.Forms
             gbAutoSwitch.Controls.Add(this.lblTargetProfile);
             gbAutoSwitch.Controls.Add(lblBoundChar);
             gbAutoSwitch.Controls.Add(this.txtBoundCharacter);
-            gbAutoSwitch.Controls.Add(btnUseActiveChar);
-            gbAutoSwitch.Controls.Add(btnSaveBinding);
-            gbAutoSwitch.Controls.Add(btnClearBinding);
+            gbAutoSwitch.Controls.Add(this.btnUseActiveChar);
+            gbAutoSwitch.Controls.Add(this.btnSaveBinding);
+            gbAutoSwitch.Controls.Add(this.btnClearBinding);
             gbAutoSwitch.Controls.Add(lblBindingHint);
 
             this.Controls.Add(gbAutoSwitch);

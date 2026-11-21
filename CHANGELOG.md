@@ -1,5 +1,14 @@
 # Changelogs
 
+## [v2.26.0] - 2026-11-21 — Complete Built-In Guide & Hover Popups Across Every Feature
+### Added
+- **Built-In Searchable `Guia / Ajuda` (`Guide / Help`) Tab (`Forms/GuideForm.cs`, `Forms/Container.cs`, `Utils/ModernControls.cs`)**:
+  - Added a dedicated **`Guia / Ajuda`** item in the sidebar with a vector help-circle icon (`SidebarIconKind.Guide`).
+  - Covers all 9 areas of **AureumRO 4Tools** in clear, practical PT-BR and EN with live accent-insensitive keyword search (*Primeiros Passos e Barra Superior*, *Autopot e Yggdrasil*, *Spam de Skills*, *Autobuff — Skills*, *Autobuff — Itens*, *Recuperação de Debuffs*, *Timers de Skill*, *Macros: Troca, Músicas e ATK x DEF*, *Perfis, Backup e Conflitos*).
+- **Complete Hover Tooltips (Popups) Everywhere (`Utils/FormUtils.cs`, `Utils/LocalizationManager.cs`, all Forms)**:
+  - Standardized every tooltip with `FormUtils.CreateHelpToolTip` (`AutoPopDelay = 20s`, `InitialDelay = 250ms`, `ShowAlways = true`) so popups stay readable even while hovering from the game.
+  - Added detailed bilingual hover popups to **every single control across all 13 forms**: Top Bar & Sidebar nav buttons, Autopot & Yggdrasil, ON/OFF + Global Key + Audio/Focus/Chat, Skill Spammer (3-state checkboxes, Compatibility vs Speed Boost, No Shift, Mouse Flick, Delay), Autobuff Skills & Items, Debuff Recovery, Skill Timers, Macros Hub tabs, Macro Troca, Macro Músicas, Macro ATK x DEF (renamed trigger label to **`Skill (Gatilho):`** for clarity), and Profiles / Backup / Character Auto-Switch.
+
 ## [v2.25.0] - 2026-11-20 — Clean Debuff Recovery (Item & Skill Curable Only)
 ### Changed & Removed
 - **Kept strictly the 7 self-curable Pre-Renewal debuffs in `Recuperação de Debuffs` (`Model/Buff.cs`, `Forms/DebuffRecoveryForm.cs`, `Utils/LocalizationManager.cs`)**:

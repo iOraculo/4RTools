@@ -5,7 +5,7 @@ using _4RTools.Utils;
 
 namespace _4RTools.Forms
 {
-    public class MacrosHubForm : Form
+    public class MacrosHubForm : Form, IObserver
     {
         private readonly SegmentedTabButton btnTabSwitch;
         private readonly SegmentedTabButton btnTabSongs;
@@ -14,6 +14,7 @@ namespace _4RTools.Forms
         private readonly MacroSwitchForm switchForm;
         private readonly MacroSongForm songForm;
         private readonly ATKDEFForm atkDefForm;
+        private readonly ToolTip hubToolTip;
         private string activeTab = "switch";
 
         public MacrosHubForm(Subject subject)
@@ -22,6 +23,7 @@ namespace _4RTools.Forms
             this.Name = "MacrosHubForm";
             this.Text = "Macros";
             this.Size = new Size(584, 281);
+            this.hubToolTip = FormUtils.CreateHelpToolTip();
 
             Panel tabBar = new Panel
             {
@@ -86,7 +88,43 @@ namespace _4RTools.Forms
             this.Controls.Add(tabBar);
             this.Controls.Add(this.contentHostPanel);
 
+            RefreshTooltips();
+            if (subject != null)
+            {
+                subject.Attach(this);
+            }
+
             SelectTab("switch");
+        }
+
+        private void RefreshTooltips()
+        {
+            if (this.hubToolTip == null)
+            {
+                return;
+            }
+
+            this.hubToolTip.SetToolTip(this.btnTabSwitch, LocalizationManager.T("tooltip.macro_tab_switch"));
+            this.hubToolTip.SetToolTip(this.btnTabSongs, LocalizationManager.T("tooltip.macro_tab_songs"));
+            this.hubToolTip.SetToolTip(this.btnTabAtkDef, LocalizationManager.T("tooltip.macro_tab_atkdef"));
+        }
+
+        public void Update(ISubject subject)
+        {
+            Subject subj = subject as Subject;
+            if (subj != null && subj.Message != null && subj.Message.code == MessageCode.LANGUAGE_CHANGED)
+            {
+                RefreshTooltips();
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && this.hubToolTip != null)
+            {
+                this.hubToolTip.Dispose();
+            }
+            base.Dispose(disposing);
         }
 
         public string ActiveTab

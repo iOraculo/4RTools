@@ -237,12 +237,22 @@ namespace _4RTools.Forms
 
         private void RefreshLocalizedDebuffLabels()
         {
+            FormUtils.ConfigureHelpToolTip(this.toolTip1);
+
             string panaceaTip = LocalizationManager.IsPortuguese
                 ? "Define uma única tecla (Panaceia ou Geleia Real) para curar Veneno, Silêncio, Cegueira, Maldição, Confusão e Alucinação automaticamente."
                 : "Sets one key (Panacea or Royal Jelly) to automatically cure Poison, Silence, Blind, Curse, Confusion, and Hallucination.";
             this.toolTip1.SetToolTip(this.pictureBox1, panaceaTip);
             this.toolTip1.SetToolTip(this.label1, panaceaTip);
             this.toolTip1.SetToolTip(this.txtStatusKey, panaceaTip);
+            if (this.lblCurableHint != null)
+            {
+                this.toolTip1.SetToolTip(this.lblCurableHint, panaceaTip);
+            }
+            if (this.lblAgilityHint != null)
+            {
+                this.toolTip1.SetToolTip(this.lblAgilityHint, GetDebuffCureHint(EffectStatusIDs.EFST_DECREASE_AGI));
+            }
 
             foreach (DebuffRowUi row in this.debuffRows)
             {

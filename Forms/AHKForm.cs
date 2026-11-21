@@ -12,15 +12,49 @@ namespace _4RTools.Forms
     {
         private bool isUpdatingUi;
         private Button btnClearAllKeys;
+        private ToolTip helpToolTip;
 
         public AHKForm(Subject subject)
         {
             InitializeComponent();
+            this.helpToolTip = FormUtils.CreateHelpToolTip(this.components);
             this.pictureBox1.Left = 266;
             this.pbUpAndDownArrow.Left = 282;
             InitializeClearAllButton();
             InitializeCheckAsThreeState();
+            RefreshTooltips();
             subject.Attach(this);
+        }
+
+        private void RefreshTooltips()
+        {
+            if (this.helpToolTip == null)
+            {
+                return;
+            }
+
+            string keyTip = LocalizationManager.T("tooltip.ahk_key");
+            foreach (Control c in this.Controls)
+            {
+                CheckBox chk = c as CheckBox;
+                if (chk != null && chk.Name.StartsWith("chk", StringComparison.Ordinal))
+                {
+                    this.helpToolTip.SetToolTip(chk, keyTip);
+                }
+            }
+
+            this.helpToolTip.SetToolTip(this.txtSpammerDelay, LocalizationManager.T("tooltip.ahk_delay"));
+            this.helpToolTip.SetToolTip(this.ahkCompatibility, LocalizationManager.T("tooltip.ahk_compat"));
+            this.helpToolTip.SetToolTip(this.ahkSpeedBoost, LocalizationManager.T("tooltip.ahk_speed"));
+            this.helpToolTip.SetToolTip(this.chkNoShift, LocalizationManager.T("tooltip.ahk_noshift"));
+            this.helpToolTip.SetToolTip(this.chkMouseFlick, LocalizationManager.T("tooltip.ahk_flick"));
+            if (this.btnClearAllKeys != null)
+            {
+                this.helpToolTip.SetToolTip(this.btnClearAllKeys, LocalizationManager.T("tooltip.ahk_clear"));
+            }
+            this.helpToolTip.SetToolTip(this.cbWithClick, keyTip);
+            this.helpToolTip.SetToolTip(this.cbWithNoClick, keyTip);
+            this.helpToolTip.SetToolTip(this.cbDeactivated, keyTip);
         }
 
         private void InitializeClearAllButton()
@@ -117,6 +151,9 @@ namespace _4RTools.Forms
                     break;
                 case MessageCode.TURN_OFF:
                     ProfileSingleton.GetCurrent().AHK.Stop();
+                    break;
+                case MessageCode.LANGUAGE_CHANGED:
+                    RefreshTooltips();
                     break;
             }
         }

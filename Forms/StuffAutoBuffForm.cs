@@ -14,6 +14,7 @@ namespace _4RTools.Forms
         private TextBox txtSearch;
         private NumericUpDown numMinSp;
         private NumericUpDown numCooldown;
+        private Button btnClearStuffs;
         private CheckBox cbPreRenewal;
         private ComboBox cbOriginFilter;
         private CheckBox cbPauseWhenSitting;
@@ -116,14 +117,14 @@ namespace _4RTools.Forms
             };
             this.numCooldown.ValueChanged += OnAutobuffOptionsChanged;
 
-            Button btnClear = new Button
+            this.btnClearStuffs = new Button
             {
                 Location = new Point(438, 9),
                 Size = new Size(104, 22),
                 Text = "Clear Stuffs",
                 UseVisualStyleBackColor = true
             };
-            btnClear.Click += (s, e) =>
+            this.btnClearStuffs.Click += (s, e) =>
             {
                 if (MessageBox.Show(
                         LocalizationManager.T("msg.clear_stuffs_confirm"),
@@ -180,7 +181,7 @@ namespace _4RTools.Forms
             this.Controls.Add(this.numMinSp);
             this.Controls.Add(lblCooldown);
             this.Controls.Add(this.numCooldown);
-            this.Controls.Add(btnClear);
+            this.Controls.Add(this.btnClearStuffs);
             this.Controls.Add(this.cbPreRenewal);
             this.Controls.Add(this.cbOriginFilter);
             this.Controls.Add(this.cbPauseWhenSitting);
@@ -274,6 +275,16 @@ namespace _4RTools.Forms
 
         private void RefreshLocalizedTooltips()
         {
+            FormUtils.ConfigureHelpToolTip(this.toolTip1);
+
+            if (this.txtSearch != null)
+            {
+                this.toolTip1.SetToolTip(this.txtSearch, LocalizationManager.T("tooltip.buff_search"));
+            }
+            if (this.btnClearStuffs != null)
+            {
+                this.toolTip1.SetToolTip(this.btnClearStuffs, LocalizationManager.T("tooltip.buff_clear_stuffs"));
+            }
             if (this.numMinSp != null)
             {
                 this.toolTip1.SetToolTip(this.numMinSp, LocalizationManager.T("tooltip.min_sp"));

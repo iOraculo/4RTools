@@ -32,6 +32,7 @@ namespace _4RTools.Forms
 
         private readonly TimerSlotUi[] slots = new TimerSlotUi[TOTAL_TIMER_SLOTS];
         private Button btnAddTimer;
+        private ToolTip timerToolTip;
         private Font labelFont;
         private Font inputFont;
         private bool isUpdatingUi;
@@ -51,6 +52,7 @@ namespace _4RTools.Forms
             {
                 this.Controls.Clear();
                 this.AutoScroll = true;
+                this.timerToolTip = FormUtils.CreateHelpToolTip(this.components);
                 this.labelFont = new Font("Microsoft Sans Serif", 8.5F);
                 this.inputFont = new Font("Microsoft Sans Serif", 10F);
 
@@ -74,11 +76,47 @@ namespace _4RTools.Forms
                 this.btnAddTimer.Click += (s, e) => AddNextTimer();
                 this.Controls.Add(this.btnAddTimer);
 
+                RefreshTooltips();
                 LayoutVisibleTimers();
             }
             finally
             {
                 this.ResumeLayout(true);
+            }
+        }
+
+        private void RefreshTooltips()
+        {
+            if (this.timerToolTip == null)
+            {
+                return;
+            }
+
+            string delayTip = LocalizationManager.T("tooltip.timer_delay");
+            string keyTip = LocalizationManager.T("tooltip.timer_key");
+            string clearTip = LocalizationManager.T("tooltip.timer_clear");
+            string removeTip = LocalizationManager.T("tooltip.timer_remove");
+
+            for (int i = 0; i < this.slots.Length; i++)
+            {
+                TimerSlotUi slot = this.slots[i];
+                if (slot == null)
+                {
+                    continue;
+                }
+
+                this.timerToolTip.SetToolTip(slot.DelayBox, delayTip);
+                this.timerToolTip.SetToolTip(slot.KeyBox, keyTip);
+                this.timerToolTip.SetToolTip(slot.BtnClear, clearTip);
+                if (slot.BtnRemove != null)
+                {
+                    this.timerToolTip.SetToolTip(slot.BtnRemove, removeTip);
+                }
+            }
+
+            if (this.btnAddTimer != null)
+            {
+                this.timerToolTip.SetToolTip(this.btnAddTimer, LocalizationManager.T("tooltip.timer_add"));
             }
         }
 
@@ -375,6 +413,9 @@ namespace _4RTools.Forms
                     currentOff.AutoRefreshSpammer4.Stop();
                     currentOff.AutoRefreshSpammer5.Stop();
                     currentOff.AutoRefreshSpammer6.Stop();
+                    break;
+                case MessageCode.LANGUAGE_CHANGED:
+                    RefreshTooltips();
                     break;
             }
         }

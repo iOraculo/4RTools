@@ -15,6 +15,8 @@ namespace _4RTools.Forms
         private readonly List<TextBox> atkSlotBoxes = new List<TextBox>();
         private GroupBox gbDef;
         private GroupBox gbAtk;
+        private Button btnClearDef;
+        private Button btnClearAtk;
         private bool isUpdatingUi;
 
         public ATKDEFForm(Subject subject)
@@ -35,7 +37,7 @@ namespace _4RTools.Forms
             this.groupBoxATKxDEFConfig.Location = new Point(6, 8);
             this.groupBoxATKxDEFConfig.Size = new Size(172, 224);
 
-            this.label2.Text = "Trigger:";
+            this.label2.Text = "Skill (Trigger):";
             this.label3.Text = "Delays(ms):";
             this.lblSwitchDelay.Text = "Switch(ms):";
 
@@ -53,8 +55,8 @@ namespace _4RTools.Forms
             for (int i = 0; i < leftLabels.Length; i++)
             {
                 leftLabels[i].AutoSize = false;
-                leftLabels[i].Location = new Point(4, yPositions[i]);
-                leftLabels[i].Size = new Size(90, 17);
+                leftLabels[i].Location = new Point(2, yPositions[i]);
+                leftLabels[i].Size = new Size(94, 17);
                 leftLabels[i].TextAlign = ContentAlignment.MiddleRight;
             }
         }
@@ -129,7 +131,7 @@ namespace _4RTools.Forms
             PlaceEquipSlot(this.gbDef, pbDefAccLeft, inDefAccLeft, 98, rowY[3], "equip.acc_left", this.defSlotBoxes);
             PlaceEquipSlot(this.gbDef, pbDefAccRight, inDefAccRight, 98, rowY[4], "equip.acc_right", this.defSlotBoxes);
 
-            Button btnClearDef = new Button
+            this.btnClearDef = new Button
             {
                 Cursor = System.Windows.Forms.Cursors.Hand,
                 Location = new Point(98, 192),
@@ -138,8 +140,8 @@ namespace _4RTools.Forms
                 Text = "Clear DEF",
                 UseVisualStyleBackColor = true
             };
-            btnClearDef.Click += (s, e) => ClearSlots(ATKDEFEnum.DEF);
-            this.gbDef.Controls.Add(btnClearDef);
+            this.btnClearDef.Click += (s, e) => ClearSlots(ATKDEFEnum.DEF);
+            this.gbDef.Controls.Add(this.btnClearDef);
 
             // ATK Switch — Column 1 (Top, Mid, Low, Armor, Weapon)
             PlaceEquipSlot(this.gbAtk, pbAtkTop, inAtkTop, 8, rowY[0], "equip.hat_top", this.atkSlotBoxes);
@@ -155,7 +157,7 @@ namespace _4RTools.Forms
             PlaceEquipSlot(this.gbAtk, pbAtkAccLeft, inAtkAccLeft, 98, rowY[3], "equip.acc_left", this.atkSlotBoxes);
             PlaceEquipSlot(this.gbAtk, pbAtkAccRight, inAtkAccRight, 98, rowY[4], "equip.acc_right", this.atkSlotBoxes);
 
-            Button btnClearAtk = new Button
+            this.btnClearAtk = new Button
             {
                 Cursor = System.Windows.Forms.Cursors.Hand,
                 Location = new Point(98, 192),
@@ -164,8 +166,8 @@ namespace _4RTools.Forms
                 Text = "Clear ATK",
                 UseVisualStyleBackColor = true
             };
-            btnClearAtk.Click += (s, e) => ClearSlots(ATKDEFEnum.ATK);
-            this.gbAtk.Controls.Add(btnClearAtk);
+            this.btnClearAtk.Click += (s, e) => ClearSlots(ATKDEFEnum.ATK);
+            this.gbAtk.Controls.Add(this.btnClearAtk);
         }
 
         private TextBox CreateEquipInput(GroupBox parent, string name, string modeTag)
@@ -257,7 +259,27 @@ namespace _4RTools.Forms
                 return;
             }
 
+            FormUtils.ConfigureHelpToolTip(this.toolTip1);
+
+            string triggerTip = LocalizationManager.T("tooltip.atkdef_trigger");
+            string delayTip = LocalizationManager.T("tooltip.atkdef_delay");
+            string switchDelayTip = LocalizationManager.T("tooltip.atkdef_switch_delay");
+
+            this.toolTip1.SetToolTip(this.label2, triggerTip);
+            this.toolTip1.SetToolTip(this.inSpammerKey, triggerTip);
+            this.toolTip1.SetToolTip(this.label3, delayTip);
+            this.toolTip1.SetToolTip(this.spammerDelay, delayTip);
+            this.toolTip1.SetToolTip(this.lblSwitchDelay, switchDelayTip);
+            this.toolTip1.SetToolTip(this.switchDelay, switchDelayTip);
             this.toolTip1.SetToolTip(this.inSpammerClick, LocalizationManager.T("tooltip.atkdef_click"));
+            if (this.btnClearDef != null)
+            {
+                this.toolTip1.SetToolTip(this.btnClearDef, LocalizationManager.T("tooltip.atkdef_clear_def"));
+            }
+            if (this.btnClearAtk != null)
+            {
+                this.toolTip1.SetToolTip(this.btnClearAtk, LocalizationManager.T("tooltip.atkdef_clear_atk"));
+            }
 
             foreach (Tuple<Control, Control, string> entry in this.slotTooltipTargets)
             {

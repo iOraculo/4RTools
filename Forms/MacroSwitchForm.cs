@@ -60,7 +60,7 @@ namespace _4RTools.Forms
                 this.Controls.Clear();
                 this.AutoScroll = true;
                 this.AutoScrollMargin = new Size(0, 12);
-                this.switchToolTip = new ToolTip(this.components);
+                this.switchToolTip = FormUtils.CreateHelpToolTip(this.components);
 
                 for (int i = 0; i < TOTAL_MACRO_LANES; i++)
                 {
@@ -315,6 +315,11 @@ namespace _4RTools.Forms
             string stepTip = LocalizationManager.T("tooltip.switch_step_key");
             string delayTip = LocalizationManager.T("tooltip.switch_delay");
             string loopTip = LocalizationManager.T("tooltip.switch_loop");
+            string clickTip = LocalizationManager.T("tooltip.switch_click");
+            string addSlotTip = LocalizationManager.T("tooltip.switch_add_slot");
+            string removeSlotTip = LocalizationManager.T("tooltip.switch_remove_slot");
+            string clearTip = LocalizationManager.T("tooltip.switch_clear");
+            string removeLaneTip = LocalizationManager.T("tooltip.switch_remove_lane");
 
             for (int i = 0; i < this.lanes.Length; i++)
             {
@@ -326,11 +331,24 @@ namespace _4RTools.Forms
 
                 this.switchToolTip.SetToolTip(lane.TriggerBox, triggerTip);
                 this.switchToolTip.SetToolTip(lane.LoopCheck, loopTip);
+                this.switchToolTip.SetToolTip(lane.BtnAddSlot, addSlotTip);
+                this.switchToolTip.SetToolTip(lane.BtnRemoveSlot, removeSlotTip);
+                this.switchToolTip.SetToolTip(lane.BtnClearLane, clearTip);
+                if (lane.BtnRemoveLane != null)
+                {
+                    this.switchToolTip.SetToolTip(lane.BtnRemoveLane, removeLaneTip);
+                }
                 for (int s = 0; s < MAX_SLOTS_PER_LANE; s++)
                 {
                     this.switchToolTip.SetToolTip(lane.KeyBoxes[s], stepTip);
                     this.switchToolTip.SetToolTip(lane.DelayInputs[s], delayTip);
+                    this.switchToolTip.SetToolTip(lane.ClickChecks[s], clickTip);
                 }
+            }
+
+            if (this.btnAddSwitch != null)
+            {
+                this.switchToolTip.SetToolTip(this.btnAddSwitch, LocalizationManager.T("tooltip.switch_add_lane"));
             }
         }
 

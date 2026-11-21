@@ -14,6 +14,7 @@ namespace _4RTools.Forms
         private TextBox txtSearch;
         private NumericUpDown numMinSp;
         private NumericUpDown numCooldown;
+        private Button btnClearSkills;
         private CheckBox cbPreRenewal;
         private CheckBox cbPauseWhenSitting;
         private bool isUpdatingOptions;
@@ -101,14 +102,14 @@ namespace _4RTools.Forms
             };
             this.numCooldown.ValueChanged += OnAutobuffOptionsChanged;
 
-            Button btnClear = new Button
+            this.btnClearSkills = new Button
             {
                 Location = new Point(438, 9),
                 Size = new Size(104, 22),
                 Text = "Clear Skills",
                 UseVisualStyleBackColor = true
             };
-            btnClear.Click += (s, e) =>
+            this.btnClearSkills.Click += (s, e) =>
             {
                 if (MessageBox.Show(
                         LocalizationManager.T("msg.clear_skills_confirm"),
@@ -153,7 +154,7 @@ namespace _4RTools.Forms
             this.Controls.Add(this.numMinSp);
             this.Controls.Add(lblCooldown);
             this.Controls.Add(this.numCooldown);
-            this.Controls.Add(btnClear);
+            this.Controls.Add(this.btnClearSkills);
             this.Controls.Add(this.cbPreRenewal);
             this.Controls.Add(this.cbPauseWhenSitting);
 
@@ -180,6 +181,16 @@ namespace _4RTools.Forms
 
         private void RefreshLocalizedTooltips()
         {
+            FormUtils.ConfigureHelpToolTip(this.toolTip1);
+
+            if (this.txtSearch != null)
+            {
+                this.toolTip1.SetToolTip(this.txtSearch, LocalizationManager.T("tooltip.buff_search"));
+            }
+            if (this.btnClearSkills != null)
+            {
+                this.toolTip1.SetToolTip(this.btnClearSkills, LocalizationManager.T("tooltip.buff_clear_skills"));
+            }
             if (this.numMinSp != null)
             {
                 this.toolTip1.SetToolTip(this.numMinSp, LocalizationManager.T("tooltip.min_sp"));

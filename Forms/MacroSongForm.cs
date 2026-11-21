@@ -26,7 +26,9 @@ namespace _4RTools.Forms
             public GroupBox Group;
             public TextBox TriggerBox;
             public NumericUpDown DelayInput;
+            public PictureBox DaggerIconBox;
             public TextBox DaggerBox;
+            public PictureBox InstrumentIconBox;
             public TextBox InstrumentBox;
             public TextBox[] SongBoxes = new TextBox[MAX_SONG_SLOTS_PER_LANE];
             public Label[] ArrowLabels = new Label[MAX_SONG_SLOTS_PER_LANE - 1];
@@ -74,7 +76,7 @@ namespace _4RTools.Forms
                 this.Controls.Clear();
                 this.AutoScroll = true;
                 this.AutoScrollMargin = new Size(0, 12);
-                this.songToolTip = new ToolTip(this.components);
+                this.songToolTip = FormUtils.CreateHelpToolTip(this.components);
 
                 for (int i = 0; i < TOTAL_MACRO_LANES_FOR_SONGS; i++)
                 {
@@ -220,6 +222,9 @@ namespace _4RTools.Forms
                 Size = new Size(LANE_WIDTH - 20, 1)
             };
 
+            lane.DaggerIconBox = pbDagger;
+            lane.InstrumentIconBox = pbInstrument;
+
             group.Controls.Add(lblTrigger);
             group.Controls.Add(lane.TriggerBox);
             group.Controls.Add(lblDelay);
@@ -360,6 +365,10 @@ namespace _4RTools.Forms
             string stepTip = LocalizationManager.T("tooltip.song_step");
             string daggerTip = LocalizationManager.T("tooltip.song_dagger");
             string instrumentTip = LocalizationManager.T("tooltip.song_instrument");
+            string addSlotTip = LocalizationManager.T("tooltip.song_add_slot");
+            string removeSlotTip = LocalizationManager.T("tooltip.song_remove_slot");
+            string clearTip = LocalizationManager.T("tooltip.song_clear");
+            string removeLaneTip = LocalizationManager.T("tooltip.song_remove_lane");
 
             for (int i = 0; i < this.lanes.Length; i++)
             {
@@ -371,13 +380,27 @@ namespace _4RTools.Forms
 
                 this.songToolTip.SetToolTip(lane.TriggerBox, triggerTip);
                 this.songToolTip.SetToolTip(lane.DelayInput, delayTip);
+                if (lane.DaggerIconBox != null) this.songToolTip.SetToolTip(lane.DaggerIconBox, daggerTip);
                 this.songToolTip.SetToolTip(lane.DaggerBox, daggerTip);
+                if (lane.InstrumentIconBox != null) this.songToolTip.SetToolTip(lane.InstrumentIconBox, instrumentTip);
                 this.songToolTip.SetToolTip(lane.InstrumentBox, instrumentTip);
+                this.songToolTip.SetToolTip(lane.BtnAddSlot, addSlotTip);
+                this.songToolTip.SetToolTip(lane.BtnRemoveSlot, removeSlotTip);
+                this.songToolTip.SetToolTip(lane.BtnResetLane, clearTip);
+                if (lane.BtnRemoveLane != null)
+                {
+                    this.songToolTip.SetToolTip(lane.BtnRemoveLane, removeLaneTip);
+                }
 
                 for (int s = 0; s < MAX_SONG_SLOTS_PER_LANE; s++)
                 {
                     this.songToolTip.SetToolTip(lane.SongBoxes[s], stepTip);
                 }
+            }
+
+            if (this.btnAddSongMacro != null)
+            {
+                this.songToolTip.SetToolTip(this.btnAddSongMacro, LocalizationManager.T("tooltip.song_add_lane"));
             }
         }
 

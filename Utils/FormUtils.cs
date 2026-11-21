@@ -10,6 +10,26 @@ namespace _4RTools.Utils
     {
         public const string SKIP_RESET_TAG = "skipReset";
 
+        public static ToolTip CreateHelpToolTip(System.ComponentModel.IContainer container = null)
+        {
+            ToolTip tip = container != null ? new ToolTip(container) : new ToolTip();
+            ConfigureHelpToolTip(tip);
+            return tip;
+        }
+
+        public static void ConfigureHelpToolTip(ToolTip tip)
+        {
+            if (tip == null)
+            {
+                return;
+            }
+
+            tip.AutoPopDelay = 20000;
+            tip.InitialDelay = 250;
+            tip.ReshowDelay = 120;
+            tip.ShowAlways = true;
+        }
+
         public static void OnKeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
         {
             try

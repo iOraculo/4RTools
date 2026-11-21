@@ -946,5 +946,44 @@ namespace _4RTools.Tests
                 Assert.Equal("Diminuir Agilidade", form.Controls.Find("lblDebuff" + (int)EffectStatusIDs.EFST_DECREASE_AGI, true)[0].Text);
             }
         }
+
+        [Fact]
+        public void GuideForm_RendersAllSectionsSupportsSearchAndBilingualTooltips()
+        {
+            using (System.Windows.Forms.ToolTip tip = FormUtils.CreateHelpToolTip())
+            {
+                Assert.Equal(20000, tip.AutoPopDelay);
+                Assert.True(tip.ShowAlways);
+            }
+
+            LocalizationManager.SetLanguage(LocalizationManager.LANG_PT_BR);
+            Subject subject = new Subject();
+            using (GuideForm guide = new GuideForm(subject))
+            {
+                Assert.Equal(9, guide.TotalSectionCount);
+                Assert.Equal(9, guide.VisibleSectionCount);
+
+                // Accent-insensitive Portuguese search for ATK x DEF / Macros
+                guide.ApplySearchFilter("musicas");
+                Assert.True(guide.VisibleSectionCount >= 1);
+                Assert.True(guide.VisibleSectionCount < guide.TotalSectionCount);
+
+                // Nonsense search shows 0 cards
+                guide.ApplySearchFilter("zzzz_nao_existe_12345");
+                Assert.Equal(0, guide.VisibleSectionCount);
+
+                // Clearing filter restores all 9 cards
+                guide.ApplySearchFilter(string.Empty);
+                Assert.Equal(9, guide.VisibleSectionCount);
+
+                // Live language switch updates titles to English
+                LocalizationManager.SetLanguage(LocalizationManager.LANG_EN_US);
+                subject.Notify(new _4RTools.Utils.Message(MessageCode.LANGUAGE_CHANGED, LocalizationManager.LANG_EN_US));
+                System.Windows.Forms.Control[] macrosGroup = guide.Controls.Find("gbGuide_macros", true);
+                Assert.Single(macrosGroup);
+                Assert.Contains("ATK x DEF", macrosGroup[0].Text);
+                Assert.Contains("Songs", macrosGroup[0].Text);
+            }
+        }
     }
 }

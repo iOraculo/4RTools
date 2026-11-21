@@ -11,11 +11,13 @@ namespace _4RTools.Forms
     {
         private Autopot autopot;
         private readonly bool isYgg;
+        private readonly ToolTip helpToolTip;
         private bool isUpdatingUi;
 
         public AutopotForm(Subject subject, bool isYgg)
         {
             InitializeComponent();
+            this.helpToolTip = FormUtils.CreateHelpToolTip(this.components);
             if (isYgg)
             {
                 this.picBoxHP.Image = Resources._4RTools.ETCResource.Yggdrasil;
@@ -43,7 +45,31 @@ namespace _4RTools.Forms
             this.txtSPKey.KeyPress += new KeyPressEventHandler(FormUtils.OnKeyPress);
             this.txtSPKey.TextChanged += new EventHandler(this.onSpTextChange);
 
+            RefreshTooltips();
             subject.Attach(this);
+        }
+
+        private void RefreshTooltips()
+        {
+            if (this.helpToolTip == null)
+            {
+                return;
+            }
+
+            string hpKeyTip = LocalizationManager.T(this.isYgg ? "tooltip.autopot_ygg_hp_key" : "tooltip.autopot_hp_key");
+            string hpPctTip = LocalizationManager.T(this.isYgg ? "tooltip.autopot_ygg_hp_pct" : "tooltip.autopot_hp_pct");
+            string spKeyTip = LocalizationManager.T(this.isYgg ? "tooltip.autopot_ygg_sp_key" : "tooltip.autopot_sp_key");
+            string spPctTip = LocalizationManager.T(this.isYgg ? "tooltip.autopot_ygg_sp_pct" : "tooltip.autopot_sp_pct");
+            string delayTip = LocalizationManager.T("tooltip.autopot_delay");
+
+            this.helpToolTip.SetToolTip(this.picBoxHP, hpKeyTip);
+            this.helpToolTip.SetToolTip(this.txtHpKey, hpKeyTip);
+            this.helpToolTip.SetToolTip(this.txtHPpct, hpPctTip);
+            this.helpToolTip.SetToolTip(this.picBoxSP, spKeyTip);
+            this.helpToolTip.SetToolTip(this.txtSPKey, spKeyTip);
+            this.helpToolTip.SetToolTip(this.txtSPpct, spPctTip);
+            this.helpToolTip.SetToolTip(this.label2, delayTip);
+            this.helpToolTip.SetToolTip(this.txtAutopotDelay, delayTip);
         }
 
         public void Update(ISubject subject)
@@ -59,6 +85,9 @@ namespace _4RTools.Forms
                 case MessageCode.PROFILE_CHANGED:
                     this.autopot = this.isYgg ? ProfileSingleton.GetCurrent().AutopotYgg : ProfileSingleton.GetCurrent().Autopot;
                     InitializeApplicationForm();
+                    break;
+                case MessageCode.LANGUAGE_CHANGED:
+                    RefreshTooltips();
                     break;
                 case MessageCode.TURN_OFF:
                     if (this.autopot != null)

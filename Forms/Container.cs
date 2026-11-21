@@ -105,6 +105,7 @@ namespace _4RTools.Forms
             SetSkillTimerWindow();
             SetMacrosWindow();
             SetProfileWindow();
+            SetGuideWindow();
 
             SelectSection("spammer");
             ApplyAppSettingsToUi();
@@ -133,7 +134,7 @@ namespace _4RTools.Forms
             try
             {
                 this.ClientSize = new Size(824, 644);
-                this.headerToolTip = new ToolTip();
+                this.headerToolTip = FormUtils.CreateHelpToolTip();
 
                 // Remove legacy Designer layout containers while keeping reusable Designer controls intact.
                 HideLegacyControl(this.atkDefMode);
@@ -330,6 +331,7 @@ namespace _4RTools.Forms
 
                 y = 288;
                 AddSidebarButton("profiles", "Profiles", SidebarIconKind.Profiles, ref y);
+                AddSidebarButton("guide", "Guide / Help", SidebarIconKind.Guide, ref y);
 
                 // Live Session Summary Card anchored at the bottom of the sidebar
                 this.cardQuickStatus = new ModernCardPanel
@@ -827,6 +829,7 @@ namespace _4RTools.Forms
             if (this.profileForm != null)
             {
                 this.profileForm.RefreshCharacterBindingUi();
+                this.profileForm.RefreshTooltips();
             }
             this.subject.Notify(new Utils.Message(MessageCode.LANGUAGE_CHANGED, LocalizationManager.CurrentLanguage));
         }
@@ -836,6 +839,32 @@ namespace _4RTools.Forms
             if (this.headerToolTip == null)
             {
                 return;
+            }
+
+            this.headerToolTip.SetToolTip(this.processCB, LocalizationManager.T("tooltip.process_select"));
+            this.headerToolTip.SetToolTip(this.profileCB, LocalizationManager.T("tooltip.profile_select"));
+            this.headerToolTip.SetToolTip(this.btnTabAutopot, LocalizationManager.T("tooltip.tab_autopot"));
+            this.headerToolTip.SetToolTip(this.btnTabYgg, LocalizationManager.T("tooltip.tab_ygg"));
+            if (this.hpBar != null)
+            {
+                this.headerToolTip.SetToolTip(this.hpBar, LocalizationManager.T("tooltip.vital_hp"));
+            }
+            if (this.spBar != null)
+            {
+                this.headerToolTip.SetToolTip(this.spBar, LocalizationManager.T("tooltip.vital_sp"));
+            }
+            if (this.cardQuickStatus != null)
+            {
+                string sessionTip = LocalizationManager.T("tooltip.session_card");
+                this.headerToolTip.SetToolTip(this.cardQuickStatus, sessionTip);
+                this.headerToolTip.SetToolTip(this.lblSessionStatus, sessionTip);
+                this.headerToolTip.SetToolTip(this.lblSessionProfile, sessionTip);
+                this.headerToolTip.SetToolTip(this.lblSessionClient, sessionTip);
+            }
+
+            foreach (KeyValuePair<string, SidebarNavButton> nav in this.navButtons)
+            {
+                this.headerToolTip.SetToolTip(nav.Value, LocalizationManager.T("tooltip.nav_" + nav.Key));
             }
 
             this.headerToolTip.SetToolTip(this.cbDarkMode, LocalizationManager.T("tooltip.dark_mode"));
@@ -1654,6 +1683,11 @@ namespace _4RTools.Forms
         public void SetMacrosWindow()
         {
             RegisterSectionForm("macros", new MacrosHubForm(this.subject));
+        }
+
+        public void SetGuideWindow()
+        {
+            RegisterSectionForm("guide", new GuideForm(this.subject));
         }
 
         #endregion
