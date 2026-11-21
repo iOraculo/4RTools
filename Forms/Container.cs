@@ -310,9 +310,9 @@ namespace _4RTools.Forms
 
                 int y = 32;
                 AddSidebarButton("spammer", "Skill Spammer", SidebarIconKind.Spammer, ref y);
-                AddSidebarButton("debuff", "Debuff", SidebarIconKind.Debuffs, ref y);
-                AddSidebarButton("buff_skills", "Autobuff - Skills", SidebarIconKind.BuffSkills, ref y);
-                AddSidebarButton("buff_stuffs", "Autobuff - Stuffs", SidebarIconKind.BuffItems, ref y);
+                AddSidebarButton("debuff", "Anti-Debuffs", SidebarIconKind.Debuffs, ref y);
+                AddSidebarButton("buff_skills", "Auto-Skills", SidebarIconKind.BuffSkills, ref y);
+                AddSidebarButton("buff_stuffs", "Consumables", SidebarIconKind.BuffItems, ref y);
                 AddSidebarButton("timers", "Skill timers", SidebarIconKind.Timers, ref y);
                 AddSidebarButton("macros", "Macros", SidebarIconKind.MacroSwitch, ref y);
 

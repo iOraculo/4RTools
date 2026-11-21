@@ -204,7 +204,7 @@ namespace _4RTools.Forms
                 new GuideSectionData
                 {
                     Key = "spammer",
-                    TitlePt = "3. Spam de Skills",
+                    TitlePt = "3. Spammer",
                     BodyPt =
                         "• 3 estados em cada caixinha de tecla (clique para alternar):\n" +
                         "   – Vazio: tecla desativada.\n" +
@@ -224,13 +224,13 @@ namespace _4RTools.Forms
                 new GuideSectionData
                 {
                     Key = "autobuff_skills",
-                    TitlePt = "4. Autobuff — Skills",
+                    TitlePt = "4. Auto-Skills",
                     BodyPt =
                         "• O 4Tools lê diretamente os ícones de buff ativos na memória do jogo e aperta a tecla da skill assim que o buff acabar.\n" +
                         "• Modo Pré-Renewal: mantém visíveis apenas skills de classes Pré-Renewal / Transclasses (incluindo Canto de Batalha e todas as músicas/danças de Bardo/Odalisca).\n" +
                         "• SP Mín% e CD(ms): pausa o autobuff se seu SP estiver abaixo da % escolhida e aplica uma recarga mínima entre tentativas (ex.: 1500ms evita conjurar duas vezes seguidas).\n" +
                         "• Pausar ao sentar: evita gastar SP/skills enquanto o personagem está sentado recuperando.",
-                    TitleEn = "4. Autobuff — Skills",
+                    TitleEn = "4. Auto-Skills",
                     BodyEn =
                         "• 4Tools reads active status icons directly from client memory and recasts the skill as soon as the buff expires.\n" +
                         "• Pre-Renewal Mode: shows only Pre-Renewal / Transcendent class skills (including Battle Chant and all Bard/Dancer songs and dances).\n" +
@@ -240,26 +240,26 @@ namespace _4RTools.Forms
                 new GuideSectionData
                 {
                     Key = "autobuff_items",
-                    TitlePt = "5. Autobuff — Itens e Consumíveis",
+                    TitlePt = "5. Consumíveis",
                     BodyPt =
                         "• Renova automaticamente poções de ASPD, conversores elementais, comidas, caixas, pergaminhos e buffs de EXP assim que o ícone expira.\n" +
                         "• Divisão Comuns vs. ROPs: os itens do AureumRO são organizados em 'Itens Comuns' e 'Itens de ROPs', com seletor rápido no topo para filtrar apenas Comuns, apenas ROPs ou Todos.\n" +
-                        "• Pausar ao sentar e Modo Pré-Renewal: ficam sincronizados entre Skills e Itens para evitar desperdício de consumíveis caros.",
-                    TitleEn = "5. Autobuff — Items and Consumables",
+                        "• Pausar ao sentar e Modo Pré-Renewal: ficam sincronizados entre Auto-Skills e Consumíveis para evitar desperdício de itens.",
+                    TitleEn = "5. Consumables",
                     BodyEn =
                         "• Automatically refreshes ASPD potions, elemental converters, foods, boxes, scrolls, and EXP buffs as soon as their icon expires.\n" +
                         "• Common vs. ROPs Split: AureumRO items are organized into 'Common Items' and 'ROPs Items', with a quick filter dropdown at the top.\n" +
-                        "• Pause when sitting and Pre-Renewal Mode: stay synced across Skills and Items to avoid wasting consumables."
+                        "• Pause when sitting and Pre-Renewal Mode: stay synced across Auto-Skills and Consumables to avoid wasting consumables."
                 },
                 new GuideSectionData
                 {
                     Key = "debuffs",
-                    TitlePt = "6. Recuperação de Debuffs",
+                    TitlePt = "6. Anti-debuffs",
                     BodyPt =
                         "• Mostra exclusivamente os 7 status que podem ser curados por item ou skill no AureumRO:\n" +
                         "• Panaceia / Geleia Real (6 status): configure a 'Tecla única (todos os 6)' para curar Veneno, Silêncio, Cegueira, Maldição, Confusão/Caos e Alucinação com um único botão — ou defina teclas individuais (ex.: Poção Verde para Veneno/Silêncio/Cegueira e Água Benta para Maldição).\n" +
                         "• Aumentar Agilidade / Velocidade: configure uma tecla (Aumentar AGI, Pergaminho, Poção do Vento/Guyak ou Bala de Guaraná) para remover Diminuir Agilidade na hora.",
-                    TitleEn = "6. Debuff Recovery",
+                    TitleEn = "6. Anti-Debuffs",
                     BodyEn =
                         "• Displays strictly the 7 status ailments curable by items or skills on AureumRO:\n" +
                         "• Panacea / Royal Jelly (6 statuses): set 'Single key (all 6)' to cure Poison, Silence, Blind, Curse, Confusion/Chaos, and Hallucination with one key — or set per-status keys (e.g., Green Potion for Poison/Silence/Blind and Holy Water for Curse).\n" +
@@ -268,7 +268,7 @@ namespace _4RTools.Forms
                 new GuideSectionData
                 {
                     Key = "timers",
-                    TitlePt = "7. Timers de Skill",
+                    TitlePt = "7. Temporizadores",
                     BodyPt =
                         "• Pressiona uma tecla automaticamente em intervalos fixos de tempo (em segundos), independente de ícone de status.\n" +
                         "• Ideal para habilidades sem ícone na tela, armadilhas, itens sem status visível ou ações periódicas.\n" +

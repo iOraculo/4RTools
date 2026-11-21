@@ -1,5 +1,15 @@
 # Changelogs
 
+## [v2.27.0] - 2026-11-21 — Cleaner Sidebar Navigation Names
+### Changed
+- **Renamed sidebar navigation items (`Forms/Container.cs`, `Utils/LocalizationManager.cs`, `Forms/GuideForm.cs`)** for cleaner, more natural PT-BR labels while keeping **Auto-Skills** and **Consumíveis** as separate direct tabs:
+  - `Spam de Skills` → **`Spammer`**
+  - `Debuffs` → **`Anti-debuffs`**
+  - `Autobuff - Skills` → **`Auto-Skills`**
+  - `Autobuff - Itens` → **`Consumíveis`**
+  - `Timers de Skill` → **`Temporizadores`**
+  - `Macros` → **`Macros`**
+
 ## [v2.26.0] - 2026-11-21 — Complete Built-In Guide & Hover Popups Across Every Feature
 ### Added
 - **Built-In Searchable `Guia / Ajuda` (`Guide / Help`) Tab (`Forms/GuideForm.cs`, `Forms/Container.cs`, `Utils/ModernControls.cs`)**:

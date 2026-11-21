@@ -352,7 +352,7 @@ namespace _4RTools.Tests
                 LocalizationManager.SetLanguage(LocalizationManager.LANG_PT_BR);
                 LocalizationManager.ApplyToControlTree(shell);
                 Assert.Equal("COMBATE & AUTOMAÇÃO", groupLabel.Text);
-                Assert.Equal("Spam de Skills", navBtn.Text);
+                Assert.Equal("Spammer", navBtn.Text);
 
                 LocalizationManager.SetLanguage(LocalizationManager.LANG_EN_US);
                 LocalizationManager.ApplyToControlTree(shell);
